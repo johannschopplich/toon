@@ -11,7 +11,7 @@ import {
 
 // #region Primitive encoding
 
-export function encodePrimitive(value: JsonPrimitive): string {
+export function encodePrimitive(value: JsonPrimitive, delimiter?: string): string {
   if (value === null) {
     return NULL_LITERAL
   }
@@ -24,11 +24,11 @@ export function encodePrimitive(value: JsonPrimitive): string {
     return String(value)
   }
 
-  return encodeStringLiteral(value)
+  return encodeStringLiteral(value, delimiter)
 }
 
-export function encodeStringLiteral(value: string): string {
-  if (isSafeUnquoted(value)) {
+export function encodeStringLiteral(value: string, delimiter: string = COMMA): string {
+  if (isSafeUnquoted(value, delimiter)) {
     return value
   }
 
@@ -44,7 +44,7 @@ export function escapeString(value: string): string {
     .replace(/\t/g, `${BACKSLASH}t`)
 }
 
-export function isSafeUnquoted(value: string): boolean {
+export function isSafeUnquoted(value: string, delimiter: string = COMMA): boolean {
   if (!value) {
     return false
   }
@@ -61,8 +61,33 @@ export function isSafeUnquoted(value: string): boolean {
     return false
   }
 
-  // Check for structural characters: comma, colon, brackets, braces, hyphen at start, newline, carriage return, tab, double-quote
-  if (/[,:\n\r\t"[\]{}]/.test(value) || value.startsWith(LIST_ITEM_MARKER)) {
+  // Check for colon (always structural)
+  if (value.includes(':')) {
+    return false
+  }
+
+  // Check for quotes and backslash (always need escaping)
+  if (value.includes('"') || value.includes('\\')) {
+    return false
+  }
+
+  // Check for brackets and braces (always structural)
+  if (/[[\]{}]/.test(value)) {
+    return false
+  }
+
+  // Check for control characters (newline, carriage return, tab - always need quoting/escaping)
+  if (/[\n\r\t]/.test(value)) {
+    return false
+  }
+
+  // Check for the active delimiter
+  if (value.includes(delimiter)) {
+    return false
+  }
+
+  // Check for hyphen at start (list marker)
+  if (value.startsWith(LIST_ITEM_MARKER)) {
     return false
   }
 
@@ -98,8 +123,8 @@ function isValidUnquotedKey(key: string): boolean {
 
 // #region Value joining
 
-export function joinEncodedValues(values: readonly JsonPrimitive[]): string {
-  return values.map(v => encodePrimitive(v)).join(COMMA)
+export function joinEncodedValues(values: readonly JsonPrimitive[], delimiter: string = COMMA): string {
+  return values.map(v => encodePrimitive(v, delimiter)).join(delimiter)
 }
 
 // #endregion

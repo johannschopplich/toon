@@ -23,5 +23,6 @@ export function encode(input: unknown, options?: EncodeOptions): string {
 function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
   return {
     indent: options?.indent ?? 2,
+    delimiter: options?.delimiter ?? ',',
   }
 }

@@ -11,6 +11,11 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonArray
 
 export interface EncodeOptions {
   indent?: number
+  /**
+   * Delimiter to use for tabular array rows and inline primitive arrays.
+   * @default ','
+   */
+  delimiter?: ',' | '\t' | '|'
 }
 
 export type ResolvedEncodeOptions = Readonly<Required<EncodeOptions>>

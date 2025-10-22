@@ -10,6 +10,7 @@ export const LIST_ITEM_PREFIX = '- '
 export const COMMA = ','
 export const COLON = ':'
 export const SPACE = ' '
+export const PIPE = '|'
 
 // #endregion
 

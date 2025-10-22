@@ -388,6 +388,9 @@ encode({ config: {} }) // config:
 
 TOON quotes strings **only when necessary** to maximize token efficiency. Inner spaces are allowed; leading or trailing spaces force quotes. Unicode and emoji are safe unquoted.
 
+> [!NOTE]
+> When using alternative delimiters (tab or pipe), the quoting rules adapt automatically. Strings containing the active delimiter will be quoted, while other delimiters remain safe.
+
 #### Keys
 
 Keys are quoted when any of the following is true:
@@ -411,11 +414,34 @@ String values are quoted when any of the following is true:
 | Condition | Examples |
 |---|---|
 | Empty string | `""` |
-| Contains comma, colon, quote, backslash, or control chars | `"a,b"`, `"a:b"`, `"say \"hi\""`, `"C:\\Users"`, `"line1\\nline2"` |
+| Contains active delimiter, colon, quote, backslash, or control chars | `"a,b"` (comma), `"a\tb"` (tab), `"a\|b"` (pipe), `"a:b"`, `"say \"hi\""`, `"C:\\Users"`, `"line1\\nline2"` |
 | Leading or trailing spaces | `" padded "`, `"  "` |
 | Looks like boolean/number/null | `"true"`, `"false"`, `"null"`, `"42"`, `"-3.14"`, `"1e-6"`, `"05"` |
 | Starts with `"- "` (list-like) | `"- item"` |
 | Looks like structural token | `"[5]"`, `"{key}"`, `"[3]: x,y"` |
+
+**Delimiter-specific behavior:**
+
+The quoting rules are context-sensitive based on the active delimiter. A character only needs quoting if it's the active delimiter:
+
+```ts
+// With comma delimiter (default): commas need quotes, tabs don't
+encode({ items: ['a,b', 'c\td'] })
+// → items[2]: "a,b",c	d
+
+// With tab delimiter: tabs need quotes, commas don't
+encode({ items: ['a,b', 'c\td'] }, { delimiter: '\t' })
+// → items[2]: a,b	"c\td"
+
+// With pipe delimiter: pipes need quotes, commas and tabs don't
+encode({ items: ['a|b', 'c,d'] }, { delimiter: '|' })
+// → items[2]: "a|b"|c,d
+
+// Object values follow the same context-sensitive quoting
+encode({ note: 'a,b' }) // → note: "a,b"
+encode({ note: 'a,b' }, { delimiter: '|' }) // → note: a,b
+encode({ note: 'a,b' }, { delimiter: '\t' }) // → note: a,b
+```
 
 #### Examples
 
@@ -468,13 +494,16 @@ Number normalization examples:
 
 ## API
 
-### `encode(value: unknown): string`
+### `encode(value: unknown, options?: EncodeOptions): string`
 
 Converts any JSON-serializable value to TOON format.
 
 **Parameters:**
 
 - `value` – Any JSON-serializable value (object, array, primitive, or nested structure). Non-JSON-serializable values (functions, symbols, undefined, non-finite numbers) are converted to `null`. Dates are converted to ISO strings, and BigInts are emitted as decimal integers (no quotes).
+- `options` – Optional encoding options:
+  - `indent?: number` – Number of spaces per indentation level (default: `2`)
+  - `delimiter?: ',' | '\t' | '|'` – Delimiter for array values and tabular rows (default: `','`)
 
 **Returns:**
 
@@ -500,6 +529,76 @@ items[2]{sku,qty,price}:
   A1,2,9.99
   B2,1,14.5
 ```
+
+#### Delimiter Options
+
+The `delimiter` option allows you to choose between comma (default), tab, or pipe delimiters for array values and tabular rows. Alternative delimiters can provide additional token savings in specific contexts.
+
+##### Tab Delimiter (`\t`)
+
+Using tab delimiters instead of commas can reduce token count further, especially for tabular data:
+
+```ts
+import { encode } from 'toon'
+
+const data = {
+  items: [
+    { sku: 'A1', name: 'Widget', qty: 2, price: 9.99 },
+    { sku: 'B2', name: 'Gadget', qty: 1, price: 14.5 }
+  ]
+}
+
+console.log(encode(data, { delimiter: '\t' }))
+```
+
+**Output:**
+
+```
+items[2]{sku,name,qty,price}:
+  A1	Widget	2	9.99
+  B2	Gadget	1	14.5
+```
+
+**Benefits:**
+
+- Tabs are single characters and often tokenize more efficiently than commas
+- Tabs rarely appear in natural text, reducing the need for quote-escaping
+
+**Considerations:**
+
+- Some terminals and editors may collapse or expand tabs visually
+- String values containing tabs will still require quoting
+
+##### Pipe Delimiter (`|`)
+
+Pipe delimiters offer a middle ground between commas and tabs:
+
+```ts
+console.log(encode(data, { delimiter: '|' }))
+```
+
+**Output:**
+
+```
+items[2]{sku,name,qty,price}:
+  A1|Widget|2|9.99
+  B2|Gadget|1|14.5
+```
+
+##### Delimiter Selection Guide
+
+| Delimiter | Token Efficiency | Human Readability | Quote Escaping | Best For |
+|-----------|-----------------|-------------------|----------------|----------|
+| `,` (comma) | ⭐⭐⭐ Baseline | ⭐⭐⭐⭐⭐ High | ⭐⭐⭐ Moderate | **Default choice**, general use |
+| `\t` (tab) | ⭐⭐⭐⭐⭐ Highest | ⭐⭐ Lower | ⭐⭐⭐⭐⭐ Minimal | Large datasets, maximum efficiency |
+| `\|` (pipe) | ⭐⭐⭐⭐ High | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐ Low | CSV-like data, CLI output |
+
+> [!TIP]
+> When using non-default delimiters, inform the LLM of the delimiter in your prompt:
+> ```
+> The following data uses tab-delimited TOON format:
+> ```[tab-delimited content]```
+> ```
 
 ## Using TOON in LLM Prompts
 
