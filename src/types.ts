@@ -10,6 +10,10 @@ export type JsonValue = JsonPrimitive | JsonObject | JsonArray
 // #region Encoder options
 
 export interface EncodeOptions {
+  /**
+   * Number of spaces per indentation level.
+   * @default 2
+   */
   indent?: number
   /**
    * Delimiter to use for tabular array rows and inline primitive arrays.
