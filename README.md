@@ -609,14 +609,14 @@ When incorporating TOON into your LLM workflows:
 
 // Mixed / non-uniform (list)
 { items: [1, { a: 1 }, 'x'] }   → items[3]:
-                                     - 1
-                                     - a: 1
-                                     - x
+                                    - 1
+                                    - a: 1
+                                    - x
 
 // Array of arrays
 { pairs: [[1, 2], [3, 4]] }     → pairs[2]:
-                                     - [2]: 1,2
-                                     - [2]: 3,4
+                                    - [2]: 1,2
+                                    - [2]: 3,4
 
 // Root array
 ['x', 'y']                      → [2]: x,y
