@@ -573,37 +573,6 @@ When incorporating TOON into your LLM workflows:
 - Tell the model: "Do not add extra punctuation or spaces; follow the exact TOON format."
 - When asking the model to generate TOON, specify the same rules (2-space indentation, no trailing spaces, quoting rules).
 
-## Token Savings Example
-
-Here's a realistic API response to illustrate the token savings:
-
-**JSON:**
-```json
-{
-  "users": [
-    { "id": 1, "name": "Alice", "email": "alice@example.com", "active": true },
-    { "id": 2, "name": "Bob", "email": "bob@example.com", "active": true },
-    { "id": 3, "name": "Charlie", "email": "charlie@example.com", "active": false }
-  ]
-}
-```
-
-**TOON:**
-
-```
-users[3]{id,name,email,active}:
-  1,Alice,alice@example.com,true
-  2,Bob,bob@example.com,true
-  3,Charlie,charlie@example.com,false
-```
-
-Typical savings vs JSON are in the **30–60% range** on GPT-style tokenizers, driven by:
-
-- Tabular arrays of objects (keys written once)
-- No structural braces/brackets
-- Minimal quoting
-- No spaces after commas
-
 ## Notes and Limitations
 
 - **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., SentencePiece).
