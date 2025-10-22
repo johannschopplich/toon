@@ -592,11 +592,11 @@ When incorporating TOON into your LLM workflows:
 ```
 // Object
 { id: 1, name: 'Ada' }          → id: 1
-                                   name: Ada
+                                  name: Ada
 
 // Nested object
 { user: { id: 1 } }             → user:
-                                     id: 1
+                                    id: 1
 
 // Primitive array (inline)
 { tags: ['a', 'b'] }            → tags[2]: a,b
