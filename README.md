@@ -211,19 +211,19 @@ users[2]{id,name,role}:
 
 ```bash
 # npm
-npm install toon
+npm install @byjohann/toon
 
 # pnpm
-pnpm add toon
+pnpm add @byjohann/toon
 
 # yarn
-yarn add toon
+yarn add @byjohann/toon
 ```
 
 ## Quick Start
 
 ```ts
-import { encode } from 'toon'
+import { encode } from '@byjohann/toon'
 
 const data = {
   user: {
@@ -420,28 +420,8 @@ String values are quoted when any of the following is true:
 | Starts with `"- "` (list-like) | `"- item"` |
 | Looks like structural token | `"[5]"`, `"{key}"`, `"[3]: x,y"` |
 
-**Delimiter-specific behavior:**
-
-The quoting rules are context-sensitive based on the active delimiter. A character only needs quoting if it's the active delimiter:
-
-```ts
-// With comma delimiter (default): commas need quotes, tabs don't
-encode({ items: ['a,b', 'c\td'] })
-// → items[2]: "a,b",c	d
-
-// With tab delimiter: tabs need quotes, commas don't
-encode({ items: ['a,b', 'c\td'] }, { delimiter: '\t' })
-// → items[2]: a,b	"c\td"
-
-// With pipe delimiter: pipes need quotes, commas and tabs don't
-encode({ items: ['a|b', 'c,d'] }, { delimiter: '|' })
-// → items[2]: "a|b"|c,d
-
-// Object values follow the same context-sensitive quoting
-encode({ note: 'a,b' }) // → note: "a,b"
-encode({ note: 'a,b' }, { delimiter: '|' }) // → note: a,b
-encode({ note: 'a,b' }, { delimiter: '\t' }) // → note: a,b
-```
+> [!NOTE]
+> **Delimiter-aware quoting:** The quoting rules are context-sensitive. When using tab or pipe delimiters, commas don't need quoting. Only the active delimiter triggers quoting – this applies to both array values and object values.
 
 #### Examples
 
@@ -512,7 +492,7 @@ A TOON-formatted string with no trailing newline or spaces.
 **Example:**
 
 ```ts
-import { encode } from 'toon'
+import { encode } from '@byjohann/toon'
 
 const items = [
   { sku: 'A1', qty: 2, price: 9.99 },
@@ -539,7 +519,7 @@ The `delimiter` option allows you to choose between comma (default), tab, or pip
 Using tab delimiters instead of commas can reduce token count further, especially for tabular data:
 
 ```ts
-import { encode } from 'toon'
+import { encode } from '@byjohann/toon'
 
 const data = {
   items: [
@@ -584,21 +564,6 @@ items[2]{sku,name,qty,price}:
   A1|Widget|2|9.99
   B2|Gadget|1|14.5
 ```
-
-##### Delimiter Selection Guide
-
-| Delimiter | Token Efficiency | Human Readability | Quote Escaping | Best For |
-|-----------|-----------------|-------------------|----------------|----------|
-| `,` (comma) | ⭐⭐⭐ Baseline | ⭐⭐⭐⭐⭐ High | ⭐⭐⭐ Moderate | **Default choice**, general use |
-| `\t` (tab) | ⭐⭐⭐⭐⭐ Highest | ⭐⭐ Lower | ⭐⭐⭐⭐⭐ Minimal | Large datasets, maximum efficiency |
-| `\|` (pipe) | ⭐⭐⭐⭐ High | ⭐⭐⭐⭐ Good | ⭐⭐⭐⭐ Low | CSV-like data, CLI output |
-
-> [!TIP]
-> When using non-default delimiters, inform the LLM of the delimiter in your prompt:
-> ```
-> The following data uses tab-delimited TOON format:
-> ```[tab-delimited content]```
-> ```
 
 ## Using TOON in LLM Prompts
 
