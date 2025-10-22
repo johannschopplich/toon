@@ -1,0 +1,143 @@
+import type {
+  JsonArray,
+  JsonObject,
+  JsonPrimitive,
+  JsonValue,
+} from './types'
+
+// #region Normalization (unknown → JsonValue)
+
+export function normalizeValue(value: unknown): JsonValue {
+  // null
+  if (value === null) {
+    return null
+  }
+
+  // Primitives
+  if (typeof value === 'string' || typeof value === 'boolean') {
+    return value
+  }
+
+  // Numbers: canonicalize -0 to 0, handle NaN and Infinity
+  if (typeof value === 'number') {
+    if (Object.is(value, -0)) {
+      return 0
+    }
+    if (!Number.isFinite(value)) {
+      return null
+    }
+    return value
+  }
+
+  // BigInt → number (if safe) or string
+  if (typeof value === 'bigint') {
+    // Try to convert to number if within safe integer range
+    if (value >= Number.MIN_SAFE_INTEGER && value <= Number.MAX_SAFE_INTEGER) {
+      return Number(value)
+    }
+    // Otherwise convert to string (will be unquoted as it looks numeric)
+    return value.toString()
+  }
+
+  // Date → ISO string
+  if (value instanceof Date) {
+    return value.toISOString()
+  }
+
+  // Array
+  if (Array.isArray(value)) {
+    return normalizeArray(value)
+  }
+
+  // Set → array
+  if (value instanceof Set) {
+    return normalizeArray(Array.from(value))
+  }
+
+  // Map → object
+  if (value instanceof Map) {
+    return Object.fromEntries(
+      Array.from(value, ([k, v]) => [String(k), normalizeValue(v)]),
+    )
+  }
+
+  // Plain object
+  if (isPlainObject(value)) {
+    return normalizeObject(value)
+  }
+
+  // Fallback: function, symbol, undefined, or other → null
+  return null
+}
+
+export function normalizeArray(value: unknown): JsonArray {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.map(item => normalizeValue(item))
+}
+
+export function normalizeObject(value: unknown): JsonObject {
+  if (!isPlainObject(value)) {
+    return {}
+  }
+
+  const result: Record<string, JsonValue> = {}
+
+  for (const key in value) {
+    if (Object.prototype.hasOwnProperty.call(value, key)) {
+      result[key] = normalizeValue(value[key])
+    }
+  }
+
+  return result
+}
+
+// #endregion
+
+// #region Type guards
+
+export function isJsonPrimitive(value: unknown): value is JsonPrimitive {
+  return (
+    value === null
+    || typeof value === 'string'
+    || typeof value === 'number'
+    || typeof value === 'boolean'
+  )
+}
+
+export function isJsonArray(value: unknown): value is JsonArray {
+  return Array.isArray(value)
+}
+
+export function isJsonObject(value: unknown): value is JsonObject {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+}
+
+export function isPlainObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || typeof value !== 'object') {
+    return false
+  }
+
+  const prototype = Object.getPrototypeOf(value)
+  return prototype === null || prototype === Object.prototype
+}
+
+// #endregion
+
+// #region Array type detection
+
+export function isArrayOfPrimitives(value: JsonArray): value is readonly JsonPrimitive[] {
+  return value.every(item => isJsonPrimitive(item))
+}
+
+export function isArrayOfArrays(value: JsonArray): value is readonly JsonArray[] {
+  return value.every(item => isJsonArray(item))
+}
+
+export function isArrayOfObjects(value: JsonArray): value is readonly JsonObject[] {
+  return value.every(item => isJsonObject(item))
+}
+
+// #endregion
