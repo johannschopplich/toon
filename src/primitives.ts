@@ -94,12 +94,12 @@ export function isSafeUnquoted(value: string, delimiter: string = COMMA): boolea
   return true
 }
 
-export function isNumericLike(value: string): boolean {
+function isNumericLike(value: string): boolean {
   // Match numbers like: 42, -3.14, 1e-6, 05, etc.
   return /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i.test(value) || /^0\d+$/.test(value)
 }
 
-export function isPaddedWithWhitespace(value: string): boolean {
+function isPaddedWithWhitespace(value: string): boolean {
   return value !== value.trim()
 }
 
