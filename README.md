@@ -301,6 +301,9 @@ user:
 
 ### Arrays
 
+> [!TIP]
+> TOON includes the array length in brackets (e.g., `items[3]` or `[2]`). This explicit count helps LLMs track the number of elements, reducing errors when generating or validating structured output.
+
 #### Primitive Arrays (Inline)
 
 ```ts
