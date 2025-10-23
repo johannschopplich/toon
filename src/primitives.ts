@@ -131,24 +131,35 @@ export function joinEncodedValues(values: readonly JsonPrimitive[], delimiter: s
 
 // #region Header formatters
 
-export function formatArrayHeader(length: number): string {
-  return `[${length}]:`
-}
+/**
+ * Header formatter for arrays and tables with optional key prefix and field names
+ */
+export function formatHeader(
+  length: number,
+  options?: {
+    key?: string
+    fields?: readonly string[]
+  },
+): string {
+  const key = options?.key
+  const fields = options?.fields
 
-export function formatTabularHeader(length: number, fields: readonly string[]): string {
-  const quotedFields = fields.map(f => encodeKey(f))
-  return `[${length}]{${quotedFields.join(',')}}:`
-}
+  let header = ''
 
-export function formatKeyedArrayHeader(key: string, length: number): string {
-  const encodedKey = encodeKey(key)
-  return `${encodedKey}[${length}]:`
-}
+  if (key) {
+    header += encodeKey(key)
+  }
 
-export function formatKeyedTableHeader(key: string, length: number, fields: readonly string[]): string {
-  const encodedKey = encodeKey(key)
-  const quotedFields = fields.map(f => encodeKey(f))
-  return `${encodedKey}[${length}]{${quotedFields.join(',')}}:`
+  header += `[${length}]`
+
+  if (fields) {
+    const quotedFields = fields.map(f => encodeKey(f))
+    header += `{${quotedFields.join(',')}}`
+  }
+
+  header += ':'
+
+  return header
 }
 
 // #endregion

@@ -18,10 +18,7 @@ import {
 import {
   encodeKey,
   encodePrimitive,
-  formatArrayHeader,
-  formatKeyedArrayHeader,
-  formatKeyedTableHeader,
-  formatTabularHeader,
+  formatHeader,
   joinEncodedValues,
 } from './primitives'
 import { LineWriter } from './writer'
@@ -36,7 +33,7 @@ export function encodeValue(value: JsonValue, options: ResolvedEncodeOptions): s
   const writer = new LineWriter(options.indent)
 
   if (isJsonArray(value)) {
-    encodeRootArray(value, writer, options)
+    encodeArray(undefined, value, writer, 0, options)
   }
   else if (isJsonObject(value)) {
     encodeObject(value, writer, 0, options)
@@ -64,7 +61,7 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
     writer.push(depth, `${encodedKey}: ${encodePrimitive(value, options.delimiter)}`)
   }
   else if (isJsonArray(value)) {
-    encodeArrayProperty(key, value, writer, depth, options)
+    encodeArray(key, value, writer, depth, options)
   }
   else if (isJsonObject(value)) {
     const nestedKeys = Object.keys(value)
@@ -83,47 +80,21 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
 
 // #region Array encoding
 
-export function encodeRootArray(value: JsonArray, writer: LineWriter, options: ResolvedEncodeOptions): void {
+export function encodeArray(
+  key: string | undefined,
+  value: JsonArray,
+  writer: LineWriter,
+  depth: Depth,
+  options: ResolvedEncodeOptions,
+): void {
   if (value.length === 0) {
-    writer.push(0, '[0]:')
-    return
-  }
-
-  // Primitive array
-  if (isArrayOfPrimitives(value)) {
-    encodeInlinePrimitiveArray(undefined, value, writer, 0, options)
-    return
-  }
-
-  // Array of arrays (all primitives)
-  if (isArrayOfArrays(value)) {
-    const allPrimitiveArrays = value.every(arr => isArrayOfPrimitives(arr))
-    if (allPrimitiveArrays) {
-      encodeArrayOfArraysAsListItems(undefined, value, writer, 0, options)
-      return
-    }
-  }
-
-  // Array of objects
-  if (isArrayOfObjects(value)) {
-    const header = detectTabularHeader(value)
-    if (header) {
-      encodeArrayOfObjectsAsTabular(undefined, value, header, writer, 0, options)
+    if (key === undefined) {
+      writer.push(depth, '[0]:')
     }
     else {
-      encodeArrayOfObjectsAsListItems(undefined, value, writer, 0, options)
+      const encodedKey = encodeKey(key)
+      writer.push(depth, `${encodedKey}[0]:`)
     }
-    return
-  }
-
-  // Mixed array: fallback to expanded format (not in spec, but safe default)
-  encodeMixedArrayAsListItems(undefined, value, writer, 0, options)
-}
-
-export function encodeArrayProperty(key: string, value: JsonArray, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions): void {
-  if (value.length === 0) {
-    const encodedKey = encodeKey(key)
-    writer.push(depth, `${encodedKey}[0]:`)
     return
   }
 
@@ -149,7 +120,7 @@ export function encodeArrayProperty(key: string, value: JsonArray, writer: LineW
       encodeArrayOfObjectsAsTabular(key, value, header, writer, depth, options)
     }
     else {
-      encodeArrayOfObjectsAsListItems(key, value, writer, depth, options)
+      encodeMixedArrayAsListItems(key, value, writer, depth, options)
     }
     return
   }
@@ -169,7 +140,7 @@ export function encodeInlinePrimitiveArray(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = prefix ? formatKeyedArrayHeader(prefix, values.length) : formatArrayHeader(values.length)
+  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
   const joinedValue = joinEncodedValues(values, options.delimiter)
   // Only add space if there are values
   if (values.length === 0) {
@@ -191,7 +162,7 @@ export function encodeArrayOfArraysAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = prefix ? formatKeyedArrayHeader(prefix, values.length) : formatArrayHeader(values.length)
+  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
   writer.push(depth, header)
 
   for (const arr of values) {
@@ -203,7 +174,7 @@ export function encodeArrayOfArraysAsListItems(
 }
 
 export function formatInlineArray(values: readonly JsonPrimitive[], delimiter: string): string {
-  const header = formatArrayHeader(values.length)
+  const header = formatHeader(values.length)
   const joinedValue = joinEncodedValues(values, delimiter)
   // Only add space if there are values
   if (values.length === 0) {
@@ -224,9 +195,7 @@ export function encodeArrayOfObjectsAsTabular(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const headerStr = prefix
-    ? formatKeyedTableHeader(prefix, rows.length, header)
-    : formatTabularHeader(rows.length, header)
+  const headerStr = formatHeader(rows.length, { key: prefix, fields: header })
   writer.push(depth, `${headerStr}`)
 
   for (const row of rows) {
@@ -287,7 +256,7 @@ export function encodeMixedArrayAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = prefix ? formatKeyedArrayHeader(prefix, items.length) : formatArrayHeader(items.length)
+  const header = formatHeader(items.length, prefix ? { key: prefix } : undefined)
   writer.push(depth, header)
 
   for (const item of items) {
@@ -306,21 +275,6 @@ export function encodeMixedArrayAsListItems(
       // Object as list item
       encodeObjectAsListItem(item, writer, depth + 1, options)
     }
-  }
-}
-
-export function encodeArrayOfObjectsAsListItems(
-  prefix: string | undefined,
-  rows: readonly JsonObject[],
-  writer: LineWriter,
-  depth: Depth,
-  options: ResolvedEncodeOptions,
-): void {
-  const header = prefix ? formatKeyedArrayHeader(prefix, rows.length) : formatArrayHeader(rows.length)
-  writer.push(depth, `${header}`)
-
-  for (const obj of rows) {
-    encodeObjectAsListItem(obj, writer, depth + 1, options)
   }
 }
 
