@@ -46,12 +46,12 @@ export function normalizeValue(value: unknown): JsonValue {
 
   // Array
   if (Array.isArray(value)) {
-    return normalizeArray(value)
+    return value.map(normalizeValue)
   }
 
   // Set → array
   if (value instanceof Set) {
-    return normalizeArray(Array.from(value))
+    return Array.from(value).map(normalizeValue)
   }
 
   // Map → object
@@ -63,35 +63,19 @@ export function normalizeValue(value: unknown): JsonValue {
 
   // Plain object
   if (isPlainObject(value)) {
-    return normalizeObject(value)
+    const result: Record<string, JsonValue> = {}
+
+    for (const key in value) {
+      if (Object.prototype.hasOwnProperty.call(value, key)) {
+        result[key] = normalizeValue(value[key])
+      }
+    }
+
+    return result
   }
 
   // Fallback: function, symbol, undefined, or other → null
   return null
-}
-
-export function normalizeArray(value: unknown): JsonArray {
-  if (!Array.isArray(value)) {
-    return []
-  }
-
-  return value.map(item => normalizeValue(item))
-}
-
-export function normalizeObject(value: unknown): JsonObject {
-  if (!isPlainObject(value)) {
-    return {}
-  }
-
-  const result: Record<string, JsonValue> = {}
-
-  for (const key in value) {
-    if (Object.prototype.hasOwnProperty.call(value, key)) {
-      result[key] = normalizeValue(value[key])
-    }
-  }
-
-  return result
 }
 
 // #endregion

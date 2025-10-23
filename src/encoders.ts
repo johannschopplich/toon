@@ -140,15 +140,8 @@ export function encodeInlinePrimitiveArray(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
-  const joinedValue = joinEncodedValues(values, options.delimiter)
-  // Only add space if there are values
-  if (values.length === 0) {
-    writer.push(depth, header)
-  }
-  else {
-    writer.push(depth, `${header} ${joinedValue}`)
-  }
+  const formatted = formatInlineArray(values, options.delimiter, prefix)
+  writer.push(depth, formatted)
 }
 
 // #endregion
@@ -173,8 +166,8 @@ export function encodeArrayOfArraysAsListItems(
   }
 }
 
-export function formatInlineArray(values: readonly JsonPrimitive[], delimiter: string): string {
-  const header = formatHeader(values.length)
+export function formatInlineArray(values: readonly JsonPrimitive[], delimiter: string, prefix?: string): string {
+  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
   const joinedValue = joinEncodedValues(values, delimiter)
   // Only add space if there are values
   if (values.length === 0) {
