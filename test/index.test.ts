@@ -285,6 +285,122 @@ describe('arrays of objects (tabular and list items)', () => {
     )
   })
 
+  it('preserves field order in list items', () => {
+    const obj = { items: [{ nums: [1, 2, 3], name: 'test' }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - nums[3]: 1,2,3\n'
+      + '    name: test',
+    )
+  })
+
+  it('preserves field order when primitive appears first', () => {
+    const obj = { items: [{ name: 'test', nums: [1, 2, 3] }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - name: test\n'
+      + '    nums[3]: 1,2,3',
+    )
+  })
+
+  it('uses list format for objects containing arrays of arrays', () => {
+    const obj = {
+      items: [
+        { matrix: [[1, 2], [3, 4]], name: 'grid' },
+      ],
+    }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - matrix[2]:\n'
+      + '    - [2]: 1,2\n'
+      + '    - [2]: 3,4\n'
+      + '    name: grid',
+    )
+  })
+
+  it('uses tabular format for nested uniform object arrays', () => {
+    const obj = {
+      items: [
+        { users: [{ id: 1, name: 'Ada' }, { id: 2, name: 'Bob' }], status: 'active' },
+      ],
+    }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - users[2]{id,name}:\n'
+      + '    1,Ada\n'
+      + '    2,Bob\n'
+      + '    status: active',
+    )
+  })
+
+  it('uses list format for nested object arrays with mismatched keys', () => {
+    const obj = {
+      items: [
+        { users: [{ id: 1, name: 'Ada' }, { id: 2 }], status: 'active' },
+      ],
+    }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - users[2]:\n'
+      + '    - id: 1\n'
+      + '      name: Ada\n'
+      + '    - id: 2\n'
+      + '    status: active',
+    )
+  })
+
+  it('uses list format for objects with multiple array fields', () => {
+    const obj = { items: [{ nums: [1, 2], tags: ['a', 'b'], name: 'test' }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - nums[2]: 1,2\n'
+      + '    tags[2]: a,b\n'
+      + '    name: test',
+    )
+  })
+
+  it('uses list format for objects with only array fields', () => {
+    const obj = { items: [{ nums: [1, 2, 3], tags: ['a', 'b'] }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - nums[3]: 1,2,3\n'
+      + '    tags[2]: a,b',
+    )
+  })
+
+  it('handles objects with empty arrays in list format', () => {
+    const obj = {
+      items: [
+        { name: 'test', data: [] },
+      ],
+    }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - name: test\n'
+      + '    data[0]:',
+    )
+  })
+
+  it('places first field of nested tabular arrays on hyphen line', () => {
+    const obj = { items: [{ users: [{ id: 1 }, { id: 2 }], note: 'x' }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - users[2]{id}:\n'
+      + '    1\n'
+      + '    2\n'
+      + '    note: x',
+    )
+  })
+
+  it('places empty arrays on hyphen line when first', () => {
+    const obj = { items: [{ data: [], name: 'x' }] }
+    expect(encode(obj)).toBe(
+      'items[1]:\n'
+      + '  - data[0]:\n'
+      + '    name: x',
+    )
+  })
+
   it('uses field order from first object for tabular headers', () => {
     const obj = {
       items: [

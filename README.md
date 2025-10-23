@@ -335,6 +335,30 @@ items[2]{sku,qty,price}:
   B2,1,14.5
 ```
 
+**Tabular formatting applies recursively:** nested arrays of objects (whether as object properties or inside list items) also use tabular format if they meet the same requirements.
+
+```ts
+encode({
+  items: [
+    {
+      users: [
+        { id: 1, name: 'Ada' },
+        { id: 2, name: 'Bob' }
+      ],
+      status: 'active'
+    }
+  ]
+})
+```
+
+```
+items[1]:
+  - users[2]{id,name}:
+    1,Ada
+    2,Bob
+    status: active
+```
+
 #### Mixed and Non-Uniform Arrays
 
 Arrays that don't meet the tabular requirements use list format:
@@ -356,6 +380,9 @@ items[2]:
     name: Second
     extra: true
 ```
+
+> [!NOTE]
+> **Nested array indentation:** When the first field of a list item is an array (primitive, tabular, or nested), its contents are indented two spaces under the header line, and subsequent fields of the same object appear at that same indentation level. This remains unambiguous because list items begin with `"- "`, tabular arrays declare a fixed row count in their header, and object fields contain `":"`.
 
 #### Arrays of Arrays
 

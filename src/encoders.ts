@@ -191,11 +191,7 @@ export function encodeArrayOfObjectsAsTabular(
   const headerStr = formatHeader(rows.length, { key: prefix, fields: header })
   writer.push(depth, `${headerStr}`)
 
-  for (const row of rows) {
-    const values = header.map(key => row[key])
-    const joinedValue = joinEncodedValues(values as JsonPrimitive[], options.delimiter)
-    writer.push(depth + 1, joinedValue)
-  }
+  writeTabularRows(rows, header, writer, depth + 1, options)
 }
 
 export function detectTabularHeader(rows: readonly JsonObject[]): string[] | undefined {
@@ -236,6 +232,20 @@ export function isTabularArray(
   }
 
   return true
+}
+
+function writeTabularRows(
+  rows: readonly JsonObject[],
+  header: readonly string[],
+  writer: LineWriter,
+  depth: Depth,
+  options: ResolvedEncodeOptions,
+): void {
+  for (const row of rows) {
+    const values = header.map(key => row[key])
+    const joinedValue = joinEncodedValues(values as JsonPrimitive[], options.delimiter)
+    writer.push(depth, joinedValue)
+  }
 }
 
 // #endregion
@@ -287,9 +297,46 @@ export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, dept
     writer.push(depth, `${LIST_ITEM_PREFIX}${encodedKey}: ${encodePrimitive(firstValue, options.delimiter)}`)
   }
   else if (isJsonArray(firstValue)) {
-    // For arrays, we need to put them on separate lines
-    writer.push(depth, `${LIST_ITEM_PREFIX}${encodedKey}[${firstValue.length}]:`)
-    // ... handle array encoding (simplified for now)
+    if (isArrayOfPrimitives(firstValue)) {
+      // Inline format for primitive arrays
+      const formatted = formatInlineArray(firstValue, options.delimiter, firstKey)
+      writer.push(depth, `${LIST_ITEM_PREFIX}${formatted}`)
+    }
+    else if (isArrayOfObjects(firstValue)) {
+      // Check if array of objects can use tabular format
+      const header = detectTabularHeader(firstValue)
+      if (header) {
+        // Tabular format for uniform arrays of objects
+        const headerStr = formatHeader(firstValue.length, { key: firstKey, fields: header })
+        writer.push(depth, `${LIST_ITEM_PREFIX}${headerStr}`)
+        writeTabularRows(firstValue, header, writer, depth + 1, options)
+      }
+      else {
+        // Fall back to list format for non-uniform arrays of objects
+        writer.push(depth, `${LIST_ITEM_PREFIX}${encodedKey}[${firstValue.length}]:`)
+        for (const item of firstValue) {
+          encodeObjectAsListItem(item, writer, depth + 1, options)
+        }
+      }
+    }
+    else {
+      // Complex arrays on separate lines (array of arrays, etc.)
+      writer.push(depth, `${LIST_ITEM_PREFIX}${encodedKey}[${firstValue.length}]:`)
+
+      // Encode array contents at depth + 1
+      for (const item of firstValue) {
+        if (isJsonPrimitive(item)) {
+          writer.push(depth + 1, `${LIST_ITEM_PREFIX}${encodePrimitive(item, options.delimiter)}`)
+        }
+        else if (isJsonArray(item) && isArrayOfPrimitives(item)) {
+          const inline = formatInlineArray(item, options.delimiter)
+          writer.push(depth + 1, `${LIST_ITEM_PREFIX}${inline}`)
+        }
+        else if (isJsonObject(item)) {
+          encodeObjectAsListItem(item, writer, depth + 1, options)
+        }
+      }
+    }
   }
   else if (isJsonObject(firstValue)) {
     const nestedKeys = Object.keys(firstValue)
