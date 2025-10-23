@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.2.0",
   "packageManager": "pnpm@10.19.0",
-  "description": "Token-Oriented Object Notation – a token-efficient data notation for LLM prompts",
+  "description": "Token-Oriented Object Notation – a token-efficient JSON alternative for LLM prompts",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
   "license": "MIT",
   "homepage": "https://github.com/johannschopplich/toon#readme",
