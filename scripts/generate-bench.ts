@@ -192,13 +192,13 @@ ${encodeToon(example.data)}
   .join('\n\n')
 
 const markdown = `
-| Example | JSON | TOON | Saved | Reduction |
-|---------|------|------|-------|-----------|
+| Example | JSON | TOON | Tokens Saved | Reduction |
+| ------- | ---- | ---- | ------------ | --------- |
 ${summaryRows}
 | **Total** | **${totalJsonTokens}** | **${totalToonTokens}** | **${totalSavings}** | **${totalSavingsPercent}%** |
 
 <details>
-<summary><strong>View detailed examples</strong></summary>
+<summary><strong>View detailed results</strong></summary>
 
 ${detailedExamples}
 

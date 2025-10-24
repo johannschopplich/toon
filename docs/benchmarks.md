@@ -1,5 +1,5 @@
-| Example | JSON | TOON | Saved | Reduction |
-|---------|------|------|-------|-----------|
+| Example | JSON | TOON | Tokens Saved | Reduction |
+| ------- | ---- | ---- | ------------ | --------- |
 | 👤 Simple user object | 31 | 18 | 13 | **41.9%** |
 | 🏷️ User with tags | 48 | 28 | 20 | **41.7%** |
 | 📦 Small product catalog | 117 | 49 | 68 | **58.1%** |
@@ -11,7 +11,7 @@
 | **Total** | **2917** | **1139** | **1778** | **61.0%** |
 
 <details>
-<summary><strong>View detailed examples</strong></summary>
+<summary><strong>View detailed results</strong></summary>
 
 ### 📦 Small product catalog
 
