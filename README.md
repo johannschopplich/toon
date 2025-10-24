@@ -1,3 +1,5 @@
+![TOON logo with step‑by‑step guide](./.github/og.png)
+
 # Token-Oriented Object Notation (TOON)
 
 AI is becoming cheaper and more accessible, but larger context windows allow for larger data inputs as well. **LLM tokens still cost money** – this is where TOON comes in.
