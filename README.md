@@ -12,7 +12,7 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 - Writing inline primitive arrays without spaces
 
 > [!TIP]
-> Wrap your JSON in `encode()` before sending it to LLMs and save ~1/2 of the token cost!
+> Wrap your JSON in `encode()` before sending it to LLMs and save ~1/2 of the token cost for structured data!
 
 ## Token Benchmarks
 
@@ -205,12 +205,11 @@ users[2]{id,name,role}:
 
 ## Key Features
 
-- 📉 **Token-efficient:** typically 30–60% fewer tokens vs JSON on GPT-style tokenizers
-- 📊 **Tabular arrays:** write object keys once, list rows beneath
-- ✂️ **Minimal quoting:** only when required (e.g., commas, colons, ambiguous primitives)
-- 📐 **Indentation-based structure:** no braces/brackets for objects
-- 🎯 **Inline primitive arrays:** written without spaces after commas
-- 🎲 **Deterministic:** stable key order, no trailing spaces/newline
+- 💸 **Token-efficient:** typically 30–60% fewer tokens vs JSON on GPT-style tokenizers, based on real benchmarks
+- 🎛️ **Deterministic, tokenizer-aware output:** minimal quoting and stable ordering keep payloads compact and reproducible
+- 🧺 **Tabular arrays without repetition:** declare uniform keys once, then stream rows for dense datasets
+- 📐 **Readable yet concise structure:** indentation replaces braces so nested data stays scannable without extra tokens
+- 🔢 **LLM-friendly guardrails:** explicit lengths and field lists help models validate and reproduce structured responses
 
 ## Installation
 
@@ -576,13 +575,13 @@ items[2]{sku,name,qty,price}:
 
 **Benefits:**
 
-- Tabs are single characters and often tokenize more efficiently than commas
-- Tabs rarely appear in natural text, reducing the need for quote-escaping
+- Tabs are single characters and often tokenize more efficiently than commas.
+- Tabs rarely appear in natural text, reducing the need for quote-escaping.
 
 **Considerations:**
 
-- Some terminals and editors may collapse or expand tabs visually
-- String values containing tabs will still require quoting
+- Some terminals and editors may collapse or expand tabs visually.
+- String values containing tabs will still require quoting.
 
 ##### Pipe Delimiter (`|`)
 
