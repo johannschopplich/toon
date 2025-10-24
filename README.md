@@ -12,7 +12,7 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 - Writing inline primitive arrays without spaces
 
 > [!TIP]
-> Wrap your JSON in `encode()` before sending it to LLMs and save ~2/3 of the token cost!
+> Wrap your JSON in `encode()` before sending it to LLMs and save ~1/2 of the token cost!
 
 ## Token Benchmarks
 
