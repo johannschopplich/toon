@@ -156,8 +156,8 @@ describe('nested objects', () => {
 
 describe('arrays of primitives', () => {
   it('encodes string arrays inline', () => {
-    const obj = { tags: ['admin', 'ops'] }
-    expect(encode(obj)).toBe('tags[2]: admin,ops')
+    const obj = { tags: ['reading', 'gaming'] }
+    expect(encode(obj)).toBe('tags[2]: reading,gaming')
   })
 
   it('encodes number arrays inline', () => {
@@ -491,7 +491,7 @@ describe('complex structures', () => {
       user: {
         id: 123,
         name: 'Ada',
-        tags: ['admin', 'ops'],
+        tags: ['reading', 'gaming'],
         active: true,
         prefs: [],
       },
@@ -500,7 +500,7 @@ describe('complex structures', () => {
       'user:\n'
       + '  id: 123\n'
       + '  name: Ada\n'
-      + '  tags[2]: admin,ops\n'
+      + '  tags[2]: reading,gaming\n'
       + '  active: true\n'
       + '  prefs[0]:',
     )
@@ -592,11 +592,11 @@ describe('non-JSON-serializable values', () => {
 describe('delimiter options', () => {
   describe('basic delimiter usage', () => {
     it.each([
-      { delimiter: '\t' as const, name: 'tab', expected: 'admin\tops\tdev' },
-      { delimiter: '|' as const, name: 'pipe', expected: 'admin|ops|dev' },
-      { delimiter: ',' as const, name: 'comma', expected: 'admin,ops,dev' },
+      { delimiter: '\t' as const, name: 'tab', expected: 'reading\tgaming\tcoding' },
+      { delimiter: '|' as const, name: 'pipe', expected: 'reading|gaming|coding' },
+      { delimiter: ',' as const, name: 'comma', expected: 'reading,gaming,coding' },
     ])('encodes primitive arrays with $name', ({ delimiter, expected }) => {
-      const obj = { tags: ['admin', 'ops', 'dev'] }
+      const obj = { tags: ['reading', 'gaming', 'coding'] }
       expect(encode(obj, { delimiter })).toBe(`tags[3${delimiter !== ',' ? delimiter : ''}]: ${expected}`)
     })
 
@@ -734,8 +734,8 @@ describe('delimiter options', () => {
 
 describe('length marker option', () => {
   it('adds length marker to primitive arrays', () => {
-    const obj = { tags: ['admin', 'ops', 'dev'] }
-    expect(encode(obj, { lengthMarker: '#' })).toBe('tags[#3]: admin,ops,dev')
+    const obj = { tags: ['reading', 'gaming', 'coding'] }
+    expect(encode(obj, { lengthMarker: '#' })).toBe('tags[#3]: reading,gaming,coding')
   })
 
   it('handles empty arrays', () => {
@@ -758,12 +758,12 @@ describe('length marker option', () => {
   })
 
   it('works with delimiter option', () => {
-    const obj = { tags: ['admin', 'ops', 'dev'] }
-    expect(encode(obj, { lengthMarker: '#', delimiter: '|' })).toBe('tags[#3|]: admin|ops|dev')
+    const obj = { tags: ['reading', 'gaming', 'coding'] }
+    expect(encode(obj, { lengthMarker: '#', delimiter: '|' })).toBe('tags[#3|]: reading|gaming|coding')
   })
 
   it('default is false (no length marker)', () => {
-    const obj = { tags: ['admin', 'ops', 'dev'] }
-    expect(encode(obj)).toBe('tags[3]: admin,ops,dev')
+    const obj = { tags: ['reading', 'gaming', 'coding'] }
+    expect(encode(obj)).toBe('tags[3]: reading,gaming,coding')
   })
 })

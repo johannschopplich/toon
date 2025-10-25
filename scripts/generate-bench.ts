@@ -34,7 +34,7 @@ const BENCHMARK_EXAMPLES = [
       user: {
         id: 123,
         name: 'Ada',
-        tags: ['admin', 'ops', 'developer'],
+        tags: ['reading', 'gaming', 'coding'],
         active: true,
       },
     },
@@ -71,7 +71,7 @@ const BENCHMARK_EXAMPLES = [
         host: 'localhost',
         port: 5432,
         credentials: {
-          username: 'admin',
+          username: 'dbuser',
           password: 'secret123',
         },
       },

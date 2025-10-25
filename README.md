@@ -24,11 +24,11 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 | 🏷️ User with tags | 48 | 28 | 20 | **41.7%** |
 | 📦 Small product catalog | 117 | 49 | 68 | **58.1%** |
 | 👥 API response with users | 123 | 53 | 70 | **56.9%** |
-| ⚙️ Nested configuration | 67 | 41 | 26 | **38.8%** |
+| ⚙️ Nested configuration | 68 | 42 | 26 | **38.2%** |
 | 🛒 E-commerce order | 163 | 94 | 69 | **42.3%** |
 | 📊 Analytics data | 209 | 94 | 115 | **55.0%** |
 | 📈 Large dataset (50 records) | 2159 | 762 | 1397 | **64.7%** |
-| **Total** | **2917** | **1139** | **1778** | **61.0%** |
+| **Total** | **2918** | **1140** | **1778** | **60.9%** |
 
 <details>
 <summary><strong>View detailed results</strong></summary>
@@ -233,7 +233,7 @@ const data = {
   user: {
     id: 123,
     name: 'Ada',
-    tags: ['admin', 'ops'],
+    tags: ['reading', 'gaming'],
     active: true,
     preferences: []
   }
@@ -248,7 +248,7 @@ Output:
 user:
   id: 123
   name: Ada
-  tags[2]: admin,ops
+  tags[2]: reading,gaming
   active: true
   preferences[0]:
 ```
@@ -465,7 +465,7 @@ String values are quoted when any of the following is true:
 
 ```
 note: "hello, world"
-items[3]: x,"true","- item"
+items[3]: foo,"true","- item"
 hello 👋 world         // unquoted
 " padded "             // quoted
 value: null            // null value
@@ -614,7 +614,7 @@ The `lengthMarker` option adds an optional hash (`#`) prefix to array lengths to
 import { encode } from '@byjohann/toon'
 
 const data = {
-  tags: ['admin', 'ops', 'dev'],
+  tags: ['reading', 'gaming', 'coding'],
   items: [
     { sku: 'A1', qty: 2, price: 9.99 },
     { sku: 'B2', qty: 1, price: 14.5 },
@@ -622,14 +622,14 @@ const data = {
 }
 
 console.log(encode(data, { lengthMarker: '#' }))
-// tags[#3]: admin,ops,dev
+// tags[#3]: reading,gaming,coding
 // items[#2]{sku,qty,price}:
 //   A1,2,9.99
 //   B2,1,14.5
 
 // Works with custom delimiters
 console.log(encode(data, { lengthMarker: '#', delimiter: '|' }))
-// tags[#3|]: admin|ops|dev
+// tags[#3|]: reading|gaming|coding
 // items[#2|]{sku|qty|price}:
 //   A1|2|9.99
 //   B2|1|14.5
@@ -669,7 +669,7 @@ When incorporating TOON into your LLM workflows:
                                     id: 1
 
 // Primitive array (inline)
-{ tags: ['a', 'b'] }            → tags[2]: a,b
+{ tags: ['foo', 'bar'] }        → tags[2]: foo,bar
 
 // Tabular array (uniform objects)
 { items: [                      → items[2]{id,qty}:
