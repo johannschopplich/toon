@@ -234,7 +234,8 @@ const data = {
     id: 123,
     name: 'Ada',
     tags: ['admin', 'ops'],
-    active: true
+    active: true,
+    preferences: []
   }
 }
 
@@ -249,6 +250,7 @@ user:
   name: Ada
   tags[2]: admin,ops
   active: true
+  preferences[0]:
 ```
 
 ## Canonical Formatting Rules
@@ -260,7 +262,9 @@ TOON formatting is deterministic and minimal:
   - `key: value` for primitives (single space after colon).
   - `key:` for nested/empty objects (no trailing space on that line).
 - **Arrays**:
-  - Primitive arrays inline: `key[N]: v1,v2` (no spaces after commas).
+  - Delimiter encoding: Comma delimiters are implicit in array headers (e.g., `tags[3]:`, `items[2]{id,name}:`). Tab and pipe delimiters are explicitly shown in array headers (e.g., `tags[3|]:`, `items[2	]{id	name}:`).
+  - Primitive arrays inline: `key[N]: v1,v2` (comma) or `key[N<delim>]: v1<delim>v2` (tab/pipe).
+  - Tabular arrays: `key[N]{f1,f2}: …` (comma) or `key[N<delim>]{f1<delim>f2}: …` (tab/pipe).
   - List items: two spaces, hyphen, space (`"  - …"`).
 - **Whitespace invariants**:
   - No trailing spaces at end of any line.
@@ -306,7 +310,7 @@ user:
 ### Arrays
 
 > [!TIP]
-> TOON includes the array length in brackets (e.g., `items[3]` or `[2]`). This explicit count helps LLMs track the number of elements, reducing errors when generating or validating structured output.
+> TOON includes the array length in brackets (e.g., `items[3]`). When using comma delimiters (default), the delimiter is implicit. When using tab or pipe delimiters, the delimiter is explicitly shown in the header (e.g., `tags[2|]` or `[2	]`). This encoding helps LLMs identify the delimiter and track the number of elements, reducing errors when generating or validating structured output.
 
 #### Primitive Arrays (Inline)
 
@@ -454,8 +458,8 @@ String values are quoted when any of the following is true:
 | Starts with `"- "` (list-like) | `"- item"` |
 | Looks like structural token | `"[5]"`, `"{key}"`, `"[3]: x,y"` |
 
-> [!NOTE]
-> **Delimiter-aware quoting:** The quoting rules are context-sensitive. When using tab or pipe delimiters, commas don't need quoting. Only the active delimiter triggers quoting – this applies to both array values and object values.
+> [!IMPORTANT]
+> **Delimiter-aware quoting:** Unquoted strings never contain `:` or the active delimiter. This makes TOON reliably parseable with simple heuristics: split key/value on first `: `, and split array values on the delimiter declared in the array header. When using tab or pipe delimiters, commas don't need quoting – only the active delimiter triggers quoting for both array values and object values.
 
 #### Examples
 
@@ -478,9 +482,10 @@ For arrays of objects to use the efficient tabular format, all of the following 
 | All elements are objects | No primitives in the array |
 | Identical key sets | No missing or extra keys across rows |
 | Primitive values only | No nested arrays or objects |
+| Header delimiter | Comma is implicit in headers (`[N]{f1,f2}`); tab and pipe are explicit (`[N	]{f1	f2}`, `[N|]{f1|f2}`) |
 | Header key order | Taken from the first object |
-| Header key quoting | Same rules as object keys |
-| Row value quoting | Same rules as string values |
+| Header key quoting | Same rules as object keys; keys containing the active delimiter must be quoted |
+| Row value quoting | Same rules as string values; values containing the active delimiter must be quoted |
 
 If any condition fails, TOON falls back to list format.
 
@@ -568,7 +573,7 @@ console.log(encode(data, { delimiter: '\t' }))
 **Output:**
 
 ```
-items[2]{sku,name,qty,price}:
+items[2	]{sku	name	qty	price}:
   A1	Widget	2	9.99
   B2	Gadget	1	14.5
 ```
@@ -577,6 +582,7 @@ items[2]{sku,name,qty,price}:
 
 - Tabs are single characters and often tokenize more efficiently than commas.
 - Tabs rarely appear in natural text, reducing the need for quote-escaping.
+- The delimiter is explicitly encoded in the array header, making it self-descriptive.
 
 **Considerations:**
 
@@ -594,7 +600,7 @@ console.log(encode(data, { delimiter: '|' }))
 **Output:**
 
 ```
-items[2]{sku,name,qty,price}:
+items[2|]{sku|name|qty|price}:
   A1|Widget|2|9.99
   B2|Gadget|1|14.5
 ```

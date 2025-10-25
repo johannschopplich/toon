@@ -2,6 +2,7 @@ import type { JsonPrimitive } from './types'
 import {
   BACKSLASH,
   COMMA,
+  DEFAULT_DELIMITER,
   DOUBLE_QUOTE,
   FALSE_LITERAL,
   LIST_ITEM_MARKER,
@@ -139,10 +140,12 @@ export function formatHeader(
   options?: {
     key?: string
     fields?: readonly string[]
+    delimiter?: string
   },
 ): string {
   const key = options?.key
   const fields = options?.fields
+  const delimiter = options?.delimiter ?? COMMA
 
   let header = ''
 
@@ -150,11 +153,12 @@ export function formatHeader(
     header += encodeKey(key)
   }
 
-  header += `[${length}]`
+  // Only include delimiter if it's not the default (comma)
+  header += `[${length}${delimiter !== DEFAULT_DELIMITER ? delimiter : ''}]`
 
   if (fields) {
     const quotedFields = fields.map(f => encodeKey(f))
-    header += `{${quotedFields.join(',')}}`
+    header += `{${quotedFields.join(delimiter)}}`
   }
 
   header += ':'

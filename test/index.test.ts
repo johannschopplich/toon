@@ -597,12 +597,12 @@ describe('delimiter options', () => {
       { delimiter: ',' as const, name: 'comma', expected: 'admin,ops,dev' },
     ])('encodes primitive arrays with $name', ({ delimiter, expected }) => {
       const obj = { tags: ['admin', 'ops', 'dev'] }
-      expect(encode(obj, { delimiter })).toBe(`tags[3]: ${expected}`)
+      expect(encode(obj, { delimiter })).toBe(`tags[3${delimiter !== ',' ? delimiter : ''}]: ${expected}`)
     })
 
     it.each([
-      { delimiter: '\t' as const, name: 'tab', expected: 'items[2]{sku,qty,price}:\n  A1\t2\t9.99\n  B2\t1\t14.5' },
-      { delimiter: '|' as const, name: 'pipe', expected: 'items[2]{sku,qty,price}:\n  A1|2|9.99\n  B2|1|14.5' },
+      { delimiter: '\t' as const, name: 'tab', expected: 'items[2\t]{sku\tqty\tprice}:\n  A1\t2\t9.99\n  B2\t1\t14.5' },
+      { delimiter: '|' as const, name: 'pipe', expected: 'items[2|]{sku|qty|price}:\n  A1|2|9.99\n  B2|1|14.5' },
     ])('encodes tabular arrays with $name', ({ delimiter, expected }) => {
       const obj = {
         items: [
@@ -614,8 +614,8 @@ describe('delimiter options', () => {
     })
 
     it.each([
-      { delimiter: '\t' as const, name: 'tab', expected: 'pairs[2]:\n  - [2]: a\tb\n  - [2]: c\td' },
-      { delimiter: '|' as const, name: 'pipe', expected: 'pairs[2]:\n  - [2]: a|b\n  - [2]: c|d' },
+      { delimiter: '\t' as const, name: 'tab', expected: 'pairs[2\t]:\n  - [2\t]: a\tb\n  - [2\t]: c\td' },
+      { delimiter: '|' as const, name: 'pipe', expected: 'pairs[2|]:\n  - [2|]: a|b\n  - [2|]: c|d' },
     ])('encodes nested arrays with $name', ({ delimiter, expected }) => {
       const obj = { pairs: [['a', 'b'], ['c', 'd']] }
       expect(encode(obj, { delimiter })).toBe(expected)
@@ -626,12 +626,12 @@ describe('delimiter options', () => {
       { delimiter: '|' as const, name: 'pipe' },
     ])('encodes root arrays with $name', ({ delimiter }) => {
       const arr = ['x', 'y', 'z']
-      expect(encode(arr, { delimiter })).toBe(`[3]: x${delimiter}y${delimiter}z`)
+      expect(encode(arr, { delimiter })).toBe(`[3${delimiter}]: x${delimiter}y${delimiter}z`)
     })
 
     it.each([
-      { delimiter: '\t' as const, name: 'tab', expected: '[2]{id}:\n  1\n  2' },
-      { delimiter: '|' as const, name: 'pipe', expected: '[2]{id}:\n  1\n  2' },
+      { delimiter: '\t' as const, name: 'tab', expected: '[2\t]{id}:\n  1\n  2' },
+      { delimiter: '|' as const, name: 'pipe', expected: '[2|]{id}:\n  1\n  2' },
     ])('encodes root arrays of objects with $name', ({ delimiter, expected }) => {
       const arr = [{ id: 1 }, { id: 2 }]
       expect(encode(arr, { delimiter })).toBe(expected)
@@ -643,14 +643,14 @@ describe('delimiter options', () => {
       { delimiter: '\t' as const, name: 'tab', char: '\t', input: ['a', 'b\tc', 'd'], expected: 'a\t"b\\tc"\td' },
       { delimiter: '|' as const, name: 'pipe', char: '|', input: ['a', 'b|c', 'd'], expected: 'a|"b|c"|d' },
     ])('quotes strings containing $name', ({ delimiter, input, expected }) => {
-      expect(encode({ items: input }, { delimiter })).toBe(`items[${input.length}]: ${expected}`)
+      expect(encode({ items: input }, { delimiter })).toBe(`items[${input.length}${delimiter}]: ${expected}`)
     })
 
     it.each([
       { delimiter: '\t' as const, name: 'tab', input: ['a,b', 'c,d'], expected: 'a,b\tc,d' },
       { delimiter: '|' as const, name: 'pipe', input: ['a,b', 'c,d'], expected: 'a,b|c,d' },
     ])('does not quote commas with $name', ({ delimiter, input, expected }) => {
-      expect(encode({ items: input }, { delimiter })).toBe(`items[${input.length}]: ${expected}`)
+      expect(encode({ items: input }, { delimiter })).toBe(`items[${input.length}${delimiter}]: ${expected}`)
     })
 
     it('quotes tabular values containing the delimiter', () => {
@@ -661,7 +661,7 @@ describe('delimiter options', () => {
         ],
       }
       expect(encode(obj, { delimiter: ',' })).toBe('items[2]{id,note}:\n  1,"a,b"\n  2,"c,d"')
-      expect(encode(obj, { delimiter: '\t' })).toBe('items[2]{id,note}:\n  1\ta,b\n  2\tc,d')
+      expect(encode(obj, { delimiter: '\t' })).toBe('items[2\t]{id\tnote}:\n  1\ta,b\n  2\tc,d')
     })
 
     it('does not quote commas in object values with non-comma delimiter', () => {
@@ -670,22 +670,22 @@ describe('delimiter options', () => {
     })
 
     it('quotes nested array values containing the delimiter', () => {
-      expect(encode({ pairs: [['a', 'b|c']] }, { delimiter: '|' })).toBe('pairs[1]:\n  - [2]: a|"b|c"')
-      expect(encode({ pairs: [['a', 'b\tc']] }, { delimiter: '\t' })).toBe('pairs[1]:\n  - [2]: a\t"b\\tc"')
+      expect(encode({ pairs: [['a', 'b|c']] }, { delimiter: '|' })).toBe('pairs[1|]:\n  - [2|]: a|"b|c"')
+      expect(encode({ pairs: [['a', 'b\tc']] }, { delimiter: '\t' })).toBe('pairs[1\t]:\n  - [2\t]: a\t"b\\tc"')
     })
   })
 
   describe('delimiter-independent quoting rules', () => {
     it('preserves ambiguity quoting regardless of delimiter', () => {
       const obj = { items: ['true', '42', '-3.14'] }
-      expect(encode(obj, { delimiter: '|' })).toBe('items[3]: "true"|"42"|"-3.14"')
-      expect(encode(obj, { delimiter: '\t' })).toBe('items[3]: "true"\t"42"\t"-3.14"')
+      expect(encode(obj, { delimiter: '|' })).toBe('items[3|]: "true"|"42"|"-3.14"')
+      expect(encode(obj, { delimiter: '\t' })).toBe('items[3\t]: "true"\t"42"\t"-3.14"')
     })
 
     it('preserves structural quoting regardless of delimiter', () => {
       const obj = { items: ['[5]', '{key}', '- item'] }
-      expect(encode(obj, { delimiter: '|' })).toBe('items[3]: "[5]"|"{key}"|"- item"')
-      expect(encode(obj, { delimiter: '\t' })).toBe('items[3]: "[5]"\t"{key}"\t"- item"')
+      expect(encode(obj, { delimiter: '|' })).toBe('items[3|]: "[5]"|"{key}"|"- item"')
+      expect(encode(obj, { delimiter: '\t' })).toBe('items[3\t]: "[5]"\t"{key}"\t"- item"')
     })
 
     it('quotes keys containing the delimiter', () => {
@@ -695,13 +695,13 @@ describe('delimiter options', () => {
 
     it('quotes tabular headers containing the delimiter', () => {
       const obj = { items: [{ 'a|b': 1 }, { 'a|b': 2 }] }
-      expect(encode(obj, { delimiter: '|' })).toBe('items[2]{"a|b"}:\n  1\n  2')
+      expect(encode(obj, { delimiter: '|' })).toBe('items[2|]{"a|b"}:\n  1\n  2')
     })
 
-    it('always uses commas in tabular headers regardless of delimiter', () => {
+    it('header uses the active delimiter', () => {
       const obj = { items: [{ a: 1, b: 2 }, { a: 3, b: 4 }] }
-      expect(encode(obj, { delimiter: '|' })).toBe('items[2]{a,b}:\n  1|2\n  3|4')
-      expect(encode(obj, { delimiter: '\t' })).toBe('items[2]{a,b}:\n  1\t2\n  3\t4')
+      expect(encode(obj, { delimiter: '|' })).toBe('items[2|]{a|b}:\n  1|2\n  3|4')
+      expect(encode(obj, { delimiter: '\t' })).toBe('items[2\t]{a\tb}:\n  1\t2\n  3\t4')
     })
   })
 

@@ -88,13 +88,8 @@ export function encodeArray(
   options: ResolvedEncodeOptions,
 ): void {
   if (value.length === 0) {
-    if (key === undefined) {
-      writer.push(depth, '[0]:')
-    }
-    else {
-      const encodedKey = encodeKey(key)
-      writer.push(depth, `${encodedKey}[0]:`)
-    }
+    const header = formatHeader(0, key ? { key, delimiter: options.delimiter } : { delimiter: options.delimiter })
+    writer.push(depth, header)
     return
   }
 
@@ -155,7 +150,7 @@ export function encodeArrayOfArraysAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
+  const header = formatHeader(values.length, prefix ? { key: prefix, delimiter: options.delimiter } : { delimiter: options.delimiter })
   writer.push(depth, header)
 
   for (const arr of values) {
@@ -167,7 +162,7 @@ export function encodeArrayOfArraysAsListItems(
 }
 
 export function formatInlineArray(values: readonly JsonPrimitive[], delimiter: string, prefix?: string): string {
-  const header = formatHeader(values.length, prefix ? { key: prefix } : undefined)
+  const header = formatHeader(values.length, prefix ? { key: prefix, delimiter } : { delimiter })
   const joinedValue = joinEncodedValues(values, delimiter)
   // Only add space if there are values
   if (values.length === 0) {
@@ -188,7 +183,7 @@ export function encodeArrayOfObjectsAsTabular(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const headerStr = formatHeader(rows.length, { key: prefix, fields: header })
+  const headerStr = formatHeader(rows.length, { key: prefix, fields: header, delimiter: options.delimiter })
   writer.push(depth, `${headerStr}`)
 
   writeTabularRows(rows, header, writer, depth + 1, options)
@@ -259,7 +254,7 @@ export function encodeMixedArrayAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = formatHeader(items.length, prefix ? { key: prefix } : undefined)
+  const header = formatHeader(items.length, prefix ? { key: prefix, delimiter: options.delimiter } : { delimiter: options.delimiter })
   writer.push(depth, header)
 
   for (const item of items) {
@@ -307,7 +302,7 @@ export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, dept
       const header = detectTabularHeader(firstValue)
       if (header) {
         // Tabular format for uniform arrays of objects
-        const headerStr = formatHeader(firstValue.length, { key: firstKey, fields: header })
+        const headerStr = formatHeader(firstValue.length, { key: firstKey, fields: header, delimiter: options.delimiter })
         writer.push(depth, `${LIST_ITEM_PREFIX}${headerStr}`)
         writeTabularRows(firstValue, header, writer, depth + 1, options)
       }
