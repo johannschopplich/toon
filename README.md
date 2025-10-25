@@ -523,6 +523,7 @@ Converts any JSON-serializable value to TOON format.
 - `options` – Optional encoding options:
   - `indent?: number` – Number of spaces per indentation level (default: `2`)
   - `delimiter?: ',' | '\t' | '|'` – Delimiter for array values and tabular rows (default: `','`)
+  - `lengthMarker?: '#' | false` – Optional marker to prefix array lengths (default: `false`)
 
 **Returns:**
 
@@ -603,6 +604,35 @@ console.log(encode(data, { delimiter: '|' }))
 items[2|]{sku|name|qty|price}:
   A1|Widget|2|9.99
   B2|Gadget|1|14.5
+```
+
+#### Length Marker Option
+
+The `lengthMarker` option adds an optional hash (`#`) prefix to array lengths to emphasize that the bracketed value represents a count, not an index:
+
+```ts
+import { encode } from '@byjohann/toon'
+
+const data = {
+  tags: ['admin', 'ops', 'dev'],
+  items: [
+    { sku: 'A1', qty: 2, price: 9.99 },
+    { sku: 'B2', qty: 1, price: 14.5 },
+  ],
+}
+
+console.log(encode(data, { lengthMarker: '#' }))
+// tags[#3]: admin,ops,dev
+// items[#2]{sku,qty,price}:
+//   A1,2,9.99
+//   B2,1,14.5
+
+// Works with custom delimiters
+console.log(encode(data, { lengthMarker: '#', delimiter: '|' }))
+// tags[#3|]: admin|ops|dev
+// items[#2|]{sku|qty|price}:
+//   A1|2|9.99
+//   B2|1|14.5
 ```
 
 ## Using TOON in LLM Prompts

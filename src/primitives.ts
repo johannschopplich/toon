@@ -141,11 +141,13 @@ export function formatHeader(
     key?: string
     fields?: readonly string[]
     delimiter?: string
+    lengthMarker?: '#' | false
   },
 ): string {
   const key = options?.key
   const fields = options?.fields
   const delimiter = options?.delimiter ?? COMMA
+  const lengthMarker = options?.lengthMarker ?? false
 
   let header = ''
 
@@ -154,7 +156,7 @@ export function formatHeader(
   }
 
   // Only include delimiter if it's not the default (comma)
-  header += `[${length}${delimiter !== DEFAULT_DELIMITER ? delimiter : ''}]`
+  header += `[${lengthMarker || ''}${length}${delimiter !== DEFAULT_DELIMITER ? delimiter : ''}]`
 
   if (fields) {
     const quotedFields = fields.map(f => encodeKey(f))

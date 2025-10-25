@@ -24,6 +24,12 @@ export interface EncodeOptions {
    * @default DELIMITERS.comma
    */
   delimiter?: Delimiter
+  /**
+   * Optional marker to prefix array lengths in headers.
+   * When set to `#`, arrays render as [#N] instead of [N].
+   * @default false
+   */
+  lengthMarker?: '#' | false
 }
 
 export type ResolvedEncodeOptions = Readonly<Required<EncodeOptions>>

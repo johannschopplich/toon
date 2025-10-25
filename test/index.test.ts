@@ -731,3 +731,39 @@ describe('delimiter options', () => {
     })
   })
 })
+
+describe('length marker option', () => {
+  it('adds length marker to primitive arrays', () => {
+    const obj = { tags: ['admin', 'ops', 'dev'] }
+    expect(encode(obj, { lengthMarker: '#' })).toBe('tags[#3]: admin,ops,dev')
+  })
+
+  it('handles empty arrays', () => {
+    expect(encode({ items: [] }, { lengthMarker: '#' })).toBe('items[#0]:')
+  })
+
+  it('adds length marker to tabular arrays', () => {
+    const obj = {
+      items: [
+        { sku: 'A1', qty: 2, price: 9.99 },
+        { sku: 'B2', qty: 1, price: 14.5 },
+      ],
+    }
+    expect(encode(obj, { lengthMarker: '#' })).toBe('items[#2]{sku,qty,price}:\n  A1,2,9.99\n  B2,1,14.5')
+  })
+
+  it('adds length marker to nested arrays', () => {
+    const obj = { pairs: [['a', 'b'], ['c', 'd']] }
+    expect(encode(obj, { lengthMarker: '#' })).toBe('pairs[#2]:\n  - [#2]: a,b\n  - [#2]: c,d')
+  })
+
+  it('works with delimiter option', () => {
+    const obj = { tags: ['admin', 'ops', 'dev'] }
+    expect(encode(obj, { lengthMarker: '#', delimiter: '|' })).toBe('tags[#3|]: admin|ops|dev')
+  })
+
+  it('default is false (no length marker)', () => {
+    const obj = { tags: ['admin', 'ops', 'dev'] }
+    expect(encode(obj)).toBe('tags[3]: admin,ops,dev')
+  })
+})
