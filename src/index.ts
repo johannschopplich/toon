@@ -2,10 +2,14 @@ import type {
   EncodeOptions,
   ResolvedEncodeOptions,
 } from './types'
+import { DEFAULT_DELIMITER } from './constants'
 import { encodeValue } from './encoders'
 import { normalizeValue } from './normalize'
 
+export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
 export type {
+  Delimiter,
+  DelimiterKey,
   EncodeOptions,
   JsonArray,
   JsonObject,
@@ -23,6 +27,6 @@ export function encode(input: unknown, options?: EncodeOptions): string {
 function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
   return {
     indent: options?.indent ?? 2,
-    delimiter: options?.delimiter ?? ',',
+    delimiter: options?.delimiter ?? DEFAULT_DELIMITER,
   }
 }

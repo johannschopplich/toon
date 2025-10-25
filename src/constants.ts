@@ -40,3 +40,18 @@ export const CARRIAGE_RETURN = '\r'
 export const TAB = '\t'
 
 // #endregion
+
+// #region Delimiters
+
+export const DELIMITERS = {
+  comma: COMMA as ',',
+  tab: TAB as '\t',
+  pipe: PIPE as '|',
+} as const
+
+export type DelimiterKey = keyof typeof DELIMITERS
+export type Delimiter = typeof DELIMITERS[DelimiterKey]
+
+export const DEFAULT_DELIMITER: Delimiter = DELIMITERS.comma
+
+// #endregion
