@@ -2,17 +2,39 @@
 
 # Token-Oriented Object Notation (TOON)
 
-AI is becoming cheaper and more accessible, but larger context windows allow for larger data inputs as well. **LLM tokens still cost money** – this is where TOON comes in.
-
-**Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models. It reduces token usage compared to JSON by:
-
-- Removing redundant punctuation (braces/brackets, most quotes)
-- Using indentation for structure
-- Tabularizing arrays of objects
-- Writing inline primitive arrays without spaces
+**Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage.
 
 > [!TIP]
 > Wrap your JSON in `encode()` before sending it to LLMs and save ~1/2 of the token cost for structured data!
+
+## Why TOON?
+
+AI is becoming cheaper and more accessible, but larger context windows allow for larger data inputs as well. **LLM tokens still cost money** – and standard JSON is verbose and token-expensive:
+
+```json
+{
+  "users": [
+    { "id": 1, "name": "Alice", "role": "admin" },
+    { "id": 2, "name": "Bob", "role": "user" }
+  ]
+}
+```
+
+TOON conveys the same information with **fewer tokens**:
+
+```
+users[2]{id,name,role}:
+  1,Alice,admin
+  2,Bob,user
+```
+
+## Key Features
+
+- 💸 **Token-efficient:** typically 30–60% fewer tokens than JSON
+- 🤿 **LLM-friendly guardrails:** explicit lengths and field lists help models validate output
+- 🍱 **Minimal syntax:** removes redundant punctuation (braces, brackets, most quotes)
+- 📐 **Indentation-based structure:** replaces braces with whitespace for better readability
+- 🧺 **Tabular arrays:** declare keys once, then stream rows without repetition
 
 ## Token Benchmarks
 
@@ -181,35 +203,6 @@ metrics[5]{date,views,clicks,conversions}:
 
 > [!NOTE]
 > Measured with [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer) using `o200k_base` encoding (used by GPT-5 and other modern models). Savings will vary across models and tokenizers.
-
-## Why TOON?
-
-Standard JSON is verbose and token-expensive in LLM contexts:
-
-```json
-{
-  "users": [
-    { "id": 1, "name": "Alice", "role": "admin" },
-    { "id": 2, "name": "Bob", "role": "user" }
-  ]
-}
-```
-
-TOON conveys the same information with **fewer tokens**:
-
-```
-users[2]{id,name,role}:
-  1,Alice,admin
-  2,Bob,user
-```
-
-## Key Features
-
-- 💸 **Token-efficient:** typically 30–60% fewer tokens vs JSON on GPT-style tokenizers, based on real benchmarks
-- 🎛️ **Deterministic, tokenizer-aware output:** minimal quoting and stable ordering keep payloads compact and reproducible
-- 🧺 **Tabular arrays without repetition:** declare uniform keys once, then stream rows for dense datasets
-- 📐 **Readable yet concise structure:** indentation replaces braces so nested data stays scannable without extra tokens
-- 🔢 **LLM-friendly guardrails:** explicit lengths and field lists help models validate and reproduce structured responses
 
 ## Installation
 
