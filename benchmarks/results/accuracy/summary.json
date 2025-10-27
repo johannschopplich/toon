@@ -2,49 +2,50 @@
   "formatResults": [
     {
       "format": "toon",
-      "accuracy": 0.8647798742138365,
+      "accuracy": 0.8658280922431866,
       "totalTokens": 4678,
-      "averageLatency": 5016,
-      "correctCount": 275,
-      "totalCount": 318
+      "averageLatency": 5321,
+      "correctCount": 413,
+      "totalCount": 477
     },
     {
-      "format": "markdown-kv",
+      "format": "xml",
       "accuracy": 0.8616352201257862,
-      "totalTokens": 8649,
-      "averageLatency": 4628,
-      "correctCount": 274,
-      "totalCount": 318
-    },
-    {
-      "format": "json",
-      "accuracy": 0.8459119496855346,
-      "totalTokens": 8713,
-      "averageLatency": 5369,
-      "correctCount": 269,
-      "totalCount": 318
+      "totalTokens": 9944,
+      "averageLatency": 6035,
+      "correctCount": 411,
+      "totalCount": 477
     },
     {
       "format": "csv",
-      "accuracy": 0.8459119496855346,
+      "accuracy": 0.8469601677148847,
       "totalTokens": 4745,
-      "averageLatency": 5168,
-      "correctCount": 269,
-      "totalCount": 318
+      "averageLatency": 6551,
+      "correctCount": 404,
+      "totalCount": 477
+    },
+    {
+      "format": "json",
+      "accuracy": 0.8322851153039832,
+      "totalTokens": 8713,
+      "averageLatency": 7981,
+      "correctCount": 397,
+      "totalCount": 477
     },
     {
       "format": "yaml",
-      "accuracy": 0.8459119496855346,
+      "accuracy": 0.8259958071278826,
       "totalTokens": 7091,
-      "averageLatency": 4299,
-      "correctCount": 269,
-      "totalCount": 318
+      "averageLatency": 5561,
+      "correctCount": 394,
+      "totalCount": 477
     }
   ],
   "questions": 159,
   "models": [
     "gpt-5-nano",
-    "claude-haiku-4-5"
+    "claude-haiku-4-5",
+    "gemini-2.5-flash"
   ],
   "datasets": [
     {
@@ -77,14 +78,14 @@
     "csv-nested": 6735,
     "csv-analytics": 1393,
     "csv-github": 8513,
-    "markdown-kv-tabular": 6270,
-    "markdown-kv-nested": 9110,
-    "markdown-kv-analytics": 3779,
-    "markdown-kv-github": 15436,
+    "xml-tabular": 7314,
+    "xml-nested": 10992,
+    "xml-analytics": 4376,
+    "xml-github": 17095,
     "yaml-tabular": 4969,
     "yaml-nested": 7328,
     "yaml-analytics": 2938,
     "yaml-github": 13129
   },
-  "timestamp": "2025-10-27T13:17:28.071Z"
+  "timestamp": "2025-10-27T15:01:57.523Z"
 }

@@ -55,13 +55,23 @@ I built TOON to save tokens when sending large datasets to LLMs at work, where I
 ### Token Efficiency
 
 ```
-⭐ GitHub Repositories       ██████████████░░░░░░░░░░░   8,745 tokens  (JSON: 15,145)  💰 42.3% saved
-📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░   3,630 tokens  (JSON:  9,023)  💰 59.8% saved
-👥 API Response              ██████████████░░░░░░░░░░░   2,597 tokens  (JSON:  4,589)  💰 43.4% saved
-🛒 E-Commerce Order          ████████████████░░░░░░░░░     164 tokens  (JSON:    256)  💰 35.9% saved
-```
+⭐ GitHub Repositories       ██████████████░░░░░░░░░░░   8,745 tokens
+                             vs JSON: 15,145  💰 42.3% saved
+                             vs XML:  17,095  💰 48.8% saved
 
-**Total:** 15,136 tokens (TOON) vs 29,013 tokens (JSON) → 47.8% savings
+📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░   4,507 tokens
+                             vs JSON: 10,977  💰 58.9% saved
+                             vs XML:  13,128  💰 65.7% saved
+
+🛒 E-Commerce Order          ████████████████░░░░░░░░░     166 tokens
+                             vs JSON:    257  💰 35.4% saved
+                             vs XML:     271  💰 38.7% saved
+
+─────────────────────────────────────────────────────────────────────
+Total                        ████████████░░░░░░░░░░░░░  13,418 tokens
+                             vs JSON: 26,379  💰 49.1% saved
+                             vs XML:  30,494  💰 56.0% saved
+```
 
 <details>
 <summary><strong>View detailed examples</strong></summary>
@@ -70,7 +80,7 @@ I built TOON to save tokens when sending large datasets to LLMs at work, where I
 
 **Configuration:** Top 100 GitHub repositories with stars, forks, and metadata
 
-**Savings:** 6,400 tokens (42.3% reduction)
+**Savings:** 6,400 tokens (42.3% reduction vs JSON)
 
 **JSON** (15,145 tokens):
 
@@ -81,7 +91,7 @@ I built TOON to save tokens when sending large datasets to LLMs at work, where I
       "id": 28457823,
       "name": "freeCodeCamp",
       "repo": "freeCodeCamp/freeCodeCamp",
-      "description": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,...",
+      "description": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,…",
       "createdAt": "2014-12-24T17:49:19Z",
       "updatedAt": "2025-10-27T07:40:58Z",
       "pushedAt": "2025-10-26T11:31:08Z",
@@ -124,7 +134,7 @@ I built TOON to save tokens when sending large datasets to LLMs at work, where I
 
 ```
 repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watchers,forks,defaultBranch}:
-  28457823,freeCodeCamp,freeCodeCamp/freeCodeCamp,"freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,...","2014-12-24T17:49:19Z","2025-10-27T07:40:58Z","2025-10-26T11:31:08Z",430828,8582,42136,main
+  28457823,freeCodeCamp,freeCodeCamp/freeCodeCamp,"freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,…","2014-12-24T17:49:19Z","2025-10-27T07:40:58Z","2025-10-26T11:31:08Z",430828,8582,42136,main
   132750724,build-your-own-x,codecrafters-io/build-your-own-x,Master programming by recreating your favorite technologies from scratch.,"2018-05-09T12:03:18Z","2025-10-27T07:43:25Z","2025-10-10T18:45:01Z",430102,6322,40388,master
   21737465,awesome,sindresorhus/awesome,😎 Awesome lists about all kinds of interesting topics,"2014-07-11T13:42:37Z","2025-10-27T07:44:27Z","2025-10-23T17:26:53Z",409760,8016,32015,main
 ```
@@ -135,61 +145,66 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 
 **Configuration:** 180 days of web metrics (views, clicks, conversions, revenue)
 
-**Savings:** 5,393 tokens (59.8% reduction)
+**Savings:** 6,470 tokens (58.9% reduction vs JSON)
 
-**JSON** (9,023 tokens):
+**JSON** (10,977 tokens):
 
 ```json
 {
   "metrics": [
     {
-      "date": "2024-12-31",
-      "views": 1953,
-      "clicks": 224,
-      "conversions": 60,
-      "revenue": 409.79
-    },
-    {
       "date": "2025-01-01",
-      "views": 2981,
-      "clicks": 242,
-      "conversions": 109,
-      "revenue": 467.73
+      "views": 6890,
+      "clicks": 401,
+      "conversions": 23,
+      "revenue": 6015.59,
+      "bounceRate": 0.63
     },
     {
       "date": "2025-01-02",
-      "views": 3842,
-      "clicks": 100,
-      "conversions": 15,
-      "revenue": 569.44
+      "views": 6940,
+      "clicks": 323,
+      "conversions": 37,
+      "revenue": 9086.44,
+      "bounceRate": 0.36
     },
     {
       "date": "2025-01-03",
-      "views": 4083,
-      "clicks": 161,
-      "conversions": 73,
-      "revenue": 444.75
+      "views": 4390,
+      "clicks": 346,
+      "conversions": 26,
+      "revenue": 6360.75,
+      "bounceRate": 0.48
     },
     {
       "date": "2025-01-04",
-      "views": 5382,
-      "clicks": 257,
-      "conversions": 63,
-      "revenue": 457.28
+      "views": 3429,
+      "clicks": 231,
+      "conversions": 13,
+      "revenue": 2360.96,
+      "bounceRate": 0.65
+    },
+    {
+      "date": "2025-01-05",
+      "views": 5804,
+      "clicks": 186,
+      "conversions": 22,
+      "revenue": 2535.96,
+      "bounceRate": 0.37
     }
   ]
 }
 ```
 
-**TOON** (3,630 tokens):
+**TOON** (4,507 tokens):
 
 ```
-metrics[5]{date,views,clicks,conversions,revenue}:
-  2024-12-31,1953,224,60,409.79
-  2025-01-01,2981,242,109,467.73
-  2025-01-02,3842,100,15,569.44
-  2025-01-03,4083,161,73,444.75
-  2025-01-04,5382,257,63,457.28
+metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
+  2025-01-01,6890,401,23,6015.59,0.63
+  2025-01-02,6940,323,37,9086.44,0.36
+  2025-01-03,4390,346,26,6360.75,0.48
+  2025-01-04,3429,231,13,2360.96,0.65
+  2025-01-05,5804,186,22,2535.96,0.37
 ```
 
 </details>
@@ -203,25 +218,32 @@ metrics[5]{date,views,clicks,conversions,revenue}:
 
 ### Retrieval Accuracy
 
-Tested across **2 LLMs** with data retrieval tasks:
+Tested across **3 LLMs** with data retrieval tasks:
 
 ```
 gpt-5-nano
-  toon         ███████████████████░  97.5% (155/159)
-  markdown-kv  ███████████████████░  95.6% (152/159)
-  yaml         ███████████████████░  94.3% (150/159)
-  json         ███████████████████░  93.7% (149/159)
-  csv          ███████████████████░  93.7% (149/159)
+  toon         ████████████████████  99.4% (158/159)
+  yaml         ███████████████████░  95.0% (151/159)
+  csv          ██████████████████░░  92.5% (147/159)
+  json         ██████████████████░░  92.5% (147/159)
+  xml          ██████████████████░░  91.2% (145/159)
 
 claude-haiku-4-5
-  markdown-kv  ███████████████░░░░░  76.7% (122/159)
   toon         ███████████████░░░░░  75.5% (120/159)
-  json         ███████████████░░░░░  75.5% (120/159)
+  xml          ███████████████░░░░░  75.5% (120/159)
   csv          ███████████████░░░░░  75.5% (120/159)
-  yaml         ███████████████░░░░░  74.8% (119/159)
+  json         ███████████████░░░░░  75.5% (120/159)
+  yaml         ███████████████░░░░░  74.2% (118/159)
+
+gemini-2.5-flash
+  xml          ██████████████████░░  91.8% (146/159)
+  csv          █████████████████░░░  86.2% (137/159)
+  toon         █████████████████░░░  84.9% (135/159)
+  json         ████████████████░░░░  81.8% (130/159)
+  yaml         ████████████████░░░░  78.6% (125/159)
 ```
 
-**Advantage:** TOON achieves **86.5% accuracy** (vs JSON's 84.6%) while using **46.3% fewer tokens**.
+**Advantage:** TOON achieves **86.6% accuracy** (vs JSON's 83.2%) while using **46.3% fewer tokens**.
 
 <details>
 <summary><strong>View detailed breakdown by dataset and model</strong></summary>
@@ -232,41 +254,41 @@ claude-haiku-4-5
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `toon` | 86.2% | 2.483 | 100/116 |
-| `csv` | 80.2% | 2.337 | 93/116 |
-| `yaml` | 82.8% | 4.969 | 96/116 |
-| `markdown-kv` | 84.5% | 6.270 | 98/116 |
-| `json` | 84.5% | 6.347 | 98/116 |
+| `toon` | 87.4% | 2.483 | 152/174 |
+| `csv` | 82.8% | 2.337 | 144/174 |
+| `yaml` | 83.9% | 4.969 | 146/174 |
+| `json` | 83.9% | 6.347 | 146/174 |
+| `xml` | 88.5% | 7.314 | 154/174 |
 
 ##### E-commerce orders with nested structures
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `toon` | 90.9% | 5.967 | 80/88 |
-| `csv` | 90.9% | 6.735 | 80/88 |
-| `yaml` | 89.8% | 7.328 | 79/88 |
-| `markdown-kv` | 90.9% | 9.110 | 80/88 |
-| `json` | 89.8% | 9.694 | 79/88 |
+| `toon` | 90.9% | 5.967 | 120/132 |
+| `csv` | 93.9% | 6.735 | 124/132 |
+| `yaml` | 87.1% | 7.328 | 115/132 |
+| `json` | 87.9% | 9.694 | 116/132 |
+| `xml` | 93.2% | 10.992 | 123/132 |
 
 ##### Time-series analytics data
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `csv` | 87.9% | 1.393 | 51/58 |
-| `toon` | 86.2% | 1.515 | 50/58 |
-| `yaml` | 86.2% | 2.938 | 50/58 |
-| `json` | 87.9% | 3.665 | 51/58 |
-| `markdown-kv` | 86.2% | 3.779 | 50/58 |
+| `csv` | 89.7% | 1.393 | 78/87 |
+| `toon` | 88.5% | 1.515 | 77/87 |
+| `yaml` | 83.9% | 2.938 | 73/87 |
+| `json` | 88.5% | 3.665 | 77/87 |
+| `xml` | 85.1% | 4.376 | 74/87 |
 
 ##### Top 100 GitHub repositories
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `csv` | 80.4% | 8.513 | 45/56 |
-| `toon` | 80.4% | 8.745 | 45/56 |
-| `yaml` | 78.6% | 13.129 | 44/56 |
-| `markdown-kv` | 82.1% | 15.436 | 46/56 |
-| `json` | 73.2% | 15.145 | 41/56 |
+| `toon` | 76.2% | 8.745 | 64/84 |
+| `csv` | 69.0% | 8.513 | 58/84 |
+| `yaml` | 71.4% | 13.129 | 60/84 |
+| `json` | 69.0% | 15.145 | 58/84 |
+| `xml` | 71.4% | 17.095 | 60/84 |
 
 #### Performance by Model
 
@@ -274,28 +296,38 @@ claude-haiku-4-5
 
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
-| `toon` | 97.5% | 155/159 |
-| `markdown-kv` | 95.6% | 152/159 |
-| `yaml` | 94.3% | 150/159 |
-| `json` | 93.7% | 149/159 |
-| `csv` | 93.7% | 149/159 |
+| `toon` | 99.4% | 158/159 |
+| `yaml` | 95.0% | 151/159 |
+| `csv` | 92.5% | 147/159 |
+| `json` | 92.5% | 147/159 |
+| `xml` | 91.2% | 145/159 |
 
 ##### claude-haiku-4-5
 
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
-| `markdown-kv` | 76.7% | 122/159 |
 | `toon` | 75.5% | 120/159 |
-| `json` | 75.5% | 120/159 |
+| `xml` | 75.5% | 120/159 |
 | `csv` | 75.5% | 120/159 |
-| `yaml` | 74.8% | 119/159 |
+| `json` | 75.5% | 120/159 |
+| `yaml` | 74.2% | 118/159 |
+
+##### gemini-2.5-flash
+
+| Format | Accuracy | Correct/Total |
+| ------ | -------- | ------------- |
+| `xml` | 91.8% | 146/159 |
+| `csv` | 86.2% | 137/159 |
+| `toon` | 84.9% | 135/159 |
+| `json` | 81.8% | 130/159 |
+| `yaml` | 78.6% | 125/159 |
 
 #### Methodology
 
 - **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).
 - **Token counting**: Using `gpt-tokenizer` with `o200k_base` encoding.
-- **Question types**: Field retrieval, aggregation, and filtering tasks.
-- **Real data**: Faker.js-generated datasets + GitHub repositories.
+- **Question types**: ~160 questions across field retrieval, aggregation, and filtering tasks.
+- **Datasets**: Faker.js-generated datasets (seeded) + GitHub repositories.
 
 </details>
 

@@ -116,6 +116,7 @@ else {
         formatName: task.formatName,
         formattedData,
         model,
+        modelName: task.modelName,
       })
 
       // Progress update after task completes

@@ -7,16 +7,20 @@ import { encode } from '../../src/index'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, ROOT_DIR } from '../src/constants'
 import { generateAnalyticsData } from '../src/datasets'
+import { formatters } from '../src/formatters'
 
 interface BenchmarkResult {
   name: string
   emoji: string
   description: string
-  data: any
+  data: Record<string, any>
   jsonTokens: number
   toonTokens: number
-  savings: number
-  savingsPercent: string
+  xmlTokens: number
+  jsonSavings: number
+  jsonSavingsPercent: string
+  xmlSavings: number
+  xmlSavingsPercent: string
   showDetailed: boolean
 }
 
@@ -38,13 +42,6 @@ const BENCHMARK_EXAMPLES = [
     showDetailed: true,
   },
   {
-    name: 'API Response',
-    emoji: '👥',
-    description: '50 user records with metadata and timestamps',
-    getData: () => generateUsers(50),
-    showDetailed: false,
-  },
-  {
     name: 'E-Commerce Order',
     emoji: '🛒',
     description: 'Single nested order with customer and items',
@@ -56,6 +53,7 @@ const BENCHMARK_EXAMPLES = [
 // Calculate total savings
 let totalJsonTokens = 0
 let totalToonTokens = 0
+let totalXmlTokens = 0
 
 const results: BenchmarkResult[] = []
 
@@ -64,14 +62,21 @@ for (const example of BENCHMARK_EXAMPLES) {
 
   const jsonString = JSON.stringify(data, undefined, 2)
   const toonString = encode(data)
+  const xmlString = formatters.xml(data)
 
   const jsonTokens = encodeTokens(jsonString).length
   const toonTokens = encodeTokens(toonString).length
-  const savings = jsonTokens - toonTokens
-  const savingsPercent = ((savings / jsonTokens) * 100).toFixed(1)
+  const xmlTokens = encodeTokens(xmlString).length
+
+  const jsonSavings = jsonTokens - toonTokens
+  const jsonSavingsPercent = ((jsonSavings / jsonTokens) * 100).toFixed(1)
+
+  const xmlSavings = xmlTokens - toonTokens
+  const xmlSavingsPercent = ((xmlSavings / xmlTokens) * 100).toFixed(1)
 
   totalJsonTokens += jsonTokens
   totalToonTokens += toonTokens
+  totalXmlTokens += xmlTokens
 
   results.push({
     name: example.name,
@@ -80,25 +85,51 @@ for (const example of BENCHMARK_EXAMPLES) {
     data,
     jsonTokens,
     toonTokens,
-    savings,
-    savingsPercent,
+    xmlTokens,
+    jsonSavings,
+    jsonSavingsPercent,
+    xmlSavings,
+    xmlSavingsPercent,
     showDetailed: example.showDetailed,
   })
 }
 
-const totalSavings = totalJsonTokens - totalToonTokens
-const totalSavingsPercent = ((totalSavings / totalJsonTokens) * 100).toFixed(1)
+const totalJsonSavings = totalJsonTokens - totalToonTokens
+const totalJsonSavingsPercent = ((totalJsonSavings / totalJsonTokens) * 100).toFixed(1)
 
-// Generate ASCII bar chart visualization
-const barChartSection = results
+const totalXmlSavings = totalXmlTokens - totalToonTokens
+const totalXmlSavingsPercent = ((totalXmlSavings / totalXmlTokens) * 100).toFixed(1)
+
+// Generate ASCII bar chart visualization (stacked compact format)
+const datasetRows = results
   .map((result) => {
-    const percentage = Number.parseFloat(result.savingsPercent)
+    const percentage = Number.parseFloat(result.jsonSavingsPercent)
     const bar = generateBarChart(100 - percentage) // Invert to show TOON tokens
-    const jsonStr = result.jsonTokens.toLocaleString('en-US')
     const toonStr = result.toonTokens.toLocaleString('en-US')
-    return `${result.emoji} ${result.name.padEnd(25)} ${bar}  ${toonStr.padStart(6)} tokens  (JSON: ${jsonStr.padStart(6)})  💰 ${result.savingsPercent}% saved`
+    const jsonStr = result.jsonTokens.toLocaleString('en-US')
+    const xmlStr = result.xmlTokens.toLocaleString('en-US')
+
+    const line1 = `${result.emoji} ${result.name.padEnd(25)} ${bar}  ${toonStr.padStart(6)} tokens`
+    const line2 = `                             vs JSON: ${jsonStr.padStart(6)}  💰 ${result.jsonSavingsPercent}% saved`
+    const line3 = `                             vs XML:  ${xmlStr.padStart(6)}  💰 ${result.xmlSavingsPercent}% saved`
+
+    return `${line1}\n${line2}\n${line3}`
   })
-  .join('\n')
+  .join('\n\n')
+
+// Add separator and totals row
+const separator = '─────────────────────────────────────────────────────────────────────'
+
+// Calculate bar for totals (TOON vs average of JSON+XML)
+const averageComparisonTokens = (totalJsonTokens + totalXmlTokens) / 2
+const totalPercentage = (totalToonTokens / averageComparisonTokens) * 100
+const totalBar = generateBarChart(totalPercentage)
+
+const totalLine1 = `Total                        ${totalBar}  ${totalToonTokens.toLocaleString('en-US').padStart(6)} tokens`
+const totalLine2 = `                             vs JSON: ${totalJsonTokens.toLocaleString('en-US').padStart(6)}  💰 ${totalJsonSavingsPercent}% saved`
+const totalLine3 = `                             vs XML:  ${totalXmlTokens.toLocaleString('en-US').padStart(6)}  💰 ${totalXmlSavingsPercent}% saved`
+
+const barChartSection = `${datasetRows}\n\n${separator}\n${totalLine1}\n${totalLine2}\n${totalLine3}`
 
 // Generate detailed examples (only for selected examples)
 const detailedExamples = results
@@ -108,9 +139,9 @@ const detailedExamples = results
     let displayData = result.data
     if (result.name === 'GitHub Repositories') {
       displayData = {
-        repositories: result.data.repositories.slice(0, 3).map((repo: any) => ({
+        repositories: result.data.repositories.slice(0, 3).map((repo: Record<string, any>) => ({
           ...repo,
-          description: repo.description?.slice(0, 80) + (repo.description?.length > 80 ? '...' : ''),
+          description: repo.description?.slice(0, 80) + (repo.description?.length > 80 ? '…' : ''),
         })),
       }
     }
@@ -124,7 +155,7 @@ const detailedExamples = results
 
 **Configuration:** ${result.description}
 
-**Savings:** ${result.savings.toLocaleString('en-US')} tokens (${result.savingsPercent}% reduction)
+**Savings:** ${result.jsonSavings.toLocaleString('en-US')} tokens (${result.jsonSavingsPercent}% reduction vs JSON)
 
 **JSON** (${result.jsonTokens.toLocaleString('en-US')} tokens):
 
@@ -146,8 +177,6 @@ const markdown = `### Token Efficiency
 ${barChartSection}
 \`\`\`
 
-**Total:** ${totalToonTokens.toLocaleString('en-US')} tokens (TOON) vs ${totalJsonTokens.toLocaleString('en-US')} tokens (JSON) → ${totalSavingsPercent}% savings
-
 <details>
 <summary><strong>View detailed examples</strong></summary>
 
@@ -168,23 +197,6 @@ function generateBarChart(percentage: number, maxWidth: number = 25): string {
   const filled = Math.round((percentage / 100) * maxWidth)
   const empty = maxWidth - filled
   return '█'.repeat(filled) + '░'.repeat(empty)
-}
-
-// Generate user API response
-function generateUsers(count: number) {
-  return {
-    users: Array.from({ length: count }, (_, i) => ({
-      id: i + 1,
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      role: faker.helpers.arrayElement(['admin', 'user', 'moderator']),
-      active: faker.datatype.boolean(),
-      createdAt: faker.date.past({ years: 2 }).toISOString(),
-      lastLogin: faker.date.recent({ days: 30 }).toISOString(),
-    })),
-    total: count,
-    page: 1,
-  }
 }
 
 // Generate nested e-commerce order

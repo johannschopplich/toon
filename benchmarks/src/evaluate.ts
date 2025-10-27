@@ -10,6 +10,7 @@
 import type { LanguageModelV2 } from '@ai-sdk/provider'
 import type { EvaluationResult, Question } from './types'
 import { anthropic } from '@ai-sdk/anthropic'
+import { google } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { consola } from 'consola'
@@ -20,16 +21,18 @@ import { consola } from 'consola'
 export const models: Record<string, LanguageModelV2> = {
   'gpt-5-nano': openai('gpt-5-nano'),
   'claude-haiku-4-5': anthropic('claude-haiku-4-5-20251001'),
+  'gemini-2.5-flash': google('gemini-2.5-flash'),
 }
 
 /**
  * Evaluate a single question with a specific format and model
  */
 export async function evaluateQuestion(
-  { question, formatName, formattedData, model}:
-  { question: Question, formatName: string, formattedData: string, model: LanguageModelV2 },
+  { question, formatName, formattedData, model, modelName}:
+  { question: Question, formatName: string, formattedData: string, model: LanguageModelV2, modelName: string },
 ): Promise<EvaluationResult> {
-  const prompt = `Given the following data in ${formatName} format:
+  const prompt = `
+Given the following data in ${formatName} format:
 
 \`\`\`
 ${formattedData}
@@ -37,13 +40,14 @@ ${formattedData}
 
 Question: ${question.prompt}
 
-Provide only the direct answer, without any additional explanation or formatting.`
+Provide only the direct answer, without any additional explanation or formatting.
+`.trim()
 
   const startTime = performance.now()
   const { text, usage } = await generateText({
     model,
     prompt,
-    temperature: model.modelId.startsWith('gpt-') ? undefined : 0,
+    temperature: !model.modelId.startsWith('gpt-') ? 0 : undefined,
   })
 
   const latencyMs = performance.now() - startTime
@@ -56,7 +60,7 @@ Provide only the direct answer, without any additional explanation or formatting
   return {
     questionId: question.id,
     format: formatName,
-    model: model.modelId,
+    model: modelName,
     expected: question.groundTruth,
     actual: text.trim(),
     isCorrect,
@@ -93,9 +97,8 @@ Respond with only "YES" or "NO".`
 
   try {
     const { text } = await generateText({
-      model: models['claude-haiku-4-5']!,
+      model: models['gpt-5-nano']!,
       prompt,
-      temperature: 0,
     })
 
     return text.trim().toUpperCase() === 'YES'

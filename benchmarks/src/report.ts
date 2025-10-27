@@ -201,8 +201,8 @@ ${modelPerformance}
 
 - **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).
 - **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding.
-- **Question types**: Field retrieval, aggregation, and filtering tasks.
-- **Real data**: Faker.js-generated datasets + GitHub repositories.
+- **Question types**: ~160 questions across field retrieval, aggregation, and filtering tasks.
+- **Datasets**: Faker.js-generated datasets (seeded) + GitHub repositories.
 
 </details>
 `.trimStart()

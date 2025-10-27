@@ -1,7 +1,7 @@
 export interface Dataset {
   name: string
   description: string
-  data: any
+  data: Record<string, any>
 }
 
 export interface Question {
