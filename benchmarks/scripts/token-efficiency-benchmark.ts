@@ -46,7 +46,7 @@ const BENCHMARK_EXAMPLES = [
   {
     name: 'E-commerce Order',
     emoji: '🛒',
-    description: 'Nested order with customer and items',
+    description: 'Single nested order with customer and items',
     getData: generateOrder,
     showDetailed: false,
   },

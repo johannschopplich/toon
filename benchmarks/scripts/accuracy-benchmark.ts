@@ -81,6 +81,7 @@ else {
 
   // Format datasets once (reuse for all questions)
   const formattedDatasets: Record<string, Record<string, string>> = {}
+
   for (const [formatName, formatter] of Object.entries(formatters)) {
     formattedDatasets[formatName] ??= {}
 
@@ -91,6 +92,7 @@ else {
 
   // Generate evaluation tasks
   const tasks: { question: Question, formatName: string, modelName: string }[] = []
+
   for (const question of questions) {
     for (const [formatName] of Object.entries(formatters)) {
       for (const [modelName] of Object.entries(activeModels)) {
@@ -100,7 +102,6 @@ else {
   }
 
   const total = tasks.length
-
   consola.start(`Running ${total} evaluations with concurrency: ${DEFAULT_CONCURRENCY}`)
 
   // Evaluate all tasks in parallel
@@ -110,16 +111,15 @@ else {
       const formattedData = formattedDatasets[task.formatName]![task.question.dataset]!
       const model = activeModels[task.modelName as keyof typeof activeModels]!
 
-      const result = await evaluateQuestion(
-        task.question,
-        task.formatName,
+      const result = await evaluateQuestion({
+        question: task.question,
+        formatName: task.formatName,
         formattedData,
         model,
-        task.modelName,
-      )
+      })
 
-      // Progress update
-      if ((index + 1) % 10 === 0) {
+      // Progress update after task completes
+      if ((index + 1) % 10 === 0 || (index + 1) === total) {
         const percent = (((index + 1) / total) * 100).toFixed(1)
         consola.start(`Progress: ${index + 1}/${total} (${percent}%)`)
       }
@@ -133,6 +133,7 @@ else {
 }
 
 // Generate/regenerate markdown report
+consola.start('Generating report and saving results…')
 const formatResults = calculateFormatResults(results, tokenCounts)
 await saveResults(results, formatResults, questions, tokenCounts)
 

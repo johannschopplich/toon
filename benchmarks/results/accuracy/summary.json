@@ -61,7 +61,7 @@
     },
     {
       "name": "github",
-      "description": "Popular GitHub repositories"
+      "description": "Top 100 GitHub repositories"
     }
   ],
   "tokenCounts": {
@@ -86,5 +86,5 @@
     "yaml-analytics": 2938,
     "yaml-github": 13129
   },
-  "timestamp": "2025-10-27T12:43:38.288Z"
+  "timestamp": "2025-10-27T13:04:50.634Z"
 }

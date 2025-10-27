@@ -28,7 +28,7 @@ claude-haiku-4-5
 ##### Uniform employee records (TOON optimal format)
 
 | Format | Accuracy | Tokens | Correct/Total |
-|--------|----------|--------|---------------|
+| ------ | -------- | ------ | ------------- |
 | `toon` | 86.2% | 2.483 | 100/116 |
 | `csv` | 80.2% | 2.337 | 93/116 |
 | `yaml` | 82.8% | 4.969 | 96/116 |
@@ -38,7 +38,7 @@ claude-haiku-4-5
 ##### E-commerce orders with nested structures
 
 | Format | Accuracy | Tokens | Correct/Total |
-|--------|----------|--------|---------------|
+| ------ | -------- | ------ | ------------- |
 | `toon` | 90.9% | 5.967 | 80/88 |
 | `csv` | 90.9% | 6.735 | 80/88 |
 | `yaml` | 89.8% | 7.328 | 79/88 |
@@ -48,17 +48,17 @@ claude-haiku-4-5
 ##### Time-series analytics data
 
 | Format | Accuracy | Tokens | Correct/Total |
-|--------|----------|--------|---------------|
+| ------ | -------- | ------ | ------------- |
 | `csv` | 87.9% | 1.393 | 51/58 |
 | `toon` | 86.2% | 1.515 | 50/58 |
 | `yaml` | 86.2% | 2.938 | 50/58 |
 | `json` | 87.9% | 3.665 | 51/58 |
 | `markdown-kv` | 86.2% | 3.779 | 50/58 |
 
-##### Popular GitHub repositories
+##### Top 100 GitHub repositories
 
 | Format | Accuracy | Tokens | Correct/Total |
-|--------|----------|--------|---------------|
+| ------ | -------- | ------ | ------------- |
 | `csv` | 80.4% | 8.513 | 45/56 |
 | `toon` | 80.4% | 8.745 | 45/56 |
 | `yaml` | 78.6% | 13.129 | 44/56 |
@@ -70,7 +70,7 @@ claude-haiku-4-5
 ##### gpt-5-nano
 
 | Format | Accuracy | Correct/Total |
-|--------|----------|---------------|
+| ------ | -------- | ------------- |
 | `toon` | 97.5% | 155/159 |
 | `markdown-kv` | 95.6% | 152/159 |
 | `yaml` | 94.3% | 150/159 |
@@ -80,7 +80,7 @@ claude-haiku-4-5
 ##### claude-haiku-4-5
 
 | Format | Accuracy | Correct/Total |
-|--------|----------|---------------|
+| ------ | -------- | ------------- |
 | `markdown-kv` | 76.7% | 122/159 |
 | `toon` | 75.5% | 120/159 |
 | `json` | 75.5% | 120/159 |

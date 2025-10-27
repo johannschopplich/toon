@@ -18,7 +18,7 @@ export interface EvaluationResult {
   model: string
   expected: string
   actual: string
-  correct: boolean
+  isCorrect: boolean
   inputTokens?: number
   outputTokens?: number
   latencyMs: number

@@ -3,7 +3,7 @@
  *
  * Handles:
  * - Statistical analysis
- * - Twitter-ready markdown report generation with visual elements
+ * - Markdown report generation with visual elements
  * - Per-dataset breakdowns
  * - Cost analysis
  * - Result file saving
@@ -28,7 +28,7 @@ export function calculateFormatResults(
 
   return formatNames.map((formatName) => {
     const formatResults = results.filter(r => r.format === formatName)
-    const correctCount = formatResults.filter(r => r.correct).length
+    const correctCount = formatResults.filter(r => r.isCorrect).length
     const totalCount = formatResults.length
     const accuracy = correctCount / totalCount
 
@@ -59,24 +59,17 @@ export function generateMarkdownReport(
   questions: Question[],
   tokenCounts: Record<string, number>,
 ): string {
-  const lines: string[] = [
-    '### Retrieval Accuracy',
-    '',
-  ]
-
   const toon = formatResults.find(r => r.format === 'toon')
   const json = formatResults.find(r => r.format === 'json')
 
-  // Model-by-model breakdown with ASCII bars
+  // Build model-by-model breakdown with ASCII bars
   const modelCount = Object.keys(models).length
-  lines.push(`Tested across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** with data retrieval tasks:`, '', '```')
-
   const modelNames = Object.keys(models)
-  for (let i = 0; i < modelNames.length; i++) {
-    const modelName = modelNames[i]!
+
+  const modelBreakdown = modelNames.map((modelName, i) => {
     const modelResults = formatResults.map((fr) => {
       const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
-      const correctCount = modelFormatResults.filter(r => r.correct).length
+      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
       const totalCount = modelFormatResults.length
       const accuracy = totalCount > 0 ? correctCount / totalCount : 0
 
@@ -88,34 +81,24 @@ export function generateMarkdownReport(
       }
     }).sort((a, b) => b.accuracy - a.accuracy)
 
-    // Add blank line before model name, except for first model
-    if (i > 0)
-      lines.push('')
-    lines.push(modelName)
-    for (const result of modelResults) {
+    const formatLines = modelResults.map((result) => {
       const bar = createProgressBar(result.accuracy, 1, 20)
       const accuracyStr = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
       const countStr = `(${result.correctCount}/${result.totalCount})`
-      lines.push(`  ${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`)
-    }
-  }
+      return `  ${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`
+    }).join('\n')
 
-  lines.push('```', '')
+    // Add blank line before model name, except for first model
+    return `${i > 0 ? '\n' : ''}${modelName}\n${formatLines}`
+  }).join('\n')
 
-  // Summary comparison
-  if (toon && json) {
-    const tokenSavings = ((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)
-    lines.push(
-      `**Tradeoff:** TOON achieves ${(toon.accuracy * 100).toFixed(1)}% accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using ${tokenSavings}% fewer tokens.`,
-      '',
-    )
-  }
+  // Build summary comparison
+  const summaryComparison = toon && json
+    ? `**Tradeoff:** TOON achieves ${(toon.accuracy * 100).toFixed(1)}% accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using ${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens.`
+    : ''
 
-  lines.push('<details>', '<summary><strong>View detailed breakdown by dataset and model</strong></summary>', '', '#### Performance by Dataset', '')
-
-  for (const dataset of datasets) {
-    lines.push(`##### ${dataset.description}`, '')
-
+  // Build performance by dataset
+  const datasetBreakdown = datasets.map((dataset) => {
     const datasetResults = formatResults.map((fr) => {
       const datasetFormatResults = results.filter(r => r.questionId.includes(dataset.name) || questions.find(q => q.id === r.questionId)?.dataset === dataset.name)
       if (datasetFormatResults.length === 0)
@@ -125,7 +108,7 @@ export function generateMarkdownReport(
       if (formatDatasetResults.length === 0)
         return undefined
 
-      const correctCount = formatDatasetResults.filter(r => r.correct).length
+      const correctCount = formatDatasetResults.filter(r => r.isCorrect).length
       const totalCount = formatDatasetResults.length
       const accuracy = totalCount > 0 ? correctCount / totalCount : 0
 
@@ -143,7 +126,7 @@ export function generateMarkdownReport(
     }).filter(Boolean) as { format: string, accuracy: number, tokens: number, correctCount: number, totalCount: number }[]
 
     if (datasetResults.length === 0)
-      continue
+      return ''
 
     // Sort by efficiency
     datasetResults.sort((a, b) => {
@@ -152,29 +135,24 @@ export function generateMarkdownReport(
       return effB - effA
     })
 
-    lines.push(
-      '| Format | Accuracy | Tokens | Correct/Total |',
-      '|--------|----------|--------|---------------|',
-    )
+    const tableRows = datasetResults.slice(0, 6).map(result =>
+      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString()} | ${result.correctCount}/${result.totalCount} |`,
+    ).join('\n')
 
-    for (const result of datasetResults.slice(0, 6)) {
-      lines.push(
-        `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString()} | ${result.correctCount}/${result.totalCount} |`,
-      )
-    }
+    return `
+##### ${dataset.description}
 
-    lines.push('')
-  }
+| Format | Accuracy | Tokens | Correct/Total |
+| ------ | -------- | ------ | ------------- |
+${tableRows}
+`.trimStart()
+  }).filter(Boolean).join('\n')
 
-  // Model breakdown
-  lines.push('#### Performance by Model', '')
-
-  for (const modelName of Object.keys(models)) {
-    lines.push(`##### ${modelName}`, '')
-
+  // Build performance by model
+  const modelPerformance = modelNames.map((modelName) => {
     const modelResults = formatResults.map((fr) => {
       const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
-      const correctCount = modelFormatResults.filter(r => r.correct).length
+      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
       const totalCount = modelFormatResults.length
       const accuracy = correctCount / totalCount
 
@@ -186,36 +164,55 @@ export function generateMarkdownReport(
       }
     }).sort((a, b) => b.accuracy - a.accuracy)
 
-    lines.push('| Format | Accuracy | Correct/Total |', '|--------|----------|---------------|')
+    const tableRows = modelResults.map(result =>
+      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.correctCount}/${result.totalCount} |`,
+    ).join('\n')
 
-    for (const result of modelResults) {
-      lines.push(`| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.correctCount}/${result.totalCount} |`)
-    }
+    return `
+##### ${modelName}
 
-    lines.push('')
-  }
+| Format | Accuracy | Correct/Total |
+| ------ | -------- | ------------- |
+${tableRows}
+`.trimStart()
+  }).join('\n')
 
-  // Methodology
-  lines.push(
-    '#### Methodology',
-    '',
-    '- **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).',
-    '- **Token counting**: Using `gpt-tokenizer` with `o200k_base` encoding.',
-    '- **Question types**: Field retrieval, aggregation, and filtering tasks.',
-    '- **Real data**: Faker.js-generated datasets + GitHub repositories.',
-    '',
-    '</details>',
-    '',
-  )
+  return `
+### Retrieval Accuracy
 
-  return lines.join('\n')
+Tested across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** with data retrieval tasks:
+
+\`\`\`
+${modelBreakdown}
+\`\`\`
+
+${summaryComparison}
+
+<details>
+<summary><strong>View detailed breakdown by dataset and model</strong></summary>
+
+#### Performance by Dataset
+
+${datasetBreakdown}
+#### Performance by Model
+
+${modelPerformance}
+#### Methodology
+
+- **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).
+- **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding.
+- **Question types**: Field retrieval, aggregation, and filtering tasks.
+- **Real data**: Faker.js-generated datasets + GitHub repositories.
+
+</details>
+`.trimStart()
 }
 
 /**
  * Calculate token counts for all format+dataset combinations
  */
 export function calculateTokenCounts(
-  formatters: Record<string, (data: any) => string>,
+  formatters: Record<string, (data: unknown) => string>,
 ): Record<string, number> {
   const tokenCounts: Record<string, number> = {}
 
@@ -272,7 +269,7 @@ export async function saveResults(
 }
 
 /**
- * Generate visual progress bar using ASCII characters (█ for filled, ░ for empty)
+ * Generate visual progress bar using ASCII characters (`█` for filled, `░` for empty)
  */
 function createProgressBar(tokens: number, maxTokens: number, width = 30): string {
   const filled = Math.round((tokens / maxTokens) * width)

@@ -9,12 +9,10 @@
 
 import type { LanguageModelV2 } from '@ai-sdk/provider'
 import type { EvaluationResult, Question } from './types'
-import { setTimeout } from 'node:timers/promises'
 import { anthropic } from '@ai-sdk/anthropic'
 import { openai } from '@ai-sdk/openai'
 import { generateText } from 'ai'
 import { consola } from 'consola'
-import { RATE_LIMIT_DELAY_MS } from './constants'
 
 /**
  * Models used for evaluation
@@ -28,11 +26,8 @@ export const models: Record<string, LanguageModelV2> = {
  * Evaluate a single question with a specific format and model
  */
 export async function evaluateQuestion(
-  question: Question,
-  formatName: string,
-  formattedData: string,
-  model: LanguageModelV2,
-  modelName: string,
+  { question, formatName, formattedData, model}:
+  { question: Question, formatName: string, formattedData: string, model: LanguageModelV2 },
 ): Promise<EvaluationResult> {
   const prompt = `Given the following data in ${formatName} format:
 
@@ -51,10 +46,8 @@ Provide only the direct answer, without any additional explanation or formatting
     temperature: model.modelId.startsWith('gpt-') ? undefined : 0,
   })
 
-  await setTimeout(RATE_LIMIT_DELAY_MS)
-
   const latencyMs = performance.now() - startTime
-  const correct = await validateAnswer({
+  const isCorrect = await validateAnswer({
     actual: text.trim(),
     expected: question.groundTruth,
     question: question.prompt,
@@ -63,10 +56,10 @@ Provide only the direct answer, without any additional explanation or formatting
   return {
     questionId: question.id,
     format: formatName,
-    model: modelName,
+    model: model.modelId,
     expected: question.groundTruth,
     actual: text.trim(),
-    correct,
+    isCorrect,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,
     latencyMs,
@@ -104,8 +97,6 @@ Respond with only "YES" or "NO".`
       prompt,
       temperature: 0,
     })
-
-    await setTimeout(RATE_LIMIT_DELAY_MS)
 
     return text.trim().toUpperCase() === 'YES'
   }

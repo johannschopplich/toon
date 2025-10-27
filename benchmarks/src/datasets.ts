@@ -122,16 +122,16 @@ const analyticsDataset: Dataset = {
 }
 
 /**
- * GitHub dataset: Popular repositories
+ * Real-world dataset: Top 100 starred GitHub repositories
  *
  * @remarks
- * Tests TOON's tabular format with real-world data
+ * Tests TOON's tabular format
  */
 const githubDataset: Dataset = {
   name: 'github',
-  description: 'Popular GitHub repositories',
+  description: 'Top 100 GitHub repositories',
   data: {
-    repositories: githubRepos.slice(0, 200),
+    repositories: githubRepos,
   },
 }
 

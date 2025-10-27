@@ -5,8 +5,9 @@ export const ROOT_DIR: string = url.fileURLToPath(new URL('../../', import.meta.
 export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.meta.url))
 
 /**
- * Benchmark execution configuration
+ * Default concurrency for parallel evaluations
  */
+export const DEFAULT_CONCURRENCY = 20
 
 /**
  * Enable dry run mode for quick testing with limited AI requests
@@ -27,13 +28,3 @@ export const DRY_RUN_LIMITS = {
   /** Models to use in dry run */
   allowedModels: [] as string[],
 }
-
-/**
- * Default concurrency for parallel evaluations
- */
-export const DEFAULT_CONCURRENCY = 20
-
-/**
- * Delay between API requests to avoid rate limiting (in milliseconds)
- */
-export const RATE_LIMIT_DELAY_MS = 100
