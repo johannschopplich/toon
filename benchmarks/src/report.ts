@@ -189,7 +189,7 @@ ${modelBreakdown}
 ${summaryComparison}
 
 <details>
-<summary><strong>View detailed breakdown by dataset and model</strong></summary>
+<summary><strong>Performance by dataset and model</strong></summary>
 
 #### Performance by Dataset
 
@@ -197,12 +197,61 @@ ${datasetBreakdown}
 #### Performance by Model
 
 ${modelPerformance}
-#### Methodology
+</details>
 
-- **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).
-- **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding.
-- **Question types**: ~160 questions across field retrieval, aggregation, and filtering tasks.
-- **Datasets**: Faker.js-generated datasets (seeded) + GitHub repositories.
+<details>
+<summary><strong>How the benchmark works</strong></summary>
+
+#### What's Being Measured
+
+This benchmark tests **LLM comprehension and data retrieval accuracy** when data is presented in different formats. Each LLM receives formatted data and must answer questions about it (this does NOT test LLM's ability to generate TOON output).
+
+#### Datasets Tested
+
+Four datasets designed to test different structural patterns:
+
+1. **Tabular** (100 employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
+2. **Nested** (50 e-commerce orders): Complex structures with nested customer objects and item arrays.
+3. **Analytics** (60 days of metrics): Time-series data with dates and numeric values.
+4. **GitHub** (100 repositories): Real-world data from top GitHub repos by stars.
+
+#### Question Types
+
+~160 questions are generated dynamically across three categories:
+
+- **Field retrieval (50%)**: Direct value lookups
+  - Example: "What is Alice's salary?" → \`75000\`
+  - Example: "What is the customer name for order ORD-0042?" → \`John Doe\`
+
+- **Aggregation (25%)**: Counting and summation tasks
+  - Example: "How many employees work in Engineering?" → \`17\`
+  - Example: "What is the total revenue across all orders?" → \`45123.50\`
+
+- **Filtering (25%)**: Conditional queries
+  - Example: "How many employees in Sales have salary > 80000?" → \`5\`
+  - Example: "How many orders have total > 400?" → \`12\`
+
+#### Evaluation Process
+
+1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, JSON, YAML, CSV, XML).
+2. **Query LLM**: Each model receives formatted data + question in a prompt.
+3. **LLM responds**: Model extracts the answer from the data.
+4. **Validate with LLM-as-judge**: GPT-5-nano validates if the answer is semantically correct.
+
+#### Semantic Validation
+
+Answers are validated by an LLM judge (\`gpt-5-nano\`) using semantic equivalence, not exact string matching:
+
+- **Numeric formats**: \`50000\` = \`$50,000\` = \`50000 dollars\` ✓
+- **Case insensitive**: \`Engineering\` = \`engineering\` = \`ENGINEERING\` ✓
+- **Minor formatting**: \`2025-01-01\` = \`January 1, 2025\` ✓
+
+#### Models & Configuration
+
+- **Models tested**: \`gpt-5-nano\`, \`claude-haiku-4-5\`, \`gemini-2.5-flash\`
+- **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding (GPT-5 tokenizer)
+- **Temperature**: 0 (for non-reasoning models)
+- **Total evaluations**: 159 questions × 5 formats × 3 models = 2,385 LLM calls
 
 </details>
 `.trimStart()
