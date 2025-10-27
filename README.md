@@ -822,6 +822,10 @@ When incorporating TOON into your LLM workflows:
 { items: ['true', true] }       → items[2]: "true",true
 ```
 
+## Ports in Other Languages
+
+- **Elixir**: [toon_ex](https://github.com/kentaro/toon_ex)
+
 ## License
 
 [MIT](./LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
