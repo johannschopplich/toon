@@ -759,11 +759,36 @@ console.log(encode(data, { lengthMarker: '#', delimiter: '|' }))
 
 ## Using TOON in LLM Prompts
 
-When incorporating TOON into your LLM workflows:
+TOON works best when you show the format instead of describing it. The structure is self-documenting – models parse it naturally once they see the pattern.
 
-- Wrap TOON data in a fenced code block in your prompt.
-- Tell the model: "Do not add extra punctuation or spaces; follow the exact TOON format."
-- When asking the model to generate TOON, specify the same rules (2-space indentation, no trailing spaces, quoting rules).
+### Sending TOON to LLMs (Input)
+
+Wrap your encoded data in a fenced code block (label it \`\`\`toon for clarity). The indentation and headers are usually enough – models treat it like familiar YAML or CSV. The explicit length markers (`[N]`) and field headers (`{field1,field2}`) help the model track structure, especially for large tables.
+
+### Generating TOON from LLMs (Output)
+
+For output, be more explicit. When you want the model to **generate** TOON:
+
+- **Show the expected header** (`users[N]{id,name,role}:`). The model fills rows instead of repeating keys, reducing generation errors.
+- **State the rules**: 2-space indent, no trailing spaces, `[N]` matches row count.
+
+Here's a prompt that works for both reading and generating:
+
+```
+Data is in TOON format (2-space indent, arrays show length and fields).
+
+\`\`\`toon
+users[3]{id,name,role,lastLogin}:
+  1,Alice,admin,2025-01-15T10:30:00Z
+  2,Bob,user,2025-01-14T15:22:00Z
+  3,Charlie,user,2025-01-13T09:45:00Z
+\`\`\`
+
+Task: Return only users with role "user" as TOON. Use the same header. Set [N] to match the row count. Output only the code block.
+```
+
+> [!TIP]
+> For large uniform tables, use `encode(data, { delimiter: '\t' })` and tell the model "fields are tab-separated." Tabs often tokenize better than commas and reduce the need for quote-escaping.
 
 ## Notes and Limitations
 
