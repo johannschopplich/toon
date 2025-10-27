@@ -94,7 +94,7 @@ export function generateMarkdownReport(
 
   // Build summary comparison
   const summaryComparison = toon && json
-    ? `**Tradeoff:** TOON achieves ${(toon.accuracy * 100).toFixed(1)}% accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using ${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens.`
+    ? `**Advantage:** TOON achieves **${(toon.accuracy * 100).toFixed(1)}% accuracy** (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using **${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens**.`
     : ''
 
   // Build performance by dataset

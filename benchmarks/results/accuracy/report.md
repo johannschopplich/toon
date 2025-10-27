@@ -18,7 +18,7 @@ claude-haiku-4-5
   yaml         ███████████████░░░░░  74.8% (119/159)
 ```
 
-**Tradeoff:** TOON achieves 86.5% accuracy (vs JSON's 84.6%) while using 46.3% fewer tokens.
+**Advantage:** TOON achieves **86.5% accuracy** (vs JSON's 84.6%) while using **46.3% fewer tokens**.
 
 <details>
 <summary><strong>View detailed breakdown by dataset and model</strong></summary>

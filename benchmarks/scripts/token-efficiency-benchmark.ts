@@ -30,7 +30,7 @@ const BENCHMARK_EXAMPLES = [
     showDetailed: true,
   },
   {
-    name: 'Analytics Time Series',
+    name: 'Daily Analytics',
     emoji: '📈',
     description: '180 days of web metrics (views, clicks, conversions, revenue)',
     getData: () => generateAnalytics(180),
@@ -44,7 +44,7 @@ const BENCHMARK_EXAMPLES = [
     showDetailed: false,
   },
   {
-    name: 'E-commerce Order',
+    name: 'E-Commerce Order',
     emoji: '🛒',
     description: 'Single nested order with customer and items',
     getData: generateOrder,
@@ -113,7 +113,7 @@ const detailedExamples = results
         })),
       }
     }
-    else if (result.name === 'Analytics Time Series') {
+    else if (result.name === 'Daily Analytics') {
       displayData = { metrics: result.data.metrics.slice(0, 5) }
     }
 

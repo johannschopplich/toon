@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-
 /**
  * Question generation for TOON benchmarks
  *
@@ -12,6 +10,7 @@
  */
 
 import type { Question } from './types'
+import { consola } from 'consola'
 import { datasets } from './datasets'
 
 /**
@@ -387,12 +386,14 @@ export function generateQuestions(): Question[] {
     }
   }
 
-  console.log(`📊 Question breakdown:`)
-  console.log(`   Tabular: ${questions.filter(q => q.dataset === 'tabular').length}`)
-  console.log(`   Nested: ${questions.filter(q => q.dataset === 'nested').length}`)
-  console.log(`   Analytics: ${questions.filter(q => q.dataset === 'analytics').length}`)
-  console.log(`   GitHub: ${questions.filter(q => q.dataset === 'github').length}`)
-  console.log(`   Total: ${questions.length}`)
+  consola.info(`Question breakdown:`)
+  consola.box(`
+Tabular: ${questions.filter(q => q.dataset === 'tabular').length}
+Nested: ${questions.filter(q => q.dataset === 'nested').length}
+Analytics: ${questions.filter(q => q.dataset === 'analytics').length}
+GitHub: ${questions.filter(q => q.dataset === 'github').length}
+Total: ${questions.length}
+`.trim())
 
   return questions
 }

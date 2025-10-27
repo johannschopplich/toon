@@ -2,12 +2,12 @@
 
 ```
 ⭐ GitHub Repositories       ██████████████░░░░░░░░░░░   8,745 tokens  (JSON: 15,145)  💰 42.3% saved
-📈 Analytics Time Series     ██████████░░░░░░░░░░░░░░░   3,631 tokens  (JSON:  9,024)  💰 59.8% saved
-👥 API Response              ██████████████░░░░░░░░░░░   2,593 tokens  (JSON:  4,589)  💰 43.5% saved
-🛒 E-commerce Order          ███████████████░░░░░░░░░░     203 tokens  (JSON:    338)  💰 39.9% saved
+📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░   3,630 tokens  (JSON:  9,023)  💰 59.8% saved
+👥 API Response              ██████████████░░░░░░░░░░░   2,597 tokens  (JSON:  4,589)  💰 43.4% saved
+🛒 E-Commerce Order          ████████████████░░░░░░░░░     164 tokens  (JSON:    256)  💰 35.9% saved
 ```
 
-**Total:** 15,172 tokens (TOON) vs 29,096 tokens (JSON) → **47.9% savings**
+**Total:** 15,136 tokens (TOON) vs 29,013 tokens (JSON) → 47.8% savings
 
 <details>
 <summary><strong>View detailed examples</strong></summary>
@@ -77,65 +77,65 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 
 ---
 
-#### 📈 Analytics Time Series
+#### 📈 Daily Analytics
 
 **Configuration:** 180 days of web metrics (views, clicks, conversions, revenue)
 
 **Savings:** 5,393 tokens (59.8% reduction)
 
-**JSON** (9,024 tokens):
+**JSON** (9,023 tokens):
 
 ```json
 {
   "metrics": [
     {
       "date": "2024-12-31",
-      "views": 3769,
-      "clicks": 400,
-      "conversions": 59,
-      "revenue": 198.98
+      "views": 1953,
+      "clicks": 224,
+      "conversions": 60,
+      "revenue": 409.79
     },
     {
       "date": "2025-01-01",
-      "views": 5742,
-      "clicks": 463,
-      "conversions": 28,
-      "revenue": 295.77
+      "views": 2981,
+      "clicks": 242,
+      "conversions": 109,
+      "revenue": 467.73
     },
     {
       "date": "2025-01-02",
-      "views": 3669,
-      "clicks": 336,
-      "conversions": 102,
-      "revenue": 624.23
+      "views": 3842,
+      "clicks": 100,
+      "conversions": 15,
+      "revenue": 569.44
     },
     {
       "date": "2025-01-03",
-      "views": 1332,
-      "clicks": 304,
-      "conversions": 99,
-      "revenue": 113.06
+      "views": 4083,
+      "clicks": 161,
+      "conversions": 73,
+      "revenue": 444.75
     },
     {
       "date": "2025-01-04",
-      "views": 1444,
-      "clicks": 222,
-      "conversions": 88,
-      "revenue": 986.69
+      "views": 5382,
+      "clicks": 257,
+      "conversions": 63,
+      "revenue": 457.28
     }
   ]
 }
 ```
 
-**TOON** (3,631 tokens):
+**TOON** (3,630 tokens):
 
 ```
 metrics[5]{date,views,clicks,conversions,revenue}:
-  2024-12-31,3769,400,59,198.98
-  2025-01-01,5742,463,28,295.77
-  2025-01-02,3669,336,102,624.23
-  2025-01-03,1332,304,99,113.06
-  2025-01-04,1444,222,88,986.69
+  2024-12-31,1953,224,60,409.79
+  2025-01-01,2981,242,109,467.73
+  2025-01-02,3842,100,15,569.44
+  2025-01-03,4083,161,73,444.75
+  2025-01-04,5382,257,63,457.28
 ```
 
 </details>
