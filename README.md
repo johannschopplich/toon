@@ -42,168 +42,148 @@ users[2]{id,name,role}:
 - 📐 **Indentation-based structure:** replaces braces with whitespace for better readability
 - 🧺 **Tabular arrays:** declare keys once, then stream rows without repetition
 
-## Token Benchmarks
+## Benchmarks
 
-> [!NOTE]
-> Benchmarks for LLM accuracy and retrieval are currently in development.
+<!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
 
-<!-- automd:file src="./docs/benchmarks.md" -->
+### Token Efficiency
 
-| Example | JSON | TOON | Tokens Saved | Reduction |
-| ------- | ---- | ---- | ------------ | --------- |
-| 👤 Simple user object | 31 | 18 | 13 | **41.9%** |
-| 🏷️ User with tags | 48 | 28 | 20 | **41.7%** |
-| 📦 Small product catalog | 117 | 49 | 68 | **58.1%** |
-| 👥 API response with users | 123 | 53 | 70 | **56.9%** |
-| ⚙️ Nested configuration | 68 | 42 | 26 | **38.2%** |
-| 🛒 E-commerce order | 163 | 94 | 69 | **42.3%** |
-| 📊 Analytics data | 209 | 94 | 115 | **55.0%** |
-| 📈 Large dataset (50 records) | 2159 | 762 | 1397 | **64.7%** |
-| **Total** | **2918** | **1140** | **1778** | **60.9%** |
+```
+⭐ GitHub Repositories       ██████████████░░░░░░░░░░░   8,745 tokens  (JSON: 15,145)  💰 42.3% saved
+📈 Analytics Time Series     ██████████░░░░░░░░░░░░░░░   3,631 tokens  (JSON:  9,024)  💰 59.8% saved
+👥 API Response              ██████████████░░░░░░░░░░░   2,593 tokens  (JSON:  4,589)  💰 43.5% saved
+🛒 E-commerce Order          ███████████████░░░░░░░░░░     203 tokens  (JSON:    338)  💰 39.9% saved
+```
+
+**Total:** 15,172 tokens (TOON) vs 29,096 tokens (JSON) → 47.9% savings
 
 <details>
-<summary><strong>View detailed results</strong></summary>
+<summary><strong>View detailed examples</strong></summary>
 
-### 📦 Small product catalog
+#### ⭐ GitHub Repositories
 
-**Savings: 68 tokens (58.1% reduction)**
+**Configuration:** Top 100 GitHub repositories with stars, forks, and metadata
 
-**JSON** (117 tokens):
+**Savings:** 6,400 tokens (42.3% reduction)
+
+**JSON** (15,145 tokens):
 
 ```json
 {
-  "items": [
+  "repositories": [
     {
-      "sku": "A1",
-      "name": "Widget",
-      "qty": 2,
-      "price": 9.99
+      "id": 28457823,
+      "name": "freeCodeCamp",
+      "repo": "freeCodeCamp/freeCodeCamp",
+      "description": "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,...",
+      "createdAt": "2014-12-24T17:49:19Z",
+      "updatedAt": "2025-10-27T07:40:58Z",
+      "pushedAt": "2025-10-26T11:31:08Z",
+      "stars": 430828,
+      "watchers": 8582,
+      "forks": 42136,
+      "defaultBranch": "main"
     },
     {
-      "sku": "B2",
-      "name": "Gadget",
-      "qty": 1,
-      "price": 14.5
+      "id": 132750724,
+      "name": "build-your-own-x",
+      "repo": "codecrafters-io/build-your-own-x",
+      "description": "Master programming by recreating your favorite technologies from scratch.",
+      "createdAt": "2018-05-09T12:03:18Z",
+      "updatedAt": "2025-10-27T07:43:25Z",
+      "pushedAt": "2025-10-10T18:45:01Z",
+      "stars": 430102,
+      "watchers": 6322,
+      "forks": 40388,
+      "defaultBranch": "master"
     },
     {
-      "sku": "C3",
-      "name": "Doohickey",
-      "qty": 5,
-      "price": 7.25
+      "id": 21737465,
+      "name": "awesome",
+      "repo": "sindresorhus/awesome",
+      "description": "😎 Awesome lists about all kinds of interesting topics",
+      "createdAt": "2014-07-11T13:42:37Z",
+      "updatedAt": "2025-10-27T07:44:27Z",
+      "pushedAt": "2025-10-23T17:26:53Z",
+      "stars": 409760,
+      "watchers": 8016,
+      "forks": 32015,
+      "defaultBranch": "main"
     }
   ]
 }
 ```
 
-**TOON** (49 tokens):
+**TOON** (8,745 tokens):
 
 ```
-items[3]{sku,name,qty,price}:
-  A1,Widget,2,9.99
-  B2,Gadget,1,14.5
-  C3,Doohickey,5,7.25
-```
-
----
-
-### 👥 API response with users
-
-**Savings: 70 tokens (56.9% reduction)**
-
-**JSON** (123 tokens):
-
-```json
-{
-  "users": [
-    {
-      "id": 1,
-      "name": "Alice",
-      "email": "alice@example.com",
-      "active": true
-    },
-    {
-      "id": 2,
-      "name": "Bob",
-      "email": "bob@example.com",
-      "active": true
-    },
-    {
-      "id": 3,
-      "name": "Charlie",
-      "email": "charlie@example.com",
-      "active": false
-    }
-  ],
-  "total": 3,
-  "page": 1
-}
-```
-
-**TOON** (53 tokens):
-
-```
-users[3]{id,name,email,active}:
-  1,Alice,alice@example.com,true
-  2,Bob,bob@example.com,true
-  3,Charlie,charlie@example.com,false
-total: 3
-page: 1
+repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watchers,forks,defaultBranch}:
+  28457823,freeCodeCamp,freeCodeCamp/freeCodeCamp,"freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,...","2014-12-24T17:49:19Z","2025-10-27T07:40:58Z","2025-10-26T11:31:08Z",430828,8582,42136,main
+  132750724,build-your-own-x,codecrafters-io/build-your-own-x,Master programming by recreating your favorite technologies from scratch.,"2018-05-09T12:03:18Z","2025-10-27T07:43:25Z","2025-10-10T18:45:01Z",430102,6322,40388,master
+  21737465,awesome,sindresorhus/awesome,😎 Awesome lists about all kinds of interesting topics,"2014-07-11T13:42:37Z","2025-10-27T07:44:27Z","2025-10-23T17:26:53Z",409760,8016,32015,main
 ```
 
 ---
 
-### 📊 Analytics data
+#### 📈 Analytics Time Series
 
-**Savings: 115 tokens (55.0% reduction)**
+**Configuration:** 180 days of web metrics (views, clicks, conversions, revenue)
 
-**JSON** (209 tokens):
+**Savings:** 5,393 tokens (59.8% reduction)
+
+**JSON** (9,024 tokens):
 
 ```json
 {
   "metrics": [
     {
+      "date": "2024-12-31",
+      "views": 3769,
+      "clicks": 400,
+      "conversions": 59,
+      "revenue": 198.98
+    },
+    {
       "date": "2025-01-01",
-      "views": 1234,
-      "clicks": 89,
-      "conversions": 12
+      "views": 5742,
+      "clicks": 463,
+      "conversions": 28,
+      "revenue": 295.77
     },
     {
       "date": "2025-01-02",
-      "views": 2345,
-      "clicks": 156,
-      "conversions": 23
+      "views": 3669,
+      "clicks": 336,
+      "conversions": 102,
+      "revenue": 624.23
     },
     {
       "date": "2025-01-03",
-      "views": 1890,
-      "clicks": 123,
-      "conversions": 18
+      "views": 1332,
+      "clicks": 304,
+      "conversions": 99,
+      "revenue": 113.06
     },
     {
       "date": "2025-01-04",
-      "views": 3456,
-      "clicks": 234,
-      "conversions": 34
-    },
-    {
-      "date": "2025-01-05",
-      "views": 2789,
-      "clicks": 178,
-      "conversions": 27
+      "views": 1444,
+      "clicks": 222,
+      "conversions": 88,
+      "revenue": 986.69
     }
   ]
 }
 ```
 
-**TOON** (94 tokens):
+**TOON** (3,631 tokens):
 
 ```
-metrics[5]{date,views,clicks,conversions}:
-  2025-01-01,1234,89,12
-  2025-01-02,2345,156,23
-  2025-01-03,1890,123,18
-  2025-01-04,3456,234,34
-  2025-01-05,2789,178,27
+metrics[5]{date,views,clicks,conversions,revenue}:
+  2024-12-31,3769,400,59,198.98
+  2025-01-01,5742,463,28,295.77
+  2025-01-02,3669,336,102,624.23
+  2025-01-03,1332,304,99,113.06
+  2025-01-04,1444,222,88,986.69
 ```
 
 </details>
@@ -212,6 +192,107 @@ metrics[5]{date,views,clicks,conversions}:
 
 > [!NOTE]
 > Measured with [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer) using `o200k_base` encoding (used by GPT-5 and other modern models). Savings will vary across models and tokenizers.
+
+<!-- automd:file src="./benchmarks/results/accuracy/report.md" -->
+
+### Retrieval Accuracy
+
+Tested across **2 LLMs** with data retrieval tasks:
+
+```
+gpt-4o-mini          ██████████████░░░░░░ 72.3% accuracy
+claude-haiku-4-5     ███████████████░░░░░ 76.7% accuracy
+```
+
+**TOON achieves 73.9% accuracy (vs JSON's 73.6%) while using 46.3% fewer tokens.**
+
+| Format | Accuracy | Average Tokens |
+| ------ | -------- | -------------- |
+| `toon` | 73.9% | 4.678 |
+| `json` | 73.6% | 8.713 |
+| `markdown-kv` | 73.6% | 8.649 |
+| `csv` | 72.3% | 4.745 |
+| `yaml` | 71.7% | 7.091 |
+
+<details>
+<summary><strong>View detailed breakdown by dataset and model</strong></summary>
+
+#### Performance by Dataset
+
+##### Uniform employee records (TOON optimal format)
+
+| Format | Accuracy | Tokens | Correct/Total |
+|--------|----------|--------|---------------|
+| `toon` | 72.4% | 2.483 | 84/116 |
+| `csv` | 69.0% | 2.337 | 80/116 |
+| `yaml` | 68.1% | 4.969 | 79/116 |
+| `markdown-kv` | 68.1% | 6.270 | 79/116 |
+| `json` | 68.1% | 6.347 | 79/116 |
+
+##### E-commerce orders with nested structures
+
+| Format | Accuracy | Tokens | Correct/Total |
+|--------|----------|--------|---------------|
+| `toon` | 84.1% | 5.967 | 74/88 |
+| `csv` | 83.0% | 6.735 | 73/88 |
+| `yaml` | 81.8% | 7.328 | 72/88 |
+| `markdown-kv` | 86.4% | 9.110 | 76/88 |
+| `json` | 84.1% | 9.694 | 74/88 |
+
+##### Time-series analytics data
+
+| Format | Accuracy | Tokens | Correct/Total |
+|--------|----------|--------|---------------|
+| `csv` | 72.4% | 1.393 | 42/58 |
+| `toon` | 70.7% | 1.515 | 41/58 |
+| `yaml` | 72.4% | 2.938 | 42/58 |
+| `json` | 74.1% | 3.665 | 43/58 |
+| `markdown-kv` | 70.7% | 3.779 | 41/58 |
+
+##### Popular GitHub repositories
+
+| Format | Accuracy | Tokens | Correct/Total |
+|--------|----------|--------|---------------|
+| `toon` | 64.3% | 8.745 | 36/56 |
+| `csv` | 62.5% | 8.513 | 35/56 |
+| `json` | 67.9% | 15.145 | 38/56 |
+| `markdown-kv` | 67.9% | 15.436 | 38/56 |
+| `yaml` | 62.5% | 13.129 | 35/56 |
+
+
+#### Performance by Model
+
+##### gpt-4o-mini
+
+| Format | Accuracy | Correct/Total |
+|--------|----------|---------------|
+| `toon` | 72.3% | 115/159 |
+| `json` | 71.7% | 114/159 |
+| `markdown-kv` | 70.4% | 112/159 |
+| `csv` | 69.2% | 110/159 |
+| `yaml` | 68.6% | 109/159 |
+
+##### claude-haiku-4-5
+
+| Format | Accuracy | Correct/Total |
+|--------|----------|---------------|
+| `markdown-kv` | 76.7% | 122/159 |
+| `toon` | 75.5% | 120/159 |
+| `json` | 75.5% | 120/159 |
+| `csv` | 75.5% | 120/159 |
+| `yaml` | 74.8% | 119/159 |
+
+
+#### Methodology
+
+- **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).
+- **Token counting**: Using `gpt-tokenizer` with `o200k_base` encoding.
+- **Question types**: Field retrieval, aggregation, and filtering tasks.
+- **Real data**: Faker.js-generated datasets + GitHub repositories.
+
+</details>
+
+<!-- /automd -->
 
 ## Installation
 

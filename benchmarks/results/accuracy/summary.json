@@ -1,0 +1,95 @@
+{
+  "formatResults": [
+    {
+      "format": "toon",
+      "accuracy": 0.7389937106918238,
+      "totalTokens": 4678,
+      "avgInputTokens": 4675,
+      "avgLatency": 1424,
+      "correctCount": 235,
+      "totalCount": 318
+    },
+    {
+      "format": "json",
+      "accuracy": 0.7358490566037735,
+      "totalTokens": 8713,
+      "avgInputTokens": 9177,
+      "avgLatency": 1678,
+      "correctCount": 234,
+      "totalCount": 318
+    },
+    {
+      "format": "markdown-kv",
+      "accuracy": 0.7358490566037735,
+      "totalTokens": 8649,
+      "avgInputTokens": 8242,
+      "avgLatency": 1724,
+      "correctCount": 234,
+      "totalCount": 318
+    },
+    {
+      "format": "csv",
+      "accuracy": 0.7232704402515723,
+      "totalTokens": 4745,
+      "avgInputTokens": 4878,
+      "avgLatency": 1573,
+      "correctCount": 230,
+      "totalCount": 318
+    },
+    {
+      "format": "yaml",
+      "accuracy": 0.7169811320754716,
+      "totalTokens": 7091,
+      "avgInputTokens": 7136,
+      "avgLatency": 1602,
+      "correctCount": 228,
+      "totalCount": 318
+    }
+  ],
+  "questions": 159,
+  "models": [
+    "gpt-4o-mini",
+    "claude-haiku-4-5"
+  ],
+  "datasets": [
+    {
+      "name": "tabular",
+      "description": "Uniform employee records (TOON optimal format)"
+    },
+    {
+      "name": "nested",
+      "description": "E-commerce orders with nested structures"
+    },
+    {
+      "name": "analytics",
+      "description": "Time-series analytics data"
+    },
+    {
+      "name": "github",
+      "description": "Popular GitHub repositories"
+    }
+  ],
+  "tokenCounts": {
+    "json-tabular": 6347,
+    "json-nested": 9694,
+    "json-analytics": 3665,
+    "json-github": 15145,
+    "toon-tabular": 2483,
+    "toon-nested": 5967,
+    "toon-analytics": 1515,
+    "toon-github": 8745,
+    "csv-tabular": 2337,
+    "csv-nested": 6735,
+    "csv-analytics": 1393,
+    "csv-github": 8513,
+    "markdown-kv-tabular": 6270,
+    "markdown-kv-nested": 9110,
+    "markdown-kv-analytics": 3779,
+    "markdown-kv-github": 15436,
+    "yaml-tabular": 4969,
+    "yaml-nested": 7328,
+    "yaml-analytics": 2938,
+    "yaml-github": 13129
+  },
+  "timestamp": "2025-10-27T10:46:35.127Z"
+}
