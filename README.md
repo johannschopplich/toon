@@ -4,11 +4,7 @@
 
 **Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage.
 
-In other words, if YAML and CSV had a baby, optimized for LLM contexts.
-TOON borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts.
-
-> [!TIP]
-> Wrap your JSON in `encode()` before sending it to LLMs and save ~1/2 of the token cost for structured data!
+TOON excels at **uniform complex objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts.
 
 ## Why TOON?
 
@@ -31,14 +27,22 @@ users[2]{id,name,role}:
   2,Bob,user
 ```
 
-I built TOON to save tokens when sending large datasets to LLMs at work, where I tend to have uniform arrays of objects that benefit from the tabular format.
-
 <details>
 <summary>Another reason</summary>
 
 [![xkcd: Standards](https://imgs.xkcd.com/comics/standards_2x.png)](https://xkcd.com/927/)
 
 </details>
+
+## Format Comparison
+
+Format familiarity matters as much as token count.
+
+- **CSV:** best for uniform tables.
+- **JSON:** best for non-uniform data.
+- **TOON:** best for uniform complex (but not deeply nested) objects.
+
+TOON switches to list format for non-uniform arrays. In those cases, JSON can be cheaper at scale.
 
 ## Key Features
 
