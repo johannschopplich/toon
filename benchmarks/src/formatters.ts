@@ -1,12 +1,18 @@
 /**
  * Format converters for TOON benchmarks
  *
- * Converts data to different formats:
+ * Converts data to different formats for comparison:
  * - JSON
  * - TOON
  * - CSV
  * - XML
  * - YAML
+ *
+ * ## Semantic Equivalence
+ *
+ * All formatters attempt to preserve semantic equivalence with the source data,
+ * meaning the converted data should represent the same information. However,
+ * CSV has inherent limitations with nested structures (see `toCSV` docs).
  */
 
 import { stringify as stringifyCSV } from 'csv-stringify/sync'
@@ -14,12 +20,17 @@ import { XMLBuilder } from 'fast-xml-parser'
 import { stringify as stringifyYAML } from 'yaml'
 import { encode as encodeToon } from '../../src/index'
 
-export const formatters = {
-  json: (data: unknown): string => JSON.stringify(data, undefined, 2),
-  toon: (data: unknown): string => encodeToon(data),
-  csv: (data: unknown): string => toCSV(data),
-  xml: (data: unknown): string => toXML(data),
-  yaml: (data: unknown): string => stringifyYAML(data),
+/**
+ * Format converters registry
+ *
+ * Each formatter takes unknown data and returns a string representation
+ */
+export const formatters: Record<string, (data: unknown) => string> = {
+  json: data => JSON.stringify(data, undefined, 2),
+  toon: data => encodeToon(data),
+  csv: data => toCSV(data),
+  xml: data => toXML(data),
+  yaml: data => stringifyYAML(data),
 }
 
 /**
@@ -57,6 +68,15 @@ function toCSV(data: unknown): string {
   return ''
 }
 
+/**
+ * Convert data to XML format
+ *
+ * @remarks
+ * Uses fast-xml-parser to generate well-formatted XML with:
+ * - 2-space indentation for readability
+ * - Empty nodes suppressed
+ * - Proper escaping of special characters
+ */
 function toXML(data: unknown): string {
   const builder = new XMLBuilder({
     format: true,

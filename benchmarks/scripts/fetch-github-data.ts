@@ -1,9 +1,10 @@
-import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { consola } from 'consola'
 import { ofetch } from 'ofetch'
+import pMap from 'p-map'
 import { BENCHMARKS_DIR } from '../src/constants'
+import { ensureDir, saveJsonFile } from '../src/utils'
 
 try {
   // Fetch top 100 repos from GitHub
@@ -52,14 +53,15 @@ async function searchTop100Repos(): Promise<string[]> {
 async function fetchRepoDetails(repoList: string[]): Promise<Record<string, any>[]> {
   consola.start(`Fetching ${repoList.length} GitHub repositories…`)
 
-  const repos: Record<string, any>[] = []
-
-  for (let i = 0; i < repoList.length; i++) {
-    const repoPath = repoList[i]!
-    console.log(`[${i + 1}/${repoList.length}] Fetching ${repoPath}…`)
-    const { repo } = await await ofetch(`https://ungh.cc/repos/${repoPath}`)
-    repos.push(repo)
-  }
+  const repos = await pMap(
+    repoList,
+    async (repoPath, index) => {
+      consola.info(`[${index + 1}/${repoList.length}] Fetching ${repoPath}…`)
+      const { repo } = await ofetch(`https://ungh.cc/repos/${repoPath}`)
+      return repo
+    },
+    { concurrency: 5 },
+  )
 
   consola.success(`Successfully fetched ${repos.length}/${repoList.length} repositories`)
 
@@ -70,8 +72,8 @@ async function saveRepos(repos: Record<string, any>[]): Promise<void> {
   const outputDir = path.join(BENCHMARKS_DIR, 'data')
   const outputFile = path.join(outputDir, 'github-repos.json')
 
-  await fsp.mkdir(outputDir, { recursive: true })
-  await fsp.writeFile(outputFile, JSON.stringify(repos, undefined, 2))
+  await ensureDir(outputDir)
+  await saveJsonFile(outputFile, repos)
 
   const relativePath = path.relative(BENCHMARKS_DIR, outputFile)
   consola.info(`Saved to \`${relativePath}\``)

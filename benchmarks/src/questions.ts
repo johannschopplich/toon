@@ -7,8 +7,16 @@
  * - Filtering (25%): "List/count X where Y"
  *
  * Questions are generated dynamically based on actual data values
+ *
+ * TODO: Balance question distribution across datasets to ensure fair representation.
+ * Current distribution:
+ * - Tabular: 70 questions (43%)
+ * - Nested: 50 questions (31%)
+ * - Analytics: 40 questions (25%)
+ * - GitHub: 40 questions (25%)
  */
 
+import type { AnalyticsMetric, Employee, Order, Repository } from './datasets'
 import type { Question } from './types'
 import { consola } from 'consola'
 import { datasets } from './datasets'
@@ -20,11 +28,11 @@ export function generateQuestions(): Question[] {
   const questions: Question[] = []
   let idCounter = 1
 
-  // Get datasets
-  const tabular = datasets.find(d => d.name === 'tabular')?.data.employees as any[] || []
-  const nested = datasets.find(d => d.name === 'nested')?.data.orders as any[] || []
-  const analytics = datasets.find(d => d.name === 'analytics')?.data.metrics as any[] || []
-  const github = datasets.find(d => d.name === 'github')?.data.repositories as any[] || []
+  // Get datasets with proper typing
+  const tabular = (datasets.find(d => d.name === 'tabular')?.data.employees as Employee[]) || []
+  const nested = (datasets.find(d => d.name === 'nested')?.data.orders as Order[]) || []
+  const analytics = (datasets.find(d => d.name === 'analytics')?.data.metrics as AnalyticsMetric[]) || []
+  const github = (datasets.find(d => d.name === 'github')?.data.repositories as Repository[]) || []
 
   // ========================================
   // TABULAR DATASET QUESTIONS (70 questions)
@@ -68,9 +76,9 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: count by department
-    const departments = [...new Set(tabular.map((e: any) => e.department))]
+    const departments = [...new Set(tabular.map(e => e.department))]
     for (const dept of departments.slice(0, 6)) {
-      const count = tabular.filter((e: any) => e.department === dept).length
+      const count = tabular.filter(e => e.department === dept).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many employees work in ${dept}?`,
@@ -83,7 +91,7 @@ export function generateQuestions(): Question[] {
     // Aggregation: salary ranges (4 questions)
     const salaryThresholds = [60000, 80000, 100000, 120000]
     for (const threshold of salaryThresholds) {
-      const count = tabular.filter((e: any) => e.salary > threshold).length
+      const count = tabular.filter(e => e.salary > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many employees have a salary greater than ${threshold}?`,
@@ -94,8 +102,8 @@ export function generateQuestions(): Question[] {
     }
 
     // Filtering: active status
-    const activeCount = tabular.filter((e: any) => e.active).length
-    const inactiveCount = tabular.filter((e: any) => !e.active).length
+    const activeCount = tabular.filter(e => e.active).length
+    const inactiveCount = tabular.filter(e => !e.active).length
     questions.push(
       {
         id: `q${idCounter++}`,
@@ -115,7 +123,7 @@ export function generateQuestions(): Question[] {
 
     // Complex filtering: multi-condition (8 questions)
     for (const dept of departments.slice(0, 4)) {
-      const count = tabular.filter((e: any) => e.department === dept && e.salary > 80000).length
+      const count = tabular.filter(e => e.department === dept && e.salary > 80000).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many employees in ${dept} have a salary greater than 80000?`,
@@ -126,7 +134,7 @@ export function generateQuestions(): Question[] {
     }
 
     for (const exp of [5, 10]) {
-      const count = tabular.filter((e: any) => e.yearsExperience > exp && e.active).length
+      const count = tabular.filter(e => e.yearsExperience > exp && e.active).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many active employees have more than ${exp} years of experience?`,
@@ -184,9 +192,9 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: count by status
-    const statuses = [...new Set(nested.map((o: any) => o.status))]
+    const statuses = [...new Set(nested.map(o => o.status))]
     for (const status of statuses) {
-      const count = nested.filter((o: any) => o.status === status).length
+      const count = nested.filter(o => o.status === status).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many orders have status "${status}"?`,
@@ -197,7 +205,7 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: total revenue
-    const totalRevenue = nested.reduce((sum: number, o: any) => sum + o.total, 0)
+    const totalRevenue = nested.reduce((sum, o) => sum + o.total, 0)
     questions.push({
       id: `q${idCounter++}`,
       prompt: 'What is the total revenue across all orders?',
@@ -209,7 +217,7 @@ export function generateQuestions(): Question[] {
     // Filtering: high-value orders (3 questions)
     const highValueThresholds = [200, 400, 600]
     for (const threshold of highValueThresholds) {
-      const count = nested.filter((o: any) => o.total > threshold).length
+      const count = nested.filter(o => o.total > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many orders have a total greater than ${threshold}?`,
@@ -252,9 +260,9 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: totals (4 questions)
-    const totalViews = analytics.reduce((sum: number, m: any) => sum + m.views, 0)
-    const totalRevenue = analytics.reduce((sum: number, m: any) => sum + m.revenue, 0)
-    const totalConversions = analytics.reduce((sum: number, m: any) => sum + m.conversions, 0)
+    const totalViews = analytics.reduce((sum, m) => sum + m.views, 0)
+    const totalRevenue = analytics.reduce((sum, m) => sum + m.revenue, 0)
+    const totalConversions = analytics.reduce((sum, m) => sum + m.conversions, 0)
 
     questions.push(
       {
@@ -283,7 +291,7 @@ export function generateQuestions(): Question[] {
     // Filtering: high-performing days (10 questions)
     const viewThresholds = [5000, 6000, 7000]
     for (const threshold of viewThresholds) {
-      const count = analytics.filter((m: any) => m.views > threshold).length
+      const count = analytics.filter(m => m.views > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many days had more than ${threshold} views?`,
@@ -295,7 +303,7 @@ export function generateQuestions(): Question[] {
 
     const conversionThresholds = [10, 20, 30]
     for (const threshold of conversionThresholds) {
-      const count = analytics.filter((m: any) => m.conversions > threshold).length
+      const count = analytics.filter(m => m.conversions > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many days had more than ${threshold} conversions?`,
@@ -338,9 +346,9 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: count by owner (5 questions)
-    const owners = [...new Set(github.map((r: any) => r.owner))]
+    const owners = [...new Set(github.map(r => r.owner))]
     for (const owner of owners.slice(0, 5)) {
-      const count = github.filter((r: any) => r.owner === owner).length
+      const count = github.filter(r => r.owner === owner).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many repositories does ${owner} have in the dataset?`,
@@ -351,7 +359,7 @@ export function generateQuestions(): Question[] {
     }
 
     // Aggregation: total stars
-    const totalStars = github.reduce((sum: number, r: any) => sum + r.stars, 0)
+    const totalStars = github.reduce((sum, r) => sum + r.stars, 0)
     questions.push({
       id: `q${idCounter++}`,
       prompt: 'What is the total number of stars across all repositories?',
@@ -363,7 +371,7 @@ export function generateQuestions(): Question[] {
     // Filtering: popular repos (8 questions)
     const starThresholds = [10000, 50000, 100000]
     for (const threshold of starThresholds) {
-      const count = github.filter((r: any) => r.stars > threshold).length
+      const count = github.filter(r => r.stars > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many repositories have more than ${threshold} stars?`,
@@ -375,7 +383,7 @@ export function generateQuestions(): Question[] {
 
     const forkThresholds = [1000, 5000, 10000]
     for (const threshold of forkThresholds) {
-      const count = github.filter((r: any) => r.forks > threshold).length
+      const count = github.filter(r => r.forks > threshold).length
       questions.push({
         id: `q${idCounter++}`,
         prompt: `How many repositories have more than ${threshold} forks?`,

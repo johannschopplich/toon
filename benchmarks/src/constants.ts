@@ -10,6 +10,16 @@ export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.me
 export const DEFAULT_CONCURRENCY = 20
 
 /**
+ * Progress bar configuration
+ */
+export const PROGRESS_BAR = {
+  /** Default width for progress bars */
+  defaultWidth: 25,
+  /** Compact width for inline displays */
+  compactWidth: 20,
+} as const
+
+/**
  * Enable dry run mode for quick testing with limited AI requests
  *
  * @remarks

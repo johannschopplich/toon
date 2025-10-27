@@ -12,10 +12,10 @@
 import type { EvaluationResult, FormatResult, Question } from './types'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
-import { encode } from 'gpt-tokenizer'
 import { BENCHMARKS_DIR } from './constants'
 import { datasets } from './datasets'
 import { models } from './evaluate'
+import { createProgressBar, ensureDir, saveJsonFile, tokenize } from './utils'
 
 /**
  * Calculate per-format statistics from evaluation results
@@ -220,7 +220,7 @@ export function calculateTokenCounts(
     for (const dataset of datasets) {
       const formatted = formatter(dataset.data)
       const key = `${formatName}-${dataset.name}`
-      tokenCounts[key] = encode(formatted).length
+      tokenCounts[key] = tokenize(formatted)
     }
   }
 
@@ -237,25 +237,22 @@ export async function saveResults(
   tokenCounts: Record<string, number>,
 ): Promise<string> {
   const resultsDir = path.join(BENCHMARKS_DIR, 'results', 'accuracy')
-  await fsp.mkdir(resultsDir, { recursive: true })
+  await ensureDir(resultsDir)
 
   // Save raw results
-  await fsp.writeFile(
-    path.join(resultsDir, 'raw-results.json'),
-    `${JSON.stringify(results, undefined, 2)}\n`,
-  )
+  await saveJsonFile(path.join(resultsDir, 'raw-results.json'), results)
 
   // Save summary
-  await fsp.writeFile(
+  await saveJsonFile(
     path.join(resultsDir, 'summary.json'),
-    `${JSON.stringify({
+    {
       formatResults,
       questions: questions.length,
       models: Object.keys(models),
       datasets: datasets.map(d => ({ name: d.name, description: d.description })),
       tokenCounts,
       timestamp: new Date().toISOString(),
-    }, undefined, 2)}\n`,
+    },
   )
 
   // Generate markdown report
@@ -266,13 +263,4 @@ export async function saveResults(
   )
 
   return resultsDir
-}
-
-/**
- * Generate visual progress bar using ASCII characters (`█` for filled, `░` for empty)
- */
-function createProgressBar(tokens: number, maxTokens: number, width = 30): string {
-  const filled = Math.round((tokens / maxTokens) * width)
-  const empty = width - filled
-  return '█'.repeat(filled) + '░'.repeat(empty)
 }

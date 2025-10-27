@@ -14,7 +14,48 @@ import githubRepos from '../data/github-repos.json' with { type: 'json' }
 // Seed for reproducibility
 faker.seed(12345)
 
-interface AnalyticsMetric {
+/**
+ * Employee record structure for tabular dataset
+ */
+export interface Employee {
+  id: number
+  name: string
+  email: string
+  department: string
+  salary: number
+  yearsExperience: number
+  active: boolean
+}
+
+/**
+ * E-commerce order structure for nested dataset
+ */
+export interface Order {
+  orderId: string
+  customer: {
+    id: number
+    name: string
+    email: string
+    phone: string
+  }
+  items: {
+    sku: string
+    name: string
+    quantity: number
+    price: number
+  }[]
+  subtotal: number
+  tax: number
+  total: number
+  status: string
+  orderDate?: string
+  createdAt?: string
+}
+
+/**
+ * Analytics metric structure for time-series dataset
+ */
+export interface AnalyticsMetric {
   date: string
   views: number
   clicks: number
@@ -24,7 +65,25 @@ interface AnalyticsMetric {
 }
 
 /**
- * Generate analytics time-series data with reproducible seeded randomness
+ * GitHub repository structure for real-world dataset
+ */
+export interface Repository {
+  id: number
+  name: string
+  owner: string
+  repo: string
+  description: string
+  stars: number
+  watchers: number
+  forks: number
+  defaultBranch: string
+  createdAt: string
+  updatedAt: string
+  pushedAt: string
+}
+
+/**
+ * Generate analytics time-series data
  */
 export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
   metrics: AnalyticsMetric[]
@@ -63,12 +122,12 @@ export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
  * @remarks
  * Tests TOON's tabular array format
  */
-const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations', 'Finance']
+const departments: readonly string[] = ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations', 'Finance'] as const
 const tabularDataset: Dataset = {
   name: 'tabular',
   description: 'Uniform employee records (TOON optimal format)',
   data: {
-    employees: Array.from({ length: 100 }, (_, i) => {
+    employees: Array.from({ length: 100 }, (_, i): Employee => {
       const yearsExp = faker.number.int({ min: 1, max: 20 })
       return {
         id: i + 1,
@@ -89,8 +148,8 @@ const tabularDataset: Dataset = {
  * @remarks
  * Tests TOON's handling of complex nested objects
  */
-const productNames = ['Wireless Mouse', 'USB Cable', 'Laptop Stand', 'Keyboard', 'Webcam', 'Headphones', 'Monitor', 'Desk Lamp']
-const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled']
+const productNames: readonly string[] = ['Wireless Mouse', 'USB Cable', 'Laptop Stand', 'Keyboard', 'Webcam', 'Headphones', 'Monitor', 'Desk Lamp'] as const
+const statuses: readonly string[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
 const nestedDataset: Dataset = {
   name: 'nested',
@@ -153,6 +212,35 @@ const githubDataset: Dataset = {
   data: {
     repositories: githubRepos,
   },
+}
+
+/**
+ * Generate a single e-commerce order with nested structure
+ *
+ * @remarks
+ * Used for token efficiency benchmarks
+ */
+export function generateOrderData(): Order {
+  return {
+    orderId: faker.string.alphanumeric({ length: 12, casing: 'upper' }),
+    customer: {
+      id: faker.number.int({ min: 1000, max: 9999 }),
+      name: faker.person.fullName(),
+      email: faker.internet.email(),
+      phone: faker.phone.number(),
+    },
+    items: Array.from({ length: faker.number.int({ min: 2, max: 5 }) }, () => ({
+      sku: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
+      name: faker.commerce.productName(),
+      quantity: faker.number.int({ min: 1, max: 5 }),
+      price: Number(faker.commerce.price({ min: 10, max: 200 })),
+    })),
+    subtotal: Number(faker.commerce.price({ min: 100, max: 500 })),
+    tax: Number(faker.commerce.price({ min: 10, max: 50 })),
+    total: Number(faker.commerce.price({ min: 110, max: 550 })),
+    status: faker.helpers.arrayElement(['pending', 'processing', 'shipped', 'delivered']),
+    createdAt: faker.date.recent({ days: 7 }).toISOString(),
+  }
 }
 
 /**

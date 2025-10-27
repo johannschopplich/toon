@@ -1,13 +1,12 @@
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
-import { faker } from '@faker-js/faker'
 import { consola } from 'consola'
-import { encode as encodeTokens } from 'gpt-tokenizer' // o200k_base encoding (default)
 import { encode } from '../../src/index'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, ROOT_DIR } from '../src/constants'
-import { generateAnalyticsData } from '../src/datasets'
+import { generateAnalyticsData, generateOrderData } from '../src/datasets'
 import { formatters } from '../src/formatters'
+import { createProgressBar, ensureDir, tokenize } from '../src/utils'
 
 interface BenchmarkResult {
   name: string
@@ -45,7 +44,7 @@ const BENCHMARK_EXAMPLES = [
     name: 'E-Commerce Order',
     emoji: '🛒',
     description: 'Single nested order with customer and items',
-    getData: generateOrder,
+    getData: generateOrderData,
     showDetailed: false,
   },
 ] as const
@@ -62,11 +61,11 @@ for (const example of BENCHMARK_EXAMPLES) {
 
   const jsonString = JSON.stringify(data, undefined, 2)
   const toonString = encode(data)
-  const xmlString = formatters.xml(data)
+  const xmlString = formatters.xml!(data)
 
-  const jsonTokens = encodeTokens(jsonString).length
-  const toonTokens = encodeTokens(toonString).length
-  const xmlTokens = encodeTokens(xmlString).length
+  const jsonTokens = tokenize(jsonString)
+  const toonTokens = tokenize(toonString)
+  const xmlTokens = tokenize(xmlString)
 
   const jsonSavings = jsonTokens - toonTokens
   const jsonSavingsPercent = ((jsonSavings / jsonTokens) * 100).toFixed(1)
@@ -104,7 +103,7 @@ const totalXmlSavingsPercent = ((totalXmlSavings / totalXmlTokens) * 100).toFixe
 const datasetRows = results
   .map((result) => {
     const percentage = Number.parseFloat(result.jsonSavingsPercent)
-    const bar = generateBarChart(100 - percentage) // Invert to show TOON tokens
+    const bar = createProgressBar(100 - percentage, 100) // Invert to show TOON tokens
     const toonStr = result.toonTokens.toLocaleString('en-US')
     const jsonStr = result.jsonTokens.toLocaleString('en-US')
     const xmlStr = result.xmlTokens.toLocaleString('en-US')
@@ -123,7 +122,7 @@ const separator = '────────────────────�
 // Calculate bar for totals (TOON vs average of JSON+XML)
 const averageComparisonTokens = (totalJsonTokens + totalXmlTokens) / 2
 const totalPercentage = (totalToonTokens / averageComparisonTokens) * 100
-const totalBar = generateBarChart(totalPercentage)
+const totalBar = createProgressBar(totalPercentage, 100)
 
 const totalLine1 = `Total                        ${totalBar}  ${totalToonTokens.toLocaleString('en-US').padStart(6)} tokens`
 const totalLine2 = `                             vs JSON: ${totalJsonTokens.toLocaleString('en-US').padStart(6)}  💰 ${totalJsonSavingsPercent}% saved`
@@ -132,6 +131,8 @@ const totalLine3 = `                             vs XML:  ${totalXmlTokens.toLoc
 const barChartSection = `${datasetRows}\n\n${separator}\n${totalLine1}\n${totalLine2}\n${totalLine3}`
 
 // Generate detailed examples (only for selected examples)
+// Note: Large datasets are truncated for display readability in the report.
+// Token counts are calculated from the full datasets, not the truncated versions.
 const detailedExamples = results
   .filter(result => result.showDetailed)
   .map((result, i, filtered) => {
@@ -187,38 +188,7 @@ ${detailedExamples}
 
 console.log(markdown)
 
-await fsp.mkdir(path.join(BENCHMARKS_DIR, 'results'), { recursive: true })
+await ensureDir(path.join(BENCHMARKS_DIR, 'results'))
 await fsp.writeFile(outputFilePath, markdown, 'utf-8')
 
 consola.success(`Benchmark written to \`${path.relative(ROOT_DIR, outputFilePath)}\``)
-
-// Generate ASCII bar chart
-function generateBarChart(percentage: number, maxWidth: number = 25): string {
-  const filled = Math.round((percentage / 100) * maxWidth)
-  const empty = maxWidth - filled
-  return '█'.repeat(filled) + '░'.repeat(empty)
-}
-
-// Generate nested e-commerce order
-function generateOrder() {
-  return {
-    orderId: faker.string.alphanumeric({ length: 12, casing: 'upper' }),
-    customer: {
-      id: faker.number.int({ min: 1000, max: 9999 }),
-      name: faker.person.fullName(),
-      email: faker.internet.email(),
-      phone: faker.phone.number(),
-    },
-    items: Array.from({ length: faker.number.int({ min: 2, max: 5 }) }, () => ({
-      sku: faker.string.alphanumeric({ length: 8, casing: 'upper' }),
-      name: faker.commerce.productName(),
-      quantity: faker.number.int({ min: 1, max: 5 }),
-      price: Number(faker.commerce.price({ min: 10, max: 200 })),
-    })),
-    subtotal: Number(faker.commerce.price({ min: 100, max: 500 })),
-    tax: Number(faker.commerce.price({ min: 10, max: 50 })),
-    total: Number(faker.commerce.price({ min: 110, max: 550 })),
-    status: faker.helpers.arrayElement(['pending', 'processing', 'shipped', 'delivered']),
-    createdAt: faker.date.recent({ days: 7 }).toISOString(),
-  }
-}

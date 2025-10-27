@@ -79,17 +79,6 @@ else {
   // Calculate token counts for all format+dataset combinations
   tokenCounts = calculateTokenCounts(formatters)
 
-  // Format datasets once (reuse for all questions)
-  const formattedDatasets: Record<string, Record<string, string>> = {}
-
-  for (const [formatName, formatter] of Object.entries(formatters)) {
-    formattedDatasets[formatName] ??= {}
-
-    for (const dataset of datasets) {
-      formattedDatasets[formatName]![dataset.name] = formatter(dataset.data)
-    }
-  }
-
   // Generate evaluation tasks
   const tasks: { question: Question, formatName: string, modelName: string }[] = []
 
@@ -104,11 +93,13 @@ else {
   const total = tasks.length
   consola.start(`Running ${total} evaluations with concurrency: ${DEFAULT_CONCURRENCY}`)
 
-  // Evaluate all tasks in parallel
   results = await pMap(
     tasks,
     async (task, index) => {
-      const formattedData = formattedDatasets[task.formatName]![task.question.dataset]!
+      // Format data on-demand
+      const dataset = datasets.find(d => d.name === task.question.dataset)!
+      const formatter = formatters[task.formatName]!
+      const formattedData = formatter(dataset.data)
       const model = activeModels[task.modelName as keyof typeof activeModels]!
 
       const result = await evaluateQuestion({
