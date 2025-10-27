@@ -1,7 +1,7 @@
 /**
  * Question generation for TOON benchmarks
  *
- * Generates ~200 questions across different types:
+ * Generates ~160 questions across different types:
  * - Field retrieval (50%): "What is X's Y?"
  * - Aggregation (25%): "How many X have Y?"
  * - Filtering (25%): "List/count X where Y"

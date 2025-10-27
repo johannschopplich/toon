@@ -5,22 +5,36 @@
  * - JSON
  * - TOON
  * - CSV
- * - Markdown key-value
+ * - XML
  * - YAML
  */
 
 import { stringify as stringifyCSV } from 'csv-stringify/sync'
+import { XMLBuilder } from 'fast-xml-parser'
 import { stringify as stringifyYAML } from 'yaml'
 import { encode as encodeToon } from '../../src/index'
 
 export const formatters = {
-  'json': (data: unknown): string => JSON.stringify(data, undefined, 2),
-  'toon': (data: unknown): string => encodeToon(data),
-  'csv': (data: unknown): string => toCSV(data),
-  'markdown-kv': (data: unknown): string => toMarkdownKV(data),
-  'yaml': (data: unknown): string => stringifyYAML(data),
+  json: (data: unknown): string => JSON.stringify(data, undefined, 2),
+  toon: (data: unknown): string => encodeToon(data),
+  csv: (data: unknown): string => toCSV(data),
+  xml: (data: unknown): string => toXML(data),
+  yaml: (data: unknown): string => stringifyYAML(data),
 }
 
+/**
+ * Convert data to CSV format
+ *
+ * @remarks
+ * **Limitations**: CSV is designed for flat tabular data only. This formatter:
+ * - Only handles top-level objects with arrays of flat objects
+ * - Cannot properly represent deeply nested structures (nested arrays/objects within rows)
+ * - Loses nested structure information during conversion
+ * - May produce misleading results for datasets with complex nesting (e.g., e-commerce orders with nested items)
+ *
+ * For datasets with nested structures, CSV comparisons may not be fair or representative
+ * of how CSV would typically be used in practice.
+ */
 function toCSV(data: unknown): string {
   const sections: string[] = []
 
@@ -43,48 +57,12 @@ function toCSV(data: unknown): string {
   return ''
 }
 
-function toMarkdownKV(data: unknown, indent = 0): string {
-  const spaces = '  '.repeat(indent)
-  const lines: string[] = []
+function toXML(data: unknown): string {
+  const builder = new XMLBuilder({
+    format: true,
+    indentBy: '  ',
+    suppressEmptyNode: true,
+  })
 
-  if (Array.isArray(data)) {
-    data.forEach((item, i) => {
-      if (typeof item === 'object' && item !== null && !Array.isArray(item)) {
-        Object.entries(item).forEach(([key, value]) => {
-          if (typeof value === 'object' && value !== null) {
-            lines.push(`${spaces}**${key}**:`)
-            lines.push(toMarkdownKV(value, indent + 1))
-          }
-          else {
-            lines.push(`${spaces}**${key}**: ${value}`)
-          }
-        })
-        if (i < data.length - 1)
-          lines.push('')
-      }
-      else {
-        lines.push(`${spaces}- ${item}`)
-      }
-    })
-  }
-  else if (typeof data === 'object' && data !== null) {
-    Object.entries(data).forEach(([key, value]) => {
-      if (Array.isArray(value)) {
-        lines.push(`${spaces}**${key}**:`)
-        lines.push(toMarkdownKV(value, indent + 1))
-      }
-      else if (typeof value === 'object' && value !== null) {
-        lines.push(`${spaces}**${key}**:`)
-        lines.push(toMarkdownKV(value, indent + 1))
-      }
-      else {
-        lines.push(`${spaces}**${key}**: ${value}`)
-      }
-    })
-  }
-  else {
-    lines.push(`${spaces}${data}`)
-  }
-
-  return lines.join('\n')
+  return builder.build(data)
 }

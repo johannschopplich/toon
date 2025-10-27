@@ -6,6 +6,7 @@ import { encode as encodeTokens } from 'gpt-tokenizer' // o200k_base encoding (d
 import { encode } from '../../src/index'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, ROOT_DIR } from '../src/constants'
+import { generateAnalyticsData } from '../src/datasets'
 
 interface BenchmarkResult {
   name: string
@@ -33,7 +34,7 @@ const BENCHMARK_EXAMPLES = [
     name: 'Daily Analytics',
     emoji: '📈',
     description: '180 days of web metrics (views, clicks, conversions, revenue)',
-    getData: () => generateAnalytics(180),
+    getData: () => generateAnalyticsData(180),
     showDetailed: true,
   },
   {
@@ -167,23 +168,6 @@ function generateBarChart(percentage: number, maxWidth: number = 25): string {
   const filled = Math.round((percentage / 100) * maxWidth)
   const empty = maxWidth - filled
   return '█'.repeat(filled) + '░'.repeat(empty)
-}
-
-// Generate analytics time series data
-function generateAnalytics(days: number) {
-  return {
-    metrics: Array.from({ length: days }, (_, i) => {
-      const date = new Date(2025, 0, 1)
-      date.setDate(date.getDate() + i)
-      return {
-        date: date.toISOString().split('T')[0],
-        views: Math.floor(Math.random() * 5000) + 1000,
-        clicks: Math.floor(Math.random() * 500) + 50,
-        conversions: Math.floor(Math.random() * 100) + 10,
-        revenue: Number((Math.random() * 1000 + 100).toFixed(2)),
-      }
-    }),
-  }
 }
 
 // Generate user API response

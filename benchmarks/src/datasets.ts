@@ -14,6 +14,49 @@ import githubRepos from '../data/github-repos.json' with { type: 'json' }
 // Seed for reproducibility
 faker.seed(12345)
 
+interface AnalyticsMetric {
+  date: string
+  views: number
+  clicks: number
+  conversions: number
+  revenue: number
+  bounceRate: number
+}
+
+/**
+ * Generate analytics time-series data with reproducible seeded randomness
+ */
+export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
+  metrics: AnalyticsMetric[]
+} {
+  const date = new Date(startDate)
+
+  return {
+    metrics: Array.from({ length: days }, (_, i) => {
+      const currentDate = new Date(date)
+      currentDate.setDate(currentDate.getDate() + i)
+
+      // Simulate realistic web traffic with some variation
+      const baseViews = 5000
+      const weekendMultiplier = currentDate.getDay() === 0 || currentDate.getDay() === 6 ? 0.7 : 1.0
+      const views = Math.round(baseViews * weekendMultiplier + faker.number.int({ min: -1000, max: 3000 }))
+      const clicks = Math.round(views * faker.number.float({ min: 0.02, max: 0.08 }))
+      const conversions = Math.round(clicks * faker.number.float({ min: 0.05, max: 0.15 }))
+      const avgOrderValue = faker.number.float({ min: 49.99, max: 299.99 })
+      const revenue = Number((conversions * avgOrderValue).toFixed(2))
+
+      return {
+        date: currentDate.toISOString().split('T')[0]!,
+        views,
+        clicks,
+        conversions,
+        revenue,
+        bounceRate: faker.number.float({ min: 0.3, max: 0.7, fractionDigits: 2 }),
+      }
+    }),
+  }
+}
+
 /**
  * Tabular dataset: 100 uniform employee records
  *
@@ -95,30 +138,7 @@ const nestedDataset: Dataset = {
 const analyticsDataset: Dataset = {
   name: 'analytics',
   description: 'Time-series analytics data',
-  data: {
-    metrics: Array.from({ length: 60 }, (_, i) => {
-      const date = new Date('2025-01-01')
-      date.setDate(date.getDate() + i)
-
-      // Simulate realistic web traffic with some variation
-      const baseViews = 5000
-      const weekendMultiplier = date.getDay() === 0 || date.getDay() === 6 ? 0.7 : 1.0
-      const views = Math.round(baseViews * weekendMultiplier + faker.number.int({ min: -1000, max: 3000 }))
-      const clicks = Math.round(views * faker.number.float({ min: 0.02, max: 0.08 }))
-      const conversions = Math.round(clicks * faker.number.float({ min: 0.05, max: 0.15 }))
-      const avgOrderValue = faker.number.float({ min: 49.99, max: 299.99 })
-      const revenue = Number((conversions * avgOrderValue).toFixed(2))
-
-      return {
-        date: date.toISOString().split('T')[0]!,
-        views,
-        clicks,
-        conversions,
-        revenue,
-        bounceRate: faker.number.float({ min: 0.3, max: 0.7, fractionDigits: 2 }),
-      }
-    }),
-  },
+  data: generateAnalyticsData(60),
 }
 
 /**

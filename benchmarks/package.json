@@ -18,6 +18,7 @@
     "ai": "^5.0.80",
     "consola": "^3.4.2",
     "csv-stringify": "^6.6.0",
+    "fast-xml-parser": "^5.3.0",
     "gpt-tokenizer": "^3.2.0",
     "ofetch": "^1.4.1",
     "p-map": "^7.0.3",
