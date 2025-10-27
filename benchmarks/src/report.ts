@@ -37,15 +37,13 @@ export function calculateFormatResults(
       .filter(([key]) => key.startsWith(`${formatName}-`))
       .reduce((sum, [, tokens]) => sum + tokens, 0) / datasets.length
 
-    const avgInputTokens = formatResults.reduce((sum, r) => sum + r.inputTokens, 0) / totalCount
-    const avgLatency = formatResults.reduce((sum, r) => sum + r.latencyMs, 0) / totalCount
+    const averageLatency = formatResults.reduce((sum, r) => sum + r.latencyMs, 0) / totalCount
 
     return {
       format: formatName,
       accuracy,
       totalTokens: Math.round(avgTokens),
-      avgInputTokens: Math.round(avgInputTokens),
-      avgLatency: Math.round(avgLatency),
+      averageLatency: Math.round(averageLatency),
       correctCount,
       totalCount,
     }
@@ -69,11 +67,13 @@ export function generateMarkdownReport(
   const toon = formatResults.find(r => r.format === 'toon')
   const json = formatResults.find(r => r.format === 'json')
 
-  // Model-by-model breakdown (most interesting result)
+  // Model-by-model breakdown with ASCII bars
   const modelCount = Object.keys(models).length
   lines.push(`Tested across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** with data retrieval tasks:`, '', '```')
 
-  for (const modelName of Object.keys(models)) {
+  const modelNames = Object.keys(models)
+  for (let i = 0; i < modelNames.length; i++) {
+    const modelName = modelNames[i]!
     const modelResults = formatResults.map((fr) => {
       const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
       const correctCount = modelFormatResults.filter(r => r.correct).length
@@ -88,10 +88,16 @@ export function generateMarkdownReport(
       }
     }).sort((a, b) => b.accuracy - a.accuracy)
 
-    const bestResult = modelResults[0]!
-    const bar = createTokenBar(bestResult.accuracy, 1, 20)
-
-    lines.push(`${modelName.padEnd(20)} ${bar} ${(bestResult.accuracy * 100).toFixed(1)}% accuracy`)
+    // Add blank line before model name, except for first model
+    if (i > 0)
+      lines.push('')
+    lines.push(modelName)
+    for (const result of modelResults) {
+      const bar = createProgressBar(result.accuracy, 1, 20)
+      const accuracyStr = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
+      const countStr = `(${result.correctCount}/${result.totalCount})`
+      lines.push(`  ${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`)
+    }
   }
 
   lines.push('```', '')
@@ -100,24 +106,12 @@ export function generateMarkdownReport(
   if (toon && json) {
     const tokenSavings = ((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)
     lines.push(
-      `**TOON achieves ${(toon.accuracy * 100).toFixed(1)}% accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using ${tokenSavings}% fewer tokens.**`,
+      `**Tradeoff:** TOON achieves ${(toon.accuracy * 100).toFixed(1)}% accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using ${tokenSavings}% fewer tokens.`,
       '',
     )
   }
 
-  // Simple format comparison table
-  lines.push(
-    '| Format | Accuracy | Average Tokens |',
-    '| ------ | -------- | -------------- |',
-  )
-
-  for (const result of formatResults) {
-    lines.push(
-      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.totalTokens.toLocaleString()} |`,
-    )
-  }
-
-  lines.push('', '<details>', '<summary><strong>View detailed breakdown by dataset and model</strong></summary>', '', '#### Performance by Dataset', '')
+  lines.push('<details>', '<summary><strong>View detailed breakdown by dataset and model</strong></summary>', '', '#### Performance by Dataset', '')
 
   for (const dataset of datasets) {
     lines.push(`##### ${dataset.description}`, '')
@@ -173,7 +167,7 @@ export function generateMarkdownReport(
   }
 
   // Model breakdown
-  lines.push('', '#### Performance by Model', '')
+  lines.push('#### Performance by Model', '')
 
   for (const modelName of Object.keys(models)) {
     lines.push(`##### ${modelName}`, '')
@@ -203,7 +197,6 @@ export function generateMarkdownReport(
 
   // Methodology
   lines.push(
-    '',
     '#### Methodology',
     '',
     '- **Semantic validation**: LLM-as-judge validates responses semantically (not exact string matching).',
@@ -252,20 +245,20 @@ export async function saveResults(
   // Save raw results
   await fsp.writeFile(
     path.join(resultsDir, 'raw-results.json'),
-    JSON.stringify(results, undefined, 2),
+    `${JSON.stringify(results, undefined, 2)}\n`,
   )
 
   // Save summary
   await fsp.writeFile(
     path.join(resultsDir, 'summary.json'),
-    JSON.stringify({
+    `${JSON.stringify({
       formatResults,
       questions: questions.length,
       models: Object.keys(models),
       datasets: datasets.map(d => ({ name: d.name, description: d.description })),
       tokenCounts,
       timestamp: new Date().toISOString(),
-    }, undefined, 2),
+    }, undefined, 2)}\n`,
   )
 
   // Generate markdown report
@@ -279,9 +272,9 @@ export async function saveResults(
 }
 
 /**
- * Generate visual bar chart for token counts
+ * Generate visual progress bar using ASCII characters (█ for filled, ░ for empty)
  */
-function createTokenBar(tokens: number, maxTokens: number, width = 30): string {
+function createProgressBar(tokens: number, maxTokens: number, width = 30): string {
   const filled = Math.round((tokens / maxTokens) * width)
   const empty = width - filled
   return '█'.repeat(filled) + '░'.repeat(empty)

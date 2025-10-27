@@ -7,7 +7,7 @@
 🛒 E-commerce Order          ███████████████░░░░░░░░░░     203 tokens  (JSON:    338)  💰 39.9% saved
 ```
 
-**Total:** 15,172 tokens (TOON) vs 29,096 tokens (JSON) → 47.9% savings
+**Total:** 15,172 tokens (TOON) vs 29,096 tokens (JSON) → **47.9% savings**
 
 <details>
 <summary><strong>View detailed examples</strong></summary>

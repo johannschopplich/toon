@@ -59,7 +59,7 @@ let totalToonTokens = 0
 const results: BenchmarkResult[] = []
 
 for (const example of BENCHMARK_EXAMPLES) {
-  const data = await example.getData()
+  const data = example.getData()
 
   const jsonString = JSON.stringify(data, undefined, 2)
   const toonString = encode(data)

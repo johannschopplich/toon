@@ -2,53 +2,48 @@
   "formatResults": [
     {
       "format": "toon",
-      "accuracy": 0.7389937106918238,
+      "accuracy": 0.8647798742138365,
       "totalTokens": 4678,
-      "avgInputTokens": 4675,
-      "avgLatency": 1424,
-      "correctCount": 235,
-      "totalCount": 318
-    },
-    {
-      "format": "json",
-      "accuracy": 0.7358490566037735,
-      "totalTokens": 8713,
-      "avgInputTokens": 9177,
-      "avgLatency": 1678,
-      "correctCount": 234,
+      "averageLatency": 5016,
+      "correctCount": 275,
       "totalCount": 318
     },
     {
       "format": "markdown-kv",
-      "accuracy": 0.7358490566037735,
+      "accuracy": 0.8616352201257862,
       "totalTokens": 8649,
-      "avgInputTokens": 8242,
-      "avgLatency": 1724,
-      "correctCount": 234,
+      "averageLatency": 4628,
+      "correctCount": 274,
+      "totalCount": 318
+    },
+    {
+      "format": "json",
+      "accuracy": 0.8459119496855346,
+      "totalTokens": 8713,
+      "averageLatency": 5369,
+      "correctCount": 269,
       "totalCount": 318
     },
     {
       "format": "csv",
-      "accuracy": 0.7232704402515723,
+      "accuracy": 0.8459119496855346,
       "totalTokens": 4745,
-      "avgInputTokens": 4878,
-      "avgLatency": 1573,
-      "correctCount": 230,
+      "averageLatency": 5168,
+      "correctCount": 269,
       "totalCount": 318
     },
     {
       "format": "yaml",
-      "accuracy": 0.7169811320754716,
+      "accuracy": 0.8459119496855346,
       "totalTokens": 7091,
-      "avgInputTokens": 7136,
-      "avgLatency": 1602,
-      "correctCount": 228,
+      "averageLatency": 4299,
+      "correctCount": 269,
       "totalCount": 318
     }
   ],
   "questions": 159,
   "models": [
-    "gpt-4o-mini",
+    "gpt-5-nano",
     "claude-haiku-4-5"
   ],
   "datasets": [
@@ -91,5 +86,5 @@
     "yaml-analytics": 2938,
     "yaml-github": 13129
   },
-  "timestamp": "2025-10-27T10:46:35.127Z"
+  "timestamp": "2025-10-27T12:43:38.288Z"
 }

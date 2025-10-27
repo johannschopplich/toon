@@ -1,5 +1,5 @@
 /**
- * TOON LLM Accuracy Benchmark
+ * LLM Retrieval Accuracy Benchmark
  *
  * Main entry point that orchestrates the full benchmark:
  * 1. Generate questions from datasets
@@ -20,7 +20,7 @@ import { formatters } from '../src/formatters'
 import { generateQuestions } from '../src/questions'
 import { calculateFormatResults, calculateTokenCounts, saveResults } from '../src/report'
 
-consola.start('LLM Accuracy Benchmark for TOON')
+consola.start('Retrieval Accuracy Benchmark for TOON')
 
 // Check if results already exist
 const resultsDir = path.join(BENCHMARKS_DIR, 'results', 'accuracy')
@@ -82,10 +82,10 @@ else {
   // Format datasets once (reuse for all questions)
   const formattedDatasets: Record<string, Record<string, string>> = {}
   for (const [formatName, formatter] of Object.entries(formatters)) {
-    formattedDatasets[formatName] = {}
+    formattedDatasets[formatName] ??= {}
+
     for (const dataset of datasets) {
-      const formatted = formatter(dataset.data)
-      formattedDatasets[formatName]![dataset.name] = formatted
+      formattedDatasets[formatName]![dataset.name] = formatter(dataset.data)
     }
   }
 
@@ -108,7 +108,7 @@ else {
     tasks,
     async (task, index) => {
       const formattedData = formattedDatasets[task.formatName]![task.question.dataset]!
-      const model = activeModels[task.modelName as keyof typeof activeModels]
+      const model = activeModels[task.modelName as keyof typeof activeModels]!
 
       const result = await evaluateQuestion(
         task.question,
@@ -121,7 +121,7 @@ else {
       // Progress update
       if ((index + 1) % 10 === 0) {
         const percent = (((index + 1) / total) * 100).toFixed(1)
-        console.log(`⏳ Progress: ${index + 1}/${total} (${percent}%)`)
+        consola.start(`Progress: ${index + 1}/${total} (${percent}%)`)
       }
 
       return result

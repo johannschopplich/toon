@@ -19,8 +19,8 @@ export interface EvaluationResult {
   expected: string
   actual: string
   correct: boolean
-  inputTokens: number
-  outputTokens: number
+  inputTokens?: number
+  outputTokens?: number
   latencyMs: number
 }
 
@@ -28,8 +28,7 @@ export interface FormatResult {
   format: string
   accuracy: number
   totalTokens: number
-  avgInputTokens: number
-  avgLatency: number
+  averageLatency: number
   correctCount: number
   totalCount: number
 }

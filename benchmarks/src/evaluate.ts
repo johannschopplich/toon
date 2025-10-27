@@ -20,18 +20,69 @@ import { RATE_LIMIT_DELAY_MS } from './constants'
  * Models used for evaluation
  */
 export const models: Record<string, LanguageModelV2> = {
-  'gpt-4o-mini': openai('gpt-4o-mini'),
+  'gpt-5-nano': openai('gpt-5-nano'),
   'claude-haiku-4-5': anthropic('claude-haiku-4-5-20251001'),
 }
 
 /**
- * Validate an answer using LLM-as-judge approach
- * More robust than string matching for LLM outputs
+ * Evaluate a single question with a specific format and model
  */
-export async function validateAnswer(
-  actual: string,
-  expected: string,
-  question: string,
+export async function evaluateQuestion(
+  question: Question,
+  formatName: string,
+  formattedData: string,
+  model: LanguageModelV2,
+  modelName: string,
+): Promise<EvaluationResult> {
+  const prompt = `Given the following data in ${formatName} format:
+
+\`\`\`
+${formattedData}
+\`\`\`
+
+Question: ${question.prompt}
+
+Provide only the direct answer, without any additional explanation or formatting.`
+
+  const startTime = performance.now()
+  const { text, usage } = await generateText({
+    model,
+    prompt,
+    temperature: model.modelId.startsWith('gpt-') ? undefined : 0,
+  })
+
+  await setTimeout(RATE_LIMIT_DELAY_MS)
+
+  const latencyMs = performance.now() - startTime
+  const correct = await validateAnswer({
+    actual: text.trim(),
+    expected: question.groundTruth,
+    question: question.prompt,
+  })
+
+  return {
+    questionId: question.id,
+    format: formatName,
+    model: modelName,
+    expected: question.groundTruth,
+    actual: text.trim(),
+    correct,
+    inputTokens: usage.inputTokens,
+    outputTokens: usage.outputTokens,
+    latencyMs,
+  }
+}
+
+/**
+ * Validate an answer using LLM-as-judge approach
+ */
+async function validateAnswer(
+  {
+    actual,
+    expected,
+    question,
+  }:
+  { actual: string, expected: string, question: string },
 ): Promise<boolean> {
   const prompt = `You are validating answers to questions about structured data.
 
@@ -49,10 +100,9 @@ Respond with only "YES" or "NO".`
 
   try {
     const { text } = await generateText({
-      model: models['gpt-4o-mini']!,
+      model: models['claude-haiku-4-5']!,
       prompt,
       temperature: 0,
-      maxOutputTokens: 16,
     })
 
     await setTimeout(RATE_LIMIT_DELAY_MS)
@@ -63,71 +113,5 @@ Respond with only "YES" or "NO".`
     consola.error('Validation error:', error)
     // Fallback to simple string comparison
     return actual.toLowerCase().trim() === expected.toLowerCase().trim()
-  }
-}
-
-/**
- * Evaluate a single question with a specific format and model
- */
-export async function evaluateQuestion(
-  question: Question,
-  formatName: string,
-  formattedData: string,
-  model: any,
-  modelName: string,
-): Promise<EvaluationResult> {
-  const prompt = `Given the following data in ${formatName} format:
-
-\`\`\`
-${formattedData}
-\`\`\`
-
-Question: ${question.prompt}
-
-Provide only the direct answer, without any additional explanation or formatting.`
-
-  const startTime = Date.now()
-
-  try {
-    const { text, usage } = await generateText({
-      model,
-      prompt,
-      temperature: 0,
-      maxOutputTokens: 50,
-    })
-
-    await setTimeout(RATE_LIMIT_DELAY_MS)
-
-    const latencyMs = Date.now() - startTime
-    const correct = await validateAnswer(text.trim(), question.groundTruth, question.prompt)
-
-    return {
-      questionId: question.id,
-      format: formatName,
-      model: modelName,
-      expected: question.groundTruth,
-      actual: text.trim(),
-      correct,
-      inputTokens: usage.inputTokens ?? 0,
-      outputTokens: usage.outputTokens ?? 0,
-      latencyMs,
-    }
-  }
-  catch (error) {
-    consola.error(`Error evaluating ${question.id} with ${formatName}/${modelName}:`, error)
-
-    await setTimeout(RATE_LIMIT_DELAY_MS)
-
-    return {
-      questionId: question.id,
-      format: formatName,
-      model: modelName,
-      expected: question.groundTruth,
-      actual: '',
-      correct: false,
-      inputTokens: 0,
-      outputTokens: 0,
-      latencyMs: Date.now() - startTime,
-    }
   }
 }
