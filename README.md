@@ -255,6 +255,41 @@ user:
   preferences[0]:
 ```
 
+## Bash alias
+```
+toon() {
+  local d=","
+  while getopts 'd:' o; do
+    [ "$o" = d ] && d="$OPTARG"
+  done
+  shift $((OPTIND-1))
+
+  { [ $# -gt 0 ] && cat -- "$1" || cat; } | \
+  TOON_DELIM="$d" node --input-type=module -e "
+    import('@byjohann/toon').then(async ({ encode }) => {
+      let s=''; for await (const c of process.stdin) s+=c;
+      const data = JSON.parse(s);
+      console.log(encode(data, { delimiter: process.env.TOON_DELIM || ',' }));
+    });
+  "
+}
+```
+
+Usage:
+```
+# from a file
+toon data.json
+
+# from stdin
+jq '{a:1,b:[2,3]}' <<< '{}' | toon
+
+# set delimiter: tab
+toon -d $'\t' data.json
+
+# set delimiter: pipe
+toon -d '|' data.json
+```
+
 ## Canonical Formatting Rules
 
 TOON formatting is deterministic and minimal:
