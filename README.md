@@ -850,6 +850,8 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 ## Ports in Other Languages
 
 - **Elixir**: [toon_ex](https://github.com/kentaro/toon_ex)
+- **Python**: [python-toon](https://github.com/xaviviro/python-toon)
+- **Python**: [toon-python](https://gitlab.com/KanTakahiro/toon-python)
 
 ## License
 
