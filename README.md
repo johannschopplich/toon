@@ -822,6 +822,27 @@ When incorporating TOON into your LLM workflows:
 { items: ['true', true] }       → items[2]: "true",true
 ```
 
+## Python Implementation
+
+A Python port of TOON is available, providing the same token-efficient encoding for Python projects:
+```bash
+pip install python-toon
+```
+```python
+from toon import encode
+
+data = {
+    "users": [
+        {"id": 1, "name": "Alice", "role": "admin"},
+        {"id": 2, "name": "Bob", "role": "user"}
+    ]
+}
+
+print(encode(data))
+```
+
+👉 **Repository:** [xaviviro/python-toon](https://github.com/xaviviro/python-toon)
+
 ## License
 
 [MIT](./LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
