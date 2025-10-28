@@ -111,7 +111,7 @@ gemini-2.5-flash
 
 #### What's Being Measured
 
-This benchmark tests **LLM comprehension and data retrieval accuracy** when data is presented in different formats. Each LLM receives formatted data and must answer questions about it (this does NOT test LLM's ability to generate TOON output).
+This benchmark tests **LLM comprehension and data retrieval accuracy** across different input formats. Each LLM receives formatted data and must answer questions about it (this does **not** test model's ability to generate TOON output).
 
 #### Datasets Tested
 
@@ -140,18 +140,9 @@ Four datasets designed to test different structural patterns:
 
 #### Evaluation Process
 
-1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, JSON, YAML, CSV, XML).
-2. **Query LLM**: Each model receives formatted data + question in a prompt.
-3. **LLM responds**: Model extracts the answer from the data.
-4. **Validate with LLM-as-judge**: GPT-5-nano validates if the answer is semantically correct.
-
-#### Semantic Validation
-
-Answers are validated by an LLM judge (`gpt-5-nano`) using semantic equivalence, not exact string matching:
-
-- **Numeric formats**: `50000` = `$50,000` = `50000 dollars` ✓
-- **Case insensitive**: `Engineering` = `engineering` = `ENGINEERING` ✓
-- **Minor formatting**: `2025-01-01` = `January 1, 2025` ✓
+1. **Format conversion:** Each dataset is converted to all 5 formats (TOON, JSON, YAML, CSV, XML).
+2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
+4. **Validate with LLM-as-judge**: `gpt-5-nano` validates if the answer is semantically correct (e.g., `50000` = `$50,000`, `Engineering` = `engineering`, `2025-01-01` = `January 1, 2025`).
 
 #### Models & Configuration
 

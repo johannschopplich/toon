@@ -204,7 +204,7 @@ ${detailedExamples}
 </details>
 `.trimStart()
 
-console.log(markdown)
+console.log(`${barChartSection}\n`)
 
 await ensureDir(path.join(BENCHMARKS_DIR, 'results'))
 await fsp.writeFile(outputFilePath, markdown, 'utf-8')

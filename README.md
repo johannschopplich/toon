@@ -2,7 +2,7 @@
 
 # Token-Oriented Object Notation (TOON)
 
-**Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage.
+**Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for LLM input, not output.
 
 TOON excels at **uniform complex objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts.
 
@@ -33,16 +33,6 @@ users[2]{id,name,role}:
 [![xkcd: Standards](https://imgs.xkcd.com/comics/standards_2x.png)](https://xkcd.com/927/)
 
 </details>
-
-## Format Comparison
-
-Format familiarity matters as much as token count.
-
-- **CSV:** best for uniform tables.
-- **JSON:** best for non-uniform data.
-- **TOON:** best for uniform complex (but not deeply nested) objects.
-
-TOON switches to list format for non-uniform arrays. In those cases, JSON can be cheaper at scale.
 
 ## Key Features
 
@@ -363,17 +353,12 @@ Four datasets designed to test different structural patterns:
 #### Evaluation Process
 
 1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, JSON, YAML, CSV, XML).
-2. **Query LLM**: Each model receives formatted data + question in a prompt.
-3. **LLM responds**: Model extracts the answer from the data.
-4. **Validate with LLM-as-judge**: GPT-5-nano validates if the answer is semantically correct.
+2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
+3. **Validate with LLM-as-judge**: GPT-5-nano validates if the answer is semantically correct.
 
 #### Semantic Validation
 
-Answers are validated by an LLM judge (`gpt-5-nano`) using semantic equivalence, not exact string matching:
-
-- **Numeric formats**: `50000` = `$50,000` = `50000 dollars` ✓
-- **Case insensitive**: `Engineering` = `engineering` = `ENGINEERING` ✓
-- **Minor formatting**: `2025-01-01` = `January 1, 2025` ✓
+Answers are validated by an LLM judge (`gpt-5-nano`) using semantic equivalence, not exact string matching (e.g., `50000` = `$50,000`, `Engineering` = `engineering`, `2025-01-01` = `January 1, 2025`).
 
 #### Models & Configuration
 
@@ -810,6 +795,14 @@ console.log(encode(data, { lengthMarker: '#', delimiter: '|' }))
 //   B2|1|14.5
 ```
 
+## Notes and Limitations
+
+- Format familiarity matters as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only – when this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be cheaper at scale.
+  - **TOON** is best for uniform complex (but not deeply nested) objects, especially large arrays of such objects.
+  - **JSON** is best for non-uniform data and deeply nested structures.
+- **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
+- **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
+
 ## Using TOON in LLM Prompts
 
 TOON works best when you show the format instead of describing it. The structure is self-documenting – models parse it naturally once they see the pattern.
@@ -842,20 +835,6 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 > [!TIP]
 > For large uniform tables, use `encode(data, { delimiter: '\t' })` and tell the model "fields are tab-separated." Tabs often tokenize better than commas and reduce the need for quote-escaping.
-
-## Notes and Limitations
-
-- **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., SentencePiece).
-- **TOON is designed for LLM contexts** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
-- **Tabular arrays** require all objects to have exactly the same keys with primitive values only. Arrays with mixed types (primitives + objects/arrays), non-uniform objects, or nested structures will use a more verbose list format.
-- **Object key order** is preserved from the input. In tabular arrays, header order follows the first object's keys.
-- **Arrays mixing primitives and objects/arrays** always use list form:
-  ```
-  items[2]:
-    - a: 1
-    - [2]: 1,2
-  ```
-- **Deterministic formatting:** 2-space indentation, stable key order, no trailing spaces/newline.
 
 ## Quick Reference
 
