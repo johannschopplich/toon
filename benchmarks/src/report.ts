@@ -73,7 +73,8 @@ export function generateMarkdownReport(
       const bar = createProgressBar(result.accuracy, 1, 20)
       const accuracyStr = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
       const countStr = `(${result.correctCount}/${result.totalCount})`
-      return `  ${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`
+      const prefix = result.format === 'toon' ? '→ ' : '  '
+      return `${prefix}${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`
     }).join('\n')
 
     // Add blank line before model name, except for first model
@@ -134,7 +135,7 @@ export function generateMarkdownReport(
 | ------ | -------- | ------ | ------------- |
 ${tableRows}
 `.trimStart()
-  }).filter(Boolean).join('\n')
+  }).filter(Boolean).join('\n').trim()
 
   // Build performance by model
   const modelPerformance = modelNames.map((modelName) => {
@@ -163,7 +164,7 @@ ${tableRows}
 | ------ | -------- | ------------- |
 ${tableRows}
 `.trimStart()
-  }).join('\n')
+  }).join('\n').trim()
 
   // Calculate total unique questions
   const totalQuestions = [...new Set(results.map(r => r.questionId))].length
@@ -204,9 +205,11 @@ ${summaryComparison}
 #### Performance by Dataset
 
 ${datasetBreakdown}
+
 #### Performance by Model
 
 ${modelPerformance}
+
 </details>
 
 <details>
