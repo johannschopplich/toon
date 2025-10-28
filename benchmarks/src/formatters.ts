@@ -72,7 +72,7 @@ function toCSV(data: unknown): string {
  * Convert data to XML format
  *
  * @remarks
- * Uses fast-xml-parser to generate well-formatted XML with:
+ * Uses `fast-xml-parser` to generate well-formatted XML with:
  * - 2-space indentation for readability
  * - Empty nodes suppressed
  * - Proper escaping of special characters

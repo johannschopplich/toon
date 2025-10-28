@@ -29,10 +29,10 @@ export function generateQuestions(): Question[] {
   let idCounter = 1
 
   // Get datasets with proper typing
-  const tabular = (datasets.find(d => d.name === 'tabular')?.data.employees as Employee[]) || []
-  const nested = (datasets.find(d => d.name === 'nested')?.data.orders as Order[]) || []
-  const analytics = (datasets.find(d => d.name === 'analytics')?.data.metrics as AnalyticsMetric[]) || []
-  const github = (datasets.find(d => d.name === 'github')?.data.repositories as Repository[]) || []
+  const tabular = (datasets.find(d => d.name === 'tabular')?.data.employees as Employee[]) ?? []
+  const nested = (datasets.find(d => d.name === 'nested')?.data.orders as Order[]) ?? []
+  const analytics = (datasets.find(d => d.name === 'analytics')?.data.metrics as AnalyticsMetric[]) ?? []
+  const github = (datasets.find(d => d.name === 'github')?.data.repositories as Repository[]) ?? []
 
   // ========================================
   // TABULAR DATASET QUESTIONS (70 questions)

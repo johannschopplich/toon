@@ -28,8 +28,20 @@ export const models: Record<string, LanguageModelV2> = {
  * Evaluate a single question with a specific format and model
  */
 export async function evaluateQuestion(
-  { question, formatName, formattedData, model, modelName}:
-  { question: Question, formatName: string, formattedData: string, model: LanguageModelV2, modelName: string },
+  {
+    question,
+    formatName,
+    formattedData,
+    model,
+    modelName,
+  }:
+  {
+    question: Question
+    formatName: string
+    formattedData: string
+    model: LanguageModelV2
+    modelName: string
+  },
 ): Promise<EvaluationResult> {
   const prompt = `
 Given the following data in ${formatName} format:
@@ -79,7 +91,11 @@ async function validateAnswer(
     expected,
     question,
   }:
-  { actual: string, expected: string, question: string },
+  {
+    actual: string
+    expected: string
+    question: string
+  },
 ): Promise<boolean> {
   const prompt = `
 You are validating answers to questions about structured data.
