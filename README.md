@@ -908,6 +908,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
   - [python-toon](https://github.com/xaviviro/python-toon)
   - [toon-python](https://gitlab.com/KanTakahiro/toon-python)
 - **Ruby**: [toon-ruby](https://github.com/andrepcg/toon-ruby)
+- **Java**: [JToon](https://github.com/felipestanzani/JToon)
 
 ## License
 
