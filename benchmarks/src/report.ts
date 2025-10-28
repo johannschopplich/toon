@@ -177,10 +177,13 @@ ${tableRows}
 `.trimStart()
   }).join('\n')
 
+  // Calculate total unique questions
+  const totalQuestions = [...new Set(results.map(r => r.questionId))].length
+
   return `
 ### Retrieval Accuracy
 
-Tested across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** with data retrieval tasks:
+Accuracy across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** on **${totalQuestions} data retrieval questions**:
 
 \`\`\`
 ${modelBreakdown}
@@ -217,7 +220,7 @@ Four datasets designed to test different structural patterns:
 
 #### Question Types
 
-~160 questions are generated dynamically across three categories:
+${totalQuestions} questions are generated dynamically across three categories:
 
 - **Field retrieval (50%)**: Direct value lookups
   - Example: "What is Alice's salary?" → \`75000\`

@@ -1,6 +1,6 @@
 ### Retrieval Accuracy
 
-Tested across **3 LLMs** with data retrieval tasks:
+Accuracy across **3 LLMs** on **159 data retrieval questions**:
 
 ```
 gpt-5-nano
@@ -124,7 +124,7 @@ Four datasets designed to test different structural patterns:
 
 #### Question Types
 
-~160 questions are generated dynamically across three categories:
+159 questions are generated dynamically across three categories:
 
 - **Field retrieval (50%)**: Direct value lookups
   - Example: "What is Alice's salary?" → `75000`
