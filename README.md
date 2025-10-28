@@ -856,6 +856,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **Java**: [JToon](https://github.com/felipestanzani/JToon)
 - **.NET**: [toon.NET](https://github.com/ghost1face/toon.NET)
 - **Swift**: [TOONEncoder](https://github.com/mattt/TOONEncoder)
+- **Go** [gotoon](https://github.com/alpkeskin/gotoon)
 
 ## License
 
