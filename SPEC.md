@@ -1,278 +1,331 @@
-# Token-Oriented Object Notation (TOON) Specification
+# TOON Specification (v1)
 
-Status: Draft
-Spec version: 1.0.0
-Document date: 2025-10-27
-License: MIT
+Status: Draft, normative where indicated. This version specifies encoding (producer behavior). A formal decoding spec is out of scope for v1.
 
-1. Abstract
+- Normative statements use RFC 2119/8174 keywords: MUST, MUST NOT, SHOULD, SHOULD NOT, MAY.
+- This spec targets implementers of encoders/validators, tool authors, and practitioners embedding TOON in LLM prompts.
 
-TOON (Token-Oriented Object Notation) is a compact, human-readable serialization format optimized for Large Language Models. It combines indentation-based structure (familiar from YAML) with tabular array encoding (akin to CSV) to reduce token usage while preserving clarity. TOON is designed for uniform complex objects, supports deterministic canonical encoding, and provides explicit, LLM-friendly guardrails such as array lengths and tabular headers.
+Changelog:
+- v1: Initial encoding + normalization + conformance rules based on reference encoder and test suite.
 
-2. Status of This Document
+Scope:
+- This document defines the data model, normalization (for the reference JavaScript/TypeScript encoder), concrete syntax, and conformance requirements for producing TOON. Decoding is informative only and not standardized in v1.
 
-This is the core specification for TOON v1.0.0. It defines the wire format and conformance requirements for encoders and decoders. Changes are tracked in the associated repository issue tracker. Implementations MAY expose encoder options (e.g., delimiter, length marker), but MUST preserve interoperability as defined here.
+## 1. Terminology and Conventions
 
-3. Terminology and Normative Language
+- TOON document: A sequence of UTF-8 text lines formatted according to this spec.
+- Line: A sequence of non-newline characters terminated by LF (U+000A) in serialized form. TOON output MUST use LF line endings.
+- Indentation level (depth): The number of indentation units (spaces) applied to a line. Depth 0 lines have no leading indentation.
+- Indentation unit: A fixed number of spaces per level (default 2). Tabs MUST NOT be used for indentation.
+- Header: The bracketed declaration for arrays, optionally followed by a field list, and terminating with a colon: e.g., key[3]: or items[2]{a,b}:.
+- Field list: The brace-enclosed, delimiter-separated list of field names for tabular arrays: {f1<delim>f2}.
+- List item: A line beginning with a hyphen and a space at a given depth (“- ”), representing an element in an expanded array form.
+- Delimiter: The character used to separate array/tabular values: comma (default), tab, or pipe.
+- Length marker: An optional “#” prefix for array lengths in headers, e.g., [#3].
+- Primitive: string, number, boolean, or null.
+- Object: Mapping from string keys to JsonValue.
+- Array: Ordered sequence of JsonValue.
+- JsonValue: Primitive | Object | Array.
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" are to be interpreted as described in BCP 14 (RFC 2119 and RFC 8174) when, and only when, they appear in all capitals.
+Notation:
+- Regular expressions appear in slash-delimited form.
+- Examples are informative unless stated otherwise.
 
-Terms:
-- Object: A mapping from string keys to values.
-- Array: An ordered sequence of values.
-- Primitive: A string, number, boolean, or null.
-- Value: Any of Object, Array, or Primitive.
-- Tabular Array: An array rendered with a header listing fields and subsequent row lines (uniform objects with primitive values).
-- List Array: An array rendered as a list of N items each starting with "- " (fallback for non-uniform arrays, arrays of arrays, or nested structures).
-- Primitive Array: An array of primitives, rendered inline on a single line.
-- Header: The array declaration that includes the array length and optional delimiter and field list (e.g., key[N], key[N]{f1,f2}, [N]).
-- Active Delimiter (Delimiter): The character separating array values and tabular fields/rows: comma (,), tab (\t), or pipe (|).
-- Canonical Encoding: Deterministic formatting with fixed indentation, spacing, quoting, and ordering rules as defined in Section 10.
-- Encoder: An implementation that produces TOON from a data model.
-- Decoder: An implementation that parses TOON into a data model.
+## 2. Data Model
 
-4. Media Type and Encoding
+- TOON models data as:
+  - JsonPrimitive: string | number | boolean | null
+  - JsonObject: { [string]: JsonValue }
+  - JsonArray: JsonValue[]
+- Ordering:
+  - Array order is preserved.
+  - Object key order is preserved as encountered by the encoder.
+- Numeric canonicalization:
+  - -0 MUST be normalized to 0.
+  - Finite numbers MUST be rendered without scientific notation (e.g., 1e6 → 1000000, 1e-6 → 0.000001), as per host-language number-to-string rules that avoid exponent notation in these cases.
+- Null semantics: null is represented as the literal null.
 
-- Media type: text/toon (RECOMMENDED).
-- File extension: .toon (RECOMMENDED).
-- Character encoding: UTF-8 ONLY (MUST). No BOM (MUST NOT).
-- Line endings: LF (U+000A) (RECOMMENDED). Decoders SHOULD accept CRLF.
+## 3. Host-Language Normalization (Reference Encoder)
 
-5. Data Model
+The reference encoder normalizes non-JSON values to the data model as follows:
 
-Supported values (MUST):
-- Object: string keys to values (Object | Array | Primitive).
-- Array: ordered values.
-- Primitives: string, number (finite), boolean, null.
+- Number:
+  - Finite: retained as number. -0 → 0. Non-exponential canonical form is required.
+  - NaN, +Infinity, -Infinity: normalized to null.
+- BigInt (JavaScript):
+  - If within Number.MIN_SAFE_INTEGER..Number.MAX_SAFE_INTEGER: converted to number.
+  - Otherwise: converted to a decimal string (e.g., "9007199254740993"). This string is then encoded using the string rules (see Section 6), and because it is numeric-like, it will be quoted.
+- Date: converted to ISO string (e.g., "2025-01-01T00:00:00.000Z").
+- Set: converted to array by iterating entries and normalizing each element.
+- Map: converted to object using String(key) for keys and normalizing values.
+- Plain object: own enumerable string keys are preserved in encounter order, values normalized recursively.
+- Function, symbol, undefined, or unrecognized types: normalized to null.
 
-Normalization for non-JSON inputs (MUST unless otherwise noted):
-- Number (finite): decimal string, no scientific notation; "-0" normalized to "0".
-- Number (NaN, ±Infinity): encoded as null.
-- BigInt: decimal digits, unquoted.
-- Date: ISO 8601 string in quotes (UTC, e.g., "2025-01-01T00:00:00.000Z").
-- undefined, function, symbol: encoded as null.
+Note: Other language ports SHOULD apply analogous normalization strategies consistent with this spec’s data model and encoding rules.
 
-Ordering:
-- Object key order: encoders MUST preserve insertion order.
-- Tabular header key order: MUST be taken from the first object in the array.
+## 4. Concrete Syntax Overview
 
-6. Core Syntax
+TOON is a deterministic, line-oriented, indentation-based notation:
 
-6.1 Lines and Indentation
-- One logical construct per line.
-- Indentation is two spaces per level in canonical encoding (MUST for canonical encoders). Decoders SHOULD accept any consistent number of spaces per level but MUST NOT accept tabs for indentation.
-- There MUST be a single space after a colon in "key: value".
-- No trailing spaces at the end of any line (MUST NOT).
-- No trailing newline at end of document (MUST NOT).
+- Objects:
+  - key: value for primitives.
+  - key: alone for nested or empty objects, with nested fields indented one level.
+- Arrays:
+  - Primitive arrays are inline: key[N<delim?>]: v1<delim>v2.
+  - Arrays of arrays (primitives): expanded list under a header: key[N<delim?>]: then “- [M<delim?>]: …” lines.
+  - Arrays of objects:
+    - Tabular form when uniform and primitive-only: key[N<delim?>]{f1<delim>f2}: then one row per line.
+    - Otherwise expanded list: key[N<delim?>]: with “- …” items, following object-as-list-item rules.
+- Whitespace invariants:
+  - No trailing spaces at the end of any line.
+  - No trailing newline at the end of the document.
+  - One space after “: ” in key: value lines and after array headers when followed by inline values (non-empty primitive arrays).
 
-6.2 Key-Value Lines
-- Syntax: key: value
-  - Exactly one space after the colon (MUST).
-- Nested or empty object values:
-  - key: on its own line (MUST).
-  - Nested fields appear on subsequent lines, indented one level (two spaces in canonical encoding).
+## 5. Tokens and Lexical Elements
 
-6.3 Objects
-- Root objects encode as a series of key-value lines.
-- Empty root objects serialize as an empty string (zero-length output).
-- Empty nested objects serialize as "key:" on a line by itself; no lines follow for that object.
+- Structural characters: colon (:), hyphen (-), brackets ([ ]), braces ({ }), double-quote ("), backslash (\).
+- Delimiters:
+  - Comma (,) is the default.
+  - Tab (\t) and pipe (|) are supported alternatives.
+  - The active delimiter MAY appear inside array headers (see Section 7).
+- Indentation unit: default 2 spaces per level; configurable at encode-time.
+- List item markers: “- ” (hyphen + single space) at the appropriate indentation level. An empty object as a list item is represented as a lone hyphen (“-”).
+- Character set: UTF-8. Tabs MUST NOT appear as indentation but MAY appear as the chosen delimiter or inside quoted strings via escapes.
 
-6.4 Arrays (Overview)
-- An array header declares its length in brackets: [N] (MUST).
-- Three renderings:
-  - Primitive Array (inline single line).
-  - Tabular Array (uniform object rows).
-  - List Array (fallback).
-- Root arrays omit a key; the header begins the line (e.g., [N]: …).
+## 6. String and Key Encoding
 
-6.5 Delimiters
-- The active delimiter (MAY): comma (,), tab (\t), or pipe (|).
-- Header declaration (MUST):
-  - Comma: implicit, header shows [N] (no delimiter marker).
-  - Tab: explicit in header [N\t] (the header literally contains a tab).
-  - Pipe: explicit in header [N|].
-- The active delimiter declared by an array header MUST be used for:
-  - Inline primitive array values.
-  - Tabular header field list and tabular row values.
-  - Array-of-arrays inner headers and values where those arrays have their own headers (each array declares its own delimiter).
-- Encoders MAY apply the same delimiter across the entire document; decoders MUST honor the delimiter declared by each array’s header (no global default assumed).
-- If a length marker is present (Section 9), it appears immediately after "[" and before N.
+6.1 Escaping
 
-6.6 Primitive Arrays (Inline Form)
-- Syntax for object field: key[N<optional-delim>]: v1<delim>v2… (all on one line).
-- Syntax at root: [N<optional-delim>]: v1<delim>v2…
-- Empty arrays: key[0]: and [0]: (no values).
-- Values MUST follow quoting rules (Section 7), including delimiter-aware quoting.
+The following characters in quoted strings and keys MUST be escaped:
+- Backslash: "\\" → "\\\\"
+- Double quote: "\"" → "\\\""
+- Newline: U+000A → "\\n"
+- Carriage return: U+000D → "\\r"
+- Tab: U+0009 → "\\t"
 
-6.7 Tabular Arrays (Uniform Objects)
-Preconditions for tabular form (all MUST be true):
+6.2 Quoting Rules for String Values
+
+A string value MUST be quoted (with escaping as above) if any of the following is true:
+- It is empty ("").
+- It has leading or trailing whitespace.
+- It equals true, false, or null (case-sensitive matches of these literals).
+- It is numeric-like:
+  - Matches /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i (e.g., "42", "-3.14", "1e-6").
+  - Or matches /^0\d+$/ (leading-zero decimals such as "05").
+- It contains a colon (:), double quote ("), or backslash (\).
+- It contains brackets or braces ([, ], {, }).
+- It contains control characters such as newline, carriage return, or tab.
+- It contains the active delimiter (comma, tab, or pipe).
+- It starts with a hyphen (-), to avoid ambiguity with list markers.
+
+If none of the conditions above apply, the string MAY be emitted without quotes. Unicode, emoji, and strings with internal (non-leading/trailing) spaces are safe unquoted provided they do not violate the conditions.
+
+6.3 Key Encoding
+
+Object keys and tabular field names:
+- MAY be unquoted only if they match the pattern: ^[A-Za-z_][\w.]*$.
+- Otherwise, they MUST be quoted using the escaping rules above.
+
+Note: Keys containing spaces, punctuation (e.g., colon, pipe, hyphen), or starting with a digit MUST be quoted.
+
+## 7. Array Headers
+
+General header syntax:
+
+- Without key (root arrays): [<marker?>N<delim?>]:
+- With key: key[<marker?>N<delim?>]:
+- With tabular fields: key[<marker?>N<delim?>]{field1<delim>field2}:
+
+Where:
+- N is the array length (non-negative integer).
+- <marker?> is optional “#” when the length marker option is enabled (Section 10).
+- <delim?> is:
+  - Absent when the delimiter is comma.
+  - Present and equal to the active delimiter when the delimiter is tab or pipe.
+- Field names within braces are separated by the active delimiter and encoded using key rules (Section 6.3).
+- Every header line MUST end with a colon.
+
+Spacing:
+- When an inline list of values follows a header on the same line (non-empty primitive arrays), there MUST be exactly one space after the colon before the first value.
+- Otherwise, no trailing space follows the colon on the header line.
+
+## 8. Primitive Encoding
+
+- null: literal null.
+- boolean: true or false (lowercase).
+- number:
+  - Finite: base-10 non-exponential representation, preserving sign except -0 normalized to 0.
+  - Non-finite (NaN, ±Infinity): treated as null via normalization (Section 3).
+- string: encoded per Section 6 with delimiter-aware quoting.
+
+## 9. Object Syntax
+
+- Primitive fields: key: value (single space after colon).
+- Nested or empty objects: key: on its own line; if non-empty, nested fields appear at one more indentation level.
+- Key order: Implementations MUST preserve the encounter order when emitting fields.
+- An empty object at the root results in an empty document (no lines).
+
+## 10. Arrays
+
+10.1 Primitive Arrays (Inline)
+
+- Non-empty arrays: key[N<delim?>]: v1<delim>v2<delim>… where each vi is encoded as a primitive (Section 8) with delimiter-aware quoting (Section 6).
+- Empty arrays: key[0<delim?>]: (no values following).
+- Root arrays use the same rules without a key: [N<delim?>]: v1<delim>…
+
+10.2 Arrays of Arrays (Primitives Only) — Expanded List
+
+- Parent header: key[N<delim?>]: on its own line.
+- Each inner primitive array is a list item:
+  - - [M<delim?>]: v1<delim>v2<delim>…
+  - Empty inner arrays: - [0<delim?>]:
+- Root arrays of arrays use [N<delim?>]: as the parent header with the same rules.
+
+10.3 Arrays of Objects — Tabular Form
+
+Tabular detection (MUST hold for all rows):
 - Every element is an object.
-- Every object has the identical set of keys (no missing or extra keys).
-- All values are primitives (no nested objects or arrays).
+- All objects have the same set of keys (order per object MAY vary).
+- All values across these keys are primitives (no nested arrays/objects).
 
-Header syntax:
-- Object field: key[N]{k1<delim>k2<delim>…}:
-- Root: [N]{k1<delim>k2<delim>…}:
-- For comma delimiter, fields in {…} are comma-separated.
-- For tab/pipe delimiter, fields in {…} are separated by the active delimiter.
-- Header field order MUST be derived from the first object in the array.
-- Header keys MUST be quoted per key quoting rules (Section 7.1), including delimiter-aware quoting.
+When satisfied:
+- Header: key[N<delim?>]{f1<delim>f2<delim>…}: where the field order is the encounter order of the first object’s keys.
+- Field names encoded as keys (Section 6.3), delimiter-aware.
+- Rows: one line per object at one indentation level under the header, values joined by the active delimiter. Each value encoded as a primitive (Section 8) with delimiter-aware quoting (Section 6).
+- Root tabular arrays omit the key: [N<delim?>]{…}: then rows.
 
-Rows:
-- Exactly N rows (one per line) MUST follow the header.
-- Each row contains the object’s values in the header key order, separated by the active delimiter.
-- Values MUST be quoted per value quoting rules (Section 7.2), including delimiter-aware quoting (Section 7.3).
-- A single-field tabular array still emits one value per row (no trailing delimiter).
+10.4 Mixed / Non-Uniform Arrays — Expanded List
 
-Fallback:
-- If any precondition fails, encoders MUST use List Array form (Section 6.8) for the entire array.
+When tabular requirements are not met:
+- Header: key[N<delim?>]:
+- Each element is rendered as a list item at one indentation level under the header:
+  - Primitive: - <primitive>
+  - Primitive array: - [M<delim?>]: v1<delim>…
+  - Object: formatted using “objects as list items” (Section 11).
+  - Complex arrays (e.g., arrays of arrays with mixed shapes): - key'[M<delim?>]: followed by nested items as appropriate.
 
-6.8 List Arrays (Fallback)
-- Syntax for object field: key[N]: followed by N list items, each starting with two spaces, hyphen, space ("  - ").
-- Syntax at root: [N]:, then N list items.
+## 11. Objects as List Items
 
-List item rendering:
-- Primitive item: "  - <value>".
-- Object item:
-  - The first field appears on the hyphen line: "  - key: value" (or "  - key:" for nested/empty object).
-  - Subsequent fields of the same object appear on following lines at the same indentation level as the first field’s content.
-- Array item (when the list item’s first field is itself an array):
-  - The array header appears on the hyphen line: "  - [M<optional-delim>]: …" for primitive arrays, or "  - [M<optional-delim>]{…}:" for tabular arrays, or "  - [M<optional-delim>]:" for nested list arrays.
-  - The array’s rows/items/values appear indented two spaces under that hyphen line (i.e., one additional indent level).
-  - Subsequent fields of the same object appear at that same indentation level (aligned with the nested array contents).
-- Arrays of arrays:
-  - Render as list arrays with nested array headers for inner arrays:
-    Example (root):
-    [2]:
-      - [2]: 1,2
-      - [0]:
-- Mixed arrays (mixing primitives and objects and/or arrays):
-  - MUST use List Array form.
+For an object appearing as a list item:
 
-7. Quoting and Escaping
+- If the object is empty, render a single “-” at the list item indentation level.
 
-7.1 Keys (Object Keys and Tabular Header Keys)
-Keys MUST be quoted if any of the following is true:
-- Contains spaces, commas, colons, quotes, backslashes, control characters, or the active delimiter.
-- Contains brackets [] or braces {}.
-- Begins with a hyphen ("-").
-- Is numeric-only.
-- Is empty.
+- Otherwise, place the first field on the hyphen line using the following rules:
+  - If the first field’s value is a primitive: - key: value
+  - If the first field’s value is a primitive array: - key[M<delim?>]: v1<delim>…
+  - If the first field’s value is an array of objects that qualifies for tabular form:
+    - - key[N<delim?>]{fields}:
+    - Followed by tabular rows at one more indentation level.
+  - If the first field’s value is a non-uniform array of objects:
+    - - key[N<delim?>]:
+    - Followed by list items at one more indentation level (apply these same rules recursively).
+  - If the first field’s value is a complex array (e.g., arrays of arrays, nested mixed arrays):
+    - - key[N<delim?>]:
+    - Followed by nested encodings (e.g., “- [M<delim?>]: …”) at one more indentation level.
+  - If the first field’s value is an object:
+    - - key:
+    - Nested object fields appear at two more indentation levels (i.e., one deeper than subsequent sibling fields of the same list item).
 
-Escapes (MUST):
-- Quote as "...".
-- Inside quotes: " → \", backslash → \\, newline → \n, tab → \t, carriage return → \r, and other control characters with standard C-style escapes where applicable.
+- Remaining fields of the same object appear at one indentation level under the hyphen line, in encounter order, using normal object field rules.
 
-7.2 String Values
-Strings MAY be unquoted only if all are true:
-- Do not contain a colon (:) or the active delimiter.
-- Do not begin with "- " (list-like).
-- Do not lead or trail with spaces.
-- Do not look like boolean/number/null literals: "true", "false", "null", decimal numbers (including negative, fractional, scientific notation indicators, or leading-zero forms like "05"), e.g., "42", "-3.14", "1e-6", "05".
-- Do not look like structural tokens, e.g., "[5]", "{key}", "[3]: x,y".
-- Do not contain quotes, backslashes, or control characters.
+## 12. Delimiters
 
-Otherwise, strings MUST be quoted, using the same escape rules as for keys.
+- Supported delimiters:
+  - Comma (default): header omits the delimiter symbol.
+  - Tab: header includes the tab character inside brackets and braces (e.g., [N<TAB>], {a<TAB>b}); rows/inline arrays use tabs to separate values.
+  - Pipe: header includes “|” inside brackets and braces; rows/inline arrays use “|”.
+- Delimiter-aware quoting:
+  - Strings containing the active delimiter MUST be quoted across object values, array values, and tabular rows.
+  - Strings containing non-active delimiters (e.g., commas when using tab) do not require quoting unless another quoting condition applies.
+- Changing the delimiter does not relax other quoting rules (colon, brackets/braces, leading hyphen, numeric-like, boolean/null-like).
 
-Unicode:
-- Unicode characters, including emoji, MAY appear unquoted provided they do not violate the unquoted rules above (MUST).
+## 13. Length Marker
 
-7.3 Delimiter-aware Quoting
-- Unquoted strings MUST NOT contain the active delimiter.
-- When the active delimiter is tab or pipe, commas are allowed unquoted.
-- The delimiter-aware rule applies uniformly to:
-  - Object values.
-  - Primitive array values.
-  - Tabular row values.
-  - Nested arrays (including arrays-of-arrays).
+- When enabled, the length marker “#” MUST appear immediately before the length in every array header, including nested arrays and tabular headers:
+  - key[#N<delim?>]: …
+  - key[#N<delim?>]{…}:
+  - - [#M<delim?>]: …
+- Semantics: purely informational to emphasize counts; no change to other parsing or formatting rules.
 
-8. Numbers, Booleans, and Null
+## 14. Indentation and Whitespace Invariants
 
-- Numbers (finite) MUST be emitted in plain decimal (no scientific notation); "-0" MUST be "0".
-  Examples: 1e6 → 1000000; 1e-6 → 0.000001; 1e20 → 100000000000000000000.
-- Non-finite numbers (NaN, ±Infinity) MUST be encoded as null.
-- BigInt values MUST be emitted as unquoted decimal digits.
-- Booleans true/false and null MUST be unquoted tokens.
+- Indentation:
+  - The encoder MUST use a consistent number of spaces per level (default 2; configurable).
+  - Tabs MUST NOT be used for indentation.
+- Spacing:
+  - Exactly one space after “: ” in key: value lines.
+  - Exactly one space after array headers when followed by inline values (non-empty primitive arrays).
+- End-of-line:
+  - No trailing spaces at the end of any line.
+  - No trailing newline at the end of the document.
 
-9. Length Marker Option
+## 15. Conformance
 
-- An OPTIONAL length marker "#" MAY prefix the array length inside brackets: [#N].
-- If present, it MUST appear immediately after "[" and before N, and MUST be preserved for that header.
-- With explicit delimiters, the marker appears before the delimiter: e.g., [#3|].
-- The length marker MAY also be used in nested array headers displayed on hyphen lines.
-- Decoders MUST accept both forms (with and without the length marker).
-
-10. Canonical Encoding and Determinism
-
-Encoders that claim canonical output MUST:
-- Use exactly two spaces per indentation level; NEVER use tabs for indentation.
-- Emit "key: value" with exactly one space after the colon.
-- Emit "key:" for nested/empty objects with no trailing space.
-- Use the default delimiter comma (,) unless configured; if configured, apply consistently to all arrays emitted by that encoder instance.
-- Preserve object key insertion order.
-- For tabular arrays, take header key order from the first object.
-- Apply quoting and escaping rules as specified in Section 7, including delimiter-aware quoting.
-- Emit no trailing spaces on any line and no trailing newline at the end of the document.
-
-11. Conformance Classes
+Conformance classes:
 
 - Encoder:
-  - MUST produce syntactically valid TOON per Sections 6-9.
-  - MUST enforce tabular array preconditions and fall back to list arrays where required.
-  - MUST honor canonical encoding rules (Section 10) when claiming canonical output.
+  - MUST produce output adhering to all normative rules in Sections 2–14.
+  - MUST be deterministic with respect to:
+    - Object field order (encounter order).
+    - Tabular detection (either uniformly tabular or not, given the input).
+    - Quoting decisions for given values and active delimiter.
 
-- Decoder:
-  - MUST parse headers, including [N], optional length marker, and optional delimiter and field lists.
-  - MUST enforce structural invariants:
-    - Row count equals N for tabular arrays.
-    - Value count per row equals header field count for tabular arrays.
-    - List arrays contain exactly N items.
-    - Indentation consistency (no tabs as indentation).
-    - Proper quoting and valid escape sequences.
-  - MUST apply delimiter-aware parsing using the active delimiter declared by the nearest array header.
-  - MUST return errors for structural violations (see Section 12).
+- Validator:
+  - SHOULD verify structural conformance (headers, indentation, list markers).
+  - SHOULD verify whitespace invariants.
+  - SHOULD verify delimiter consistency between headers and rows.
 
-- Round-trip:
-  - For supported input types, decode(encode(x)) MUST semantically equal x subject to the normalizations in Section 5 (e.g., -0 → 0, non-finite → null, Date → ISO string, BigInt → decimal).
-  - encode(decode(s)) MUST produce a canonical equivalent when the encoder claims canonical output.
+- Parser/Decoder:
+  - Out of scope for v1; MAY be implemented. Implementers SHOULD follow the invariants in this spec for robust parsing (e.g., delimiter discovery from headers, length counts as consistency checks).
 
-12. Error Handling
+Options:
+- indent (default: 2 spaces)
+- delimiter (default: comma; alternatives: tab, pipe)
+- lengthMarker (default: disabled)
 
-Decoders MUST produce an error (or equivalent diagnostic) for:
-- Malformed array headers (missing [N], invalid length, malformed delimiter, malformed {field list}).
-- Row count mismatch vs N in tabular arrays.
-- Value count mismatch vs field count in tabular rows.
-- Inconsistent or illegal indentation (tabs for indentation, or mixing width).
-- Unbalanced quotes or invalid escape sequences.
-- Use of active delimiter in unquoted strings.
+## 16. Error Handling and Diagnostics
 
-Decoders SHOULD error (or treat deterministically and document behavior) for:
-- Duplicate keys within the same object. If accepted, the last occurrence SHOULD win and the behavior MUST be documented.
+- Inputs that cannot be represented in the data model (Section 2) are normalized (Section 3) before encoding (e.g., NaN → null).
+- Tabular fallback:
+  - If any tabular condition fails (Section 10.3), encoders MUST use expanded list format (Section 10.4).
+- Validators SHOULD report:
+  - Trailing spaces, trailing newlines.
+  - Headers missing delimiters when non-comma is active.
+  - Mismatched row counts vs. declared [N].
+  - Values violating delimiter-aware quoting rules.
 
-Diagnostics:
-- Implementations SHOULD report line and column of the failure and relevant context (e.g., header vs row).
+## 17. Security Considerations
 
-13. Security Considerations
+- Injection and ambiguity are mitigated by quoting rules:
+  - Strings with colon, active delimiter, leading hyphen, control characters, brackets/braces MUST be quoted.
+- Encoders SHOULD avoid excessive memory use on large inputs; implement streaming/tabular row emission where feasible.
+- Unicode inputs:
+  - Encoders SHOULD avoid altering Unicode content beyond required escaping; validators SHOULD accept all valid Unicode in quoted strings and keys (with escapes as required).
 
-- Treat all input as untrusted. Decoders MUST NOT execute code or evaluate expressions.
-- Keys like "__proto__", "prototype", or "constructor" MUST be treated as ordinary string keys to avoid prototype pollution, or inputs containing such keys SHOULD be rejected in strict modes.
-- Implement resource limits (SHOULD): maximum nesting depth, maximum line length, maximum document size, maximum row count.
-- Guard against catastrophic backtracking in regex-based parsers (SHOULD).
-- In LLM-generation workflows, validate structural guardrails (row counts, delimiters, quoting) before consuming generated data (RECOMMENDED).
+## 18. Internationalization
 
-14. Internationalization
+- TOON supports full Unicode in keys and values, subject to quoting and escaping rules.
+- Encoders MUST NOT apply locale-dependent formatting for numbers or booleans (e.g., no thousands separators).
+- ISO 8601 strings SHOULD be used for date representations when normalizing host Date types.
 
-- TOON is UTF-8; Unicode text (including emoji and non-Latin scripts) is permitted.
-- No normalization is required by the spec; implementations MAY offer optional normalization (e.g., NFC) but MUST NOT alter content by default.
+## 19. Interoperability and Mappings (Informative)
 
-15. Interoperability and Backward Compatibility
+- JSON:
+  - TOON is designed for deterministic encoding of JSON-compatible data (after normalization).
+  - Arrays of uniform objects map to CSV-like rows; other structures map to YAML-like nested forms.
+- CSV:
+  - TOON tabular sections generalize CSV with explicit lengths, field lists, and flexible delimiter choice.
+- YAML:
+  - TOON borrows indentation and list-item patterns but uses fewer quotes and explicit array headers to constrain ambiguity in LLM contexts.
 
-- The core syntax and data model are stable.
-- New delimiters or markers, if introduced, MUST be explicitly declared in headers to remain backward compatible.
-- The format has no inline comments or metadata; future extensions SHOULD be out of band to preserve compatibility.
-- Ports in multiple languages SHOULD follow this spec; deviations MUST be documented.
+## 20. Media Type and File Extensions (Provisional)
 
-16. Examples (Informative)
+- Suggested media type: text/toon
+- Suggested file extension: .toon
+- Encoding: UTF-8
+- Line endings: LF (U+000A)
+
+## 21. Examples (Informative)
 
 Objects:
 ```
@@ -281,26 +334,41 @@ name: Ada
 active: true
 ```
 
-Nested object:
+Nested objects:
 ```
 user:
   id: 123
   name: Ada
 ```
 
-Primitive array:
+Primitive arrays:
 ```
 tags[3]: admin,ops,dev
 ```
 
-Tabular array:
+Arrays of arrays (primitives):
+```
+pairs[2]:
+  - [2]: 1,2
+  - [2]: 3,4
+```
+
+Tabular arrays:
 ```
 items[2]{sku,qty,price}:
   A1,2,9.99
   B2,1,14.5
 ```
 
-List array (non-uniform):
+Mixed arrays:
+```
+items[3]:
+  - 1
+  - a: 1
+  - text
+```
+
+Objects as list items (first field on hyphen line):
 ```
 items[2]:
   - id: 1
@@ -310,27 +378,24 @@ items[2]:
     extra: true
 ```
 
-Arrays of arrays:
+Nested tabular inside a list item:
 ```
-pairs[2]:
-  - [2]: 1,2
-  - [0]:
-```
-
-Root arrays:
-```
-[2]: x,y
-[2]{id}:
-  1
-  2
+items[1]:
+  - users[2]{id,name}:
+    1,Ada
+    2,Bob
+    status: active
 ```
 
-Delimiter variants:
+Delimiter variations:
 ```
-tags[3|]: reading|gaming|coding
+# Tab delimiter
 items[2	]{sku	name	qty	price}:
   A1	Widget	2	9.99
   B2	Gadget	1	14.5
+
+# Pipe delimiter
+tags[3|]: reading|gaming|coding
 ```
 
 Length marker:
@@ -341,107 +406,127 @@ pairs[#2]:
   - [#2]: c,d
 ```
 
-17. Reference Algorithms (Informative)
+## 22. Reference Algorithms (Informative)
 
-17.1 Encoding Algorithm (high-level)
-- Dispatch by value type:
-  - null/boolean: emit token.
-  - number: if finite, emit normalized decimal; else "null".
-  - BigInt: emit decimal digits.
-  - Date: emit ISO string in quotes.
-  - string: apply value quoting rules (Section 7.2).
-  - array:
-    - Compute N = length.
-    - Determine active delimiter (options default or configured).
-    - If array is all primitives: emit inline header and values separated by delimiter; [N<delim?>]: v1<delim>...
-    - Else if all elements are objects with identical keys and all primitive values: render tabular:
-      - Derive header field order from the first object.
-      - Emit key[N]{fields} or [N]{fields}, using the active delimiter inside {…}.
-      - Emit exactly N rows, with values in header order, delimiter-separated; quote values as needed.
-    - Else: render list array:
-      - Emit key[N]: (or [N]: at root).
-      - For each element i in 1..N:
-        - If primitive: "  - <value>".
-        - If object: put first field on hyphen line as "  - k: v" or "  - k:"; render subsequent fields aligned.
-          - If the first field is an array, place the array header on the hyphen line (primitive/tabular/list), then render its contents two spaces under; subsequent fields aligned with those contents.
-        - If array: "  - [M<delim?>]: …" (primitive) or "  - [M<delim?>]{…}: …" (tabular) or "  - [M<delim?>]:" (list), then render contents two spaces under.
-  - object:
-    - For each key in insertion order:
-      - Quote key if required; emit "key: value" or "key:" with nested block.
-      - Apply value rules recursively.
-- Global invariants: 2-space indent (canonical), no trailing spaces, no final newline.
+22.1 Tabular Detection
 
-17.2 Decoding Algorithm (high-level)
-- Tokenize by lines; maintain an indentation stack (levels in multiples of two spaces recommended).
-- Parse three line types:
-  - Key-value line: key: value (or key: signaling nested object).
-  - Array header: key[N<delim?>][: [inline-values]] or [N<delim?>]{fields}: or [N<delim?>]:
-  - List item: "- " at the current indent level.
-- Arrays:
-  - Read the header to obtain N, optional length marker, optional delimiter, and optional {field list}.
-  - For tabular arrays: read exactly N subsequent lines at the next indent level as rows; split by active delimiter; map to fields in order; apply string unquoting rules.
-  - For inline primitive arrays: parse values on the same line; split by active delimiter and unquote.
-  - For list arrays: read exactly N items, each starting with "- " at the next indent level; infer item type by the token after "- "; handle nested arrays and objects according to indentation.
-- Validate invariants and provide diagnostics on failure.
+Given an array rows:
+- If rows is empty → not tabular (fall back to expanded format).
+- Let header = keys of the first row in encounter order; if header is empty → not tabular.
+- For each row:
+  - If row’s key count ≠ header length → not tabular.
+  - For each key in header:
+    - If key missing in row → not tabular.
+    - If row[key] is not a primitive → not tabular.
+- Otherwise tabular with header from the first row.
 
-18. Test Vectors and Conformance Mapping (Informative)
+22.2 Safe-Unquoted String Decision
 
-This spec maps to the following conformance areas demonstrated by the reference tests:
-- Primitives: number normalization, non-finite → null, booleans/null unquoted, Unicode safety.
-- Quoting: keys with spaces/colon/brackets/delimiters; values with colon/active delimiter; structural-looking strings; leading/trailing spaces; escape sequences.
-- Objects: stable key order; empty object rendering.
-- Arrays:
-  - Primitive arrays (inline), including empty arrays.
-  - Tabular arrays: uniform keys, primitive values, header quoting, value quoting, delimiter-aware behavior; header field order from first object.
-  - List arrays: mixed/non-uniform; arrays of arrays; nested arrays as first field of list items with alignment rules; subsequent fields aligned.
-  - Root arrays: primitive, tabular, list.
-- Delimiters: comma (default), tab, pipe across primitive arrays, tabular arrays, nested arrays, and root arrays.
-- Length marker: presence, nesting, and interaction with delimiters.
-- Formatting invariants: 2-space indentation, no trailing spaces, no trailing newline.
+Given a string s and active delimiter d:
+- If s is empty or s !== s.trim() → quote.
+- If s ∈ {true,false,null} → quote.
+- If s is numeric-like (regexes in Section 6.2) → quote.
+- If s contains ":" or "\"" or "\\" → quote.
+- If s contains any of "[", "]", "{", "}" → quote.
+- If s contains any of "\n", "\r", "\t" → quote.
+- If s contains the active delimiter d → quote.
+- If s starts with "-" → quote.
+- Else unquoted.
 
-19. IANA Considerations (Optional)
+22.3 Header Formatting
 
-If registering a media type:
-- Type name: text
-- Subtype name: toon
-- Required parameters: charset=utf-8
-- Encoding considerations: 8-bit; UTF-8 text.
-- Security considerations: see Section 13.
-- Interoperability considerations: see Section 15.
+- Start with optional key (encoded as per key rules).
+- Append “[<marker?>N<delim?>]”, where:
+  - <marker?> is “#” if enabled.
+  - <delim?> is absent for comma, or is the delimiter symbol for tab/pipe.
+- If tabular, append “{field1<delim>field2}” where field names are key-encoded and joined by the active delimiter.
+- Append “:”.
+- For non-empty primitive arrays on a single line, append a space and the joined values (each primitive-encoded with delimiter-aware quoting), joined by the active delimiter.
 
-20. Change Log (Informative)
+## 23. ABNF Sketch (Informative)
 
-- 1.0.0 (2025-10-27): Initial specification.
+This sketch omits full Unicode and escaping details; it illustrates structure only.
 
-21. Acknowledgements (Informative)
+```
+document       = *(line LF) [line]
+line           = indent (object-line / array-header / list-item / row)
+indent         = *SP        ; multiple of indent unit (default 2 SP)
 
-Thanks to the authors and maintainers of language ports and to early adopters who provided feedback and tests.
+object-line    = key ":" [SP primitive]
+array-header   = [key] "[" [marker] length [delimsym] "]" [fields] ":" [SP inline-values]
+marker         = "#"
+length         = 1*DIGIT
+delimsym       = "|" / HTAB
+fields         = "{" fieldname *(delim fieldname) "}"
+fieldname      = key
+inline-values  = primitive *(delim primitive)
+delim          = delimsym / ","  ; actual active delimiter for the array
 
-Appendix A. Grammar Sketch (Informative)
+list-item      = "- " ( primitive
+                       / inline-array
+                       / object-head
+                       / nested-array-head )
+inline-array   = "[" [marker] length [delimsym] "]" ":" [SP inline-values]
+object-head    = key ":"          ; followed by nested object at deeper indent
+nested-array-head = key "[" [marker] length [delimsym] "]" ":" [LF] ; followed by nested items
 
-Note: The grammar is contextual due to active delimiter selection and indentation. This sketch aids implementers; normative behavior is in the main text.
+row            = primitive *(delim primitive)
 
-- Document
-  - document := lines
-  - lines := { line LF } [ last-line-no-LF ]
-- Line Types
-  - line := object-line | array-header-line | row-line | list-item-line
-- Keys and Values (informal)
-  - key := quoted-key | bare-key
-  - quoted-key := DQUOTE { escaped-char | any-char-except-DQUOTE-BACKSLASH } DQUOTE
-  - bare-key := 1*(char without spaces, colon, quotes, backslash, control chars, brackets/braces, active-delimiter; not starting with "-"; not numeric-only)
-  - value := quoted-string | bare-string | number | true | false | null
-- Arrays
-  - array-header := array-key? "[" length-marker? digits (delimiter-marker)? "]" ( field-list )? ":" [ inline-values ]
-  - array-key := key ": " (when array is an object field) else absent at root
-  - delimiter-marker := "|" | HTAB ; comma is implicit (no marker)
-  - field-list := "{" key ( active-delim key )* "}"
-  - inline-values := SP value ( active-delim value )*
-  - list-array-body := indent "- " list-item { LF indent "- " list-item } ; count MUST match N
-  - tabular-rows := { indent row } ; exactly N rows, where row := value ( active-delim value )*
-- Indentation and Blocks
-  - Nested object fields appear at +1 indent.
-  - List items appear at +1 indent relative to their array header.
-  - Contents of arrays placed on a list-item’s hyphen line appear at +1 indent relative to that hyphen line.
+key            = unquoted-key / quoted
+unquoted-key   = ALPHA / "_" , *( ALPHA / DIGIT / "_" / "." )
+quoted         = DQUOTE *(escaped-char / safe-char) DQUOTE
 
-Examples in this appendix assume consistent two-space indentation; decoders MUST validate structure, not exact whitespace beyond rules in Sections 6 and 10.
+primitive      = null / boolean / number / string
+null           = "null"
+boolean        = "true" / "false"
+number         = 1*DIGIT / "-" 1*DIGIT / 1*DIGIT "." 1*DIGIT / ...
+string         = quoted / safe-unquoted-string
+```
+
+Notes:
+- Safe-unquoted-string constraints are defined in Section 6.2.
+- Actual tokenization relies on the declared header delimiter and quoting rules.
+
+## 24. Test Suite and Compliance (Informative)
+
+- Implementations are encouraged to validate against a comprehensive test suite covering:
+  - Primitive encoding, quoting, control-character escaping.
+  - Object key encoding and order preservation.
+  - Primitive arrays (inline), empty arrays.
+  - Arrays of arrays (expanded), mixed-length and empty inner arrays.
+  - Tabular detection and encoding, including delimiter variations.
+  - Mixed arrays and objects-as-list-items behavior, including nested arrays and objects.
+  - Whitespace invariants (no trailing spaces/newline).
+  - Normalization (BigInt, Date, undefined, NaN/Infinity, functions, symbols).
+
+The provided reference tests in the repository mirror these conditions and SHOULD be used to ensure conformance.
+
+## 25. Rationale (Informative)
+
+- Token efficiency: Removing repeated keys and braces for uniform arrays markedly reduces tokens vs. JSON.
+- LLM-friendly guardrails: Declared lengths and field lists help models parse and validate structure.
+- Determinism: Strict quoting/spacing/ordering yields outputs that are easy to compare, cache, and validate.
+- Delimiters: Tab and pipe often reduce quoting needs (e.g., commas in natural language), and can tokenize more efficiently.
+
+## 26. Versioning and Extensibility
+
+- Backward-compatible evolutions SHOULD preserve current headers, quoting rules, and indentation semantics.
+- Reserved/structural characters (colon, brackets, braces, hyphen) MUST retain current meanings.
+- Future work (non-normative): decoding/parsing spec, schemas, comments/annotations, additional delimiter profiles.
+
+## 27. Acknowledgments and License
+
+- Credits: Author and contributors; ports in other languages (Elixir, PHP, Python, Ruby, Java, .NET, Swift).
+- License: MIT (see repository for details).
+
+---
+
+Appendix: Cross-check With Reference Behavior (Informative)
+
+- All normative behaviors specified herein are implemented and validated by the reference encoder and its test suite, including:
+  - Safe-unquoted string rules and delimiter-aware quoting.
+  - Object and tabular header formation using the active delimiter (comma implicit; tab/pipe explicit).
+  - Length marker propagation to nested arrays.
+  - Tabular detection requiring uniform keys and primitive-only values.
+  - Objects-as-list-items formatting (first field on hyphen line, subsequent fields at +1 indent; nested object content at +2).
+  - Whitespace invariants and no trailing newline.
