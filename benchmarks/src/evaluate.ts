@@ -81,7 +81,8 @@ async function validateAnswer(
   }:
   { actual: string, expected: string, question: string },
 ): Promise<boolean> {
-  const prompt = `You are validating answers to questions about structured data.
+  const prompt = `
+You are validating answers to questions about structured data.
 
 Question: ${question}
 Expected answer: ${expected}
@@ -93,7 +94,8 @@ Is the actual answer correct? Consider:
 - Minor formatting differences are acceptable
 - Case-insensitive comparison for text
 
-Respond with only "YES" or "NO".`
+Respond with only "YES" or "NO".
+`.trim()
 
   try {
     const { text } = await generateText({
