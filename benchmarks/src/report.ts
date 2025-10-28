@@ -1,21 +1,9 @@
-/**
- * Report generation for TOON benchmarks
- *
- * Handles:
- * - Statistical analysis
- * - Markdown report generation with visual elements
- * - Per-dataset breakdowns
- * - Cost analysis
- * - Result file saving
- */
-
 import type { EvaluationResult, FormatResult, Question } from './types'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import { BENCHMARKS_DIR } from './constants'
 import { datasets } from './datasets'
-import { models } from './evaluate'
-import { createProgressBar, ensureDir, saveJsonFile, tokenize } from './utils'
+import { createProgressBar, ensureDir, tokenize } from './utils'
 
 /**
  * Calculate per-format statistics from evaluation results
@@ -63,8 +51,8 @@ export function generateMarkdownReport(
   const json = formatResults.find(r => r.format === 'json')
 
   // Build model-by-model breakdown with ASCII bars
-  const modelCount = Object.keys(models).length
-  const modelNames = Object.keys(models)
+  const modelNames = [...new Set(results.map(r => r.model))].reverse()
+  const modelCount = modelNames.length
 
   const modelBreakdown = modelNames.map((modelName, i) => {
     const modelResults = formatResults.map((fr) => {
@@ -136,7 +124,7 @@ export function generateMarkdownReport(
     })
 
     const tableRows = datasetResults.slice(0, 6).map(result =>
-      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString()} | ${result.correctCount}/${result.totalCount} |`,
+      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString('en-US')} | ${result.correctCount}/${result.totalCount} |`,
     ).join('\n')
 
     return `
@@ -180,6 +168,27 @@ ${tableRows}
   // Calculate total unique questions
   const totalQuestions = [...new Set(results.map(r => r.questionId))].length
 
+  // Calculate question type distribution
+  const fieldRetrievalCount = questions.filter(q => q.type === 'field-retrieval').length
+  const aggregationCount = questions.filter(q => q.type === 'aggregation').length
+  const filteringCount = questions.filter(q => q.type === 'filtering').length
+
+  const fieldRetrievalPercent = ((fieldRetrievalCount / totalQuestions) * 100).toFixed(0)
+  const aggregationPercent = ((aggregationCount / totalQuestions) * 100).toFixed(0)
+  const filteringPercent = ((filteringCount / totalQuestions) * 100).toFixed(0)
+
+  // Calculate dataset sizes
+  const tabularSize = datasets.find(d => d.name === 'tabular')?.data.employees?.length || 0
+  const nestedSize = datasets.find(d => d.name === 'nested')?.data.orders?.length || 0
+  const analyticsSize = datasets.find(d => d.name === 'analytics')?.data.metrics?.length || 0
+  const githubSize = datasets.find(d => d.name === 'github')?.data.repositories?.length || 0
+
+  // Calculate number of formats and models
+  const formatCount = formatResults.length
+  const modelsUsed = [...new Set(results.map(r => r.model))]
+  const modelsListStr = modelsUsed.map(m => `\`${m}\``).join(', ')
+  const totalEvaluations = totalQuestions * formatCount * modelsUsed.length
+
   return `
 ### Retrieval Accuracy
 
@@ -213,39 +222,41 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 Four datasets designed to test different structural patterns:
 
-1. **Tabular** (100 employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
-2. **Nested** (50 e-commerce orders): Complex structures with nested customer objects and item arrays.
-3. **Analytics** (60 days of metrics): Time-series data with dates and numeric values.
-4. **GitHub** (100 repositories): Real-world data from top GitHub repos by stars.
+1. **Tabular** (${tabularSize} employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
+2. **Nested** (${nestedSize} e-commerce orders): Complex structures with nested customer objects and item arrays.
+3. **Analytics** (${analyticsSize} days of metrics): Time-series data with dates and numeric values.
+4. **GitHub** (${githubSize} repositories): Real-world data from top GitHub repos by stars.
 
 #### Question Types
 
 ${totalQuestions} questions are generated dynamically across three categories:
 
-- **Field retrieval (50%)**: Direct value lookups
+\- **Field retrieval (${fieldRetrievalPercent}%)**: Direct value lookups or values that can be read straight off a record (including booleans and simple counts such as array lengths)
   - Example: "What is Alice's salary?" → \`75000\`
+  - Example: "How many items are in order ORD-0042?" → \`3\`
   - Example: "What is the customer name for order ORD-0042?" → \`John Doe\`
 
-- **Aggregation (25%)**: Counting and summation tasks
+- **Aggregation (${aggregationPercent}%)**: Dataset-level totals and averages plus single-condition filters (counts, sums, min/max comparisons)
   - Example: "How many employees work in Engineering?" → \`17\`
   - Example: "What is the total revenue across all orders?" → \`45123.50\`
+  - Example: "How many employees have salary > 80000?" → \`23\`
 
-- **Filtering (25%)**: Conditional queries
+- **Filtering (${filteringPercent}%)**: Multi-condition queries requiring compound logic (AND constraints across fields)
   - Example: "How many employees in Sales have salary > 80000?" → \`5\`
-  - Example: "How many orders have total > 400?" → \`12\`
+  - Example: "How many active employees have more than 10 years of experience?" → \`8\`
 
 #### Evaluation Process
 
-1. **Format conversion:** Each dataset is converted to all 5 formats (TOON, JSON, YAML, CSV, XML).
+1. **Format conversion:** Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => f.format.toUpperCase()).join(', ')}).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
-4. **Validate with LLM-as-judge**: \`gpt-5-nano\` validates if the answer is semantically correct (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`).
+3. **Validate with LLM-as-judge**: \`gpt-5-nano\` validates if the answer is semantically correct (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`).
 
 #### Models & Configuration
 
-- **Models tested**: \`gpt-5-nano\`, \`claude-haiku-4-5\`, \`gemini-2.5-flash\`
+- **Models tested**: ${modelsListStr}
 - **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding (GPT-5 tokenizer)
 - **Temperature**: 0 (for non-reasoning models)
-- **Total evaluations**: 159 questions × 5 formats × 3 models = 2,385 LLM calls
+- **Total evaluations**: ${totalQuestions} questions × ${formatCount} formats × ${modelsUsed.length} models = ${totalEvaluations.toLocaleString('en-US')} LLM calls
 
 </details>
 `.trimStart()
@@ -272,6 +283,10 @@ export function calculateTokenCounts(
 
 /**
  * Save results to disk
+ *
+ * @remarks
+ * Per-model results are managed separately via storage.ts
+ * This function only generates the aggregated markdown report
  */
 export async function saveResults(
   results: EvaluationResult[],
@@ -279,31 +294,12 @@ export async function saveResults(
   questions: Question[],
   tokenCounts: Record<string, number>,
 ): Promise<string> {
-  const resultsDir = path.join(BENCHMARKS_DIR, 'results', 'accuracy')
+  const resultsDir = path.join(BENCHMARKS_DIR, 'results')
   await ensureDir(resultsDir)
 
-  // Save raw results
-  await saveJsonFile(path.join(resultsDir, 'raw-results.json'), results)
-
-  // Save summary
-  await saveJsonFile(
-    path.join(resultsDir, 'summary.json'),
-    {
-      formatResults,
-      questions: questions.length,
-      models: Object.keys(models),
-      datasets: datasets.map(d => ({ name: d.name, description: d.description })),
-      tokenCounts,
-      timestamp: new Date().toISOString(),
-    },
-  )
-
-  // Generate markdown report
+  // Generate markdown report from all available model results
   const report = generateMarkdownReport(formatResults, results, questions, tokenCounts)
-  await fsp.writeFile(
-    path.join(resultsDir, 'report.md'),
-    report,
-  )
+  await fsp.writeFile(path.join(resultsDir, 'retrieval-accuracy.md'), report)
 
   return resultsDir
 }

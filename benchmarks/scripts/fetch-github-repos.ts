@@ -1,10 +1,12 @@
 import * as path from 'node:path'
 import process from 'node:process'
-import { consola } from 'consola'
+import * as prompts from '@clack/prompts'
 import { ofetch } from 'ofetch'
 import pMap from 'p-map'
 import { BENCHMARKS_DIR } from '../src/constants'
 import { ensureDir, saveJsonFile } from '../src/utils'
+
+prompts.intro('GitHub Repositories Fetcher')
 
 try {
   // Fetch top 100 repos from GitHub
@@ -12,7 +14,7 @@ try {
   const repos = await fetchRepoDetails(repoList)
 
   if (repos.length === 0) {
-    consola.error('❌ No repositories fetched. Exiting.')
+    prompts.log.error('No repositories fetched. Exiting.')
     process.exit(1)
   }
 
@@ -21,15 +23,16 @@ try {
 
   await saveRepos(repos)
 
-  consola.success('Done!')
+  prompts.log.success('Done!')
 }
 catch (error) {
-  consola.error(error)
+  prompts.log.error(String(error))
   process.exit(1)
 }
 
 async function searchTop100Repos(): Promise<string[]> {
-  consola.start('Fetching top 100 starred repositories from GitHub API…')
+  const s = prompts.spinner()
+  s.start('Fetching top 100 starred repositories')
 
   const response = await ofetch<{ items: { full_name: string }[] }>(
     'https://api.github.com/search/repositories',
@@ -47,23 +50,26 @@ async function searchTop100Repos(): Promise<string[]> {
     },
   )
 
+  s.stop('Fetched top 100 repositories')
+
   return response.items.map(item => item.full_name)
 }
 
 async function fetchRepoDetails(repoList: string[]): Promise<Record<string, any>[]> {
-  consola.start(`Fetching ${repoList.length} GitHub repositories…`)
+  const s = prompts.spinner()
+  s.start(`Fetching ${repoList.length} GitHub repositories`)
 
   const repos = await pMap(
     repoList,
     async (repoPath, index) => {
-      consola.info(`[${index + 1}/${repoList.length}] Fetching ${repoPath}…`)
+      s.message(`[${index + 1}/${repoList.length}] Fetching ${repoPath}`)
       const { repo } = await ofetch(`https://ungh.cc/repos/${repoPath}`)
       return repo
     },
     { concurrency: 5 },
   )
 
-  consola.success(`Successfully fetched ${repos.length}/${repoList.length} repositories`)
+  s.stop(`Successfully fetched ${repos.length}/${repoList.length} repositories`)
 
   return repos
 }
@@ -76,5 +82,5 @@ async function saveRepos(repos: Record<string, any>[]): Promise<void> {
   await saveJsonFile(outputFile, repos)
 
   const relativePath = path.relative(BENCHMARKS_DIR, outputFile)
-  consola.info(`Saved to \`${relativePath}\``)
+  prompts.log.info(`Result saved to \`${relativePath}\``)
 }

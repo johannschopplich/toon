@@ -1,20 +1,3 @@
-/**
- * Format converters for TOON benchmarks
- *
- * Converts data to different formats for comparison:
- * - JSON
- * - TOON
- * - CSV
- * - XML
- * - YAML
- *
- * ## Semantic Equivalence
- *
- * All formatters attempt to preserve semantic equivalence with the source data,
- * meaning the converted data should represent the same information. However,
- * CSV has inherent limitations with nested structures (see `toCSV` docs).
- */
-
 import { stringify as stringifyCSV } from 'csv-stringify/sync'
 import { XMLBuilder } from 'fast-xml-parser'
 import { stringify as stringifyYAML } from 'yaml'
@@ -23,7 +6,10 @@ import { encode as encodeToon } from '../../src/index'
 /**
  * Format converters registry
  *
- * Each formatter takes unknown data and returns a string representation
+ * @remarks
+ * All formatters attempt to preserve semantic equivalence with the source data,
+ * meaning the converted data should represent the same information. However,
+ * CSV has inherent limitations with nested structures (see `toCSV` docs).
  */
 export const formatters: Record<string, (data: unknown) => string> = {
   json: data => JSON.stringify(data, undefined, 2),
@@ -37,11 +23,13 @@ export const formatters: Record<string, (data: unknown) => string> = {
  * Convert data to CSV format
  *
  * @remarks
- * **Limitations**: CSV is designed for flat tabular data only. This formatter:
- * - Only handles top-level objects with arrays of flat objects
- * - Cannot properly represent deeply nested structures (nested arrays/objects within rows)
- * - Loses nested structure information during conversion
- * - May produce misleading results for datasets with complex nesting (e.g., e-commerce orders with nested items)
+ * Limitations: CSV is designed for flat tabular data only.
+ *
+ * This formatter:
+ *   - Only handles top-level objects with arrays of flat objects
+ *   - Cannot properly represent deeply nested structures (nested arrays/objects within rows)
+ *   - Loses nested structure information during conversion
+ *   - May produce misleading results for datasets with complex nesting (e.g., e-commerce orders with nested items)
  *
  * For datasets with nested structures, CSV comparisons may not be fair or representative
  * of how CSV would typically be used in practice.

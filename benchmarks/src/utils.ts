@@ -1,13 +1,3 @@
-/**
- * Shared utility functions for TOON benchmarks
- *
- * Provides common functionality used across multiple benchmark scripts:
- * - Progress bar visualization
- * - Token counting
- * - File I/O operations
- * - Retry logic for API calls
- */
-
 import * as fsp from 'node:fs/promises'
 import { encode } from 'gpt-tokenizer'
 

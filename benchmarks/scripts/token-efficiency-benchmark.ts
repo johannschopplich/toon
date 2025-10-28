@@ -1,6 +1,6 @@
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
-import { consola } from 'consola'
+import * as prompts from '@clack/prompts'
 import { encode } from '../../src/index'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, ROOT_DIR } from '../src/constants'
@@ -23,8 +23,6 @@ interface BenchmarkResult {
   formats: FormatMetrics[]
   showDetailed: boolean
 }
-
-const outputFilePath = path.join(BENCHMARKS_DIR, 'results', 'token-efficiency.md')
 
 const BENCHMARK_EXAMPLES = [
   {
@@ -49,6 +47,8 @@ const BENCHMARK_EXAMPLES = [
     showDetailed: false,
   },
 ] as const
+
+prompts.intro('Token Efficiency Benchmark')
 
 // Calculate total savings
 let totalJsonTokens = 0
@@ -204,9 +204,12 @@ ${detailedExamples}
 </details>
 `.trimStart()
 
-console.log(`${barChartSection}\n`)
+prompts.log.message(`${barChartSection}\n`)
 
-await ensureDir(path.join(BENCHMARKS_DIR, 'results'))
+const resultsDir = path.join(BENCHMARKS_DIR, 'results')
+await ensureDir(resultsDir)
+
+const outputFilePath = path.join(resultsDir, 'token-efficiency.md')
 await fsp.writeFile(outputFilePath, markdown, 'utf-8')
 
-consola.success(`Benchmark written to \`${path.relative(ROOT_DIR, outputFilePath)}\``)
+prompts.log.success(`Result saved to \`${path.relative(ROOT_DIR, outputFilePath)}\``)

@@ -5,9 +5,22 @@ export const ROOT_DIR: string = url.fileURLToPath(new URL('../../', import.meta.
 export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.meta.url))
 
 /**
- * Default concurrency for parallel evaluations
+ * Model-specific RPM (requests per minute) limits to handle API quotas
+ *
+ * @remarks
+ * Set `undefined` for models without specific limits
  */
-export const DEFAULT_CONCURRENCY = 20
+/// keep-sorted
+export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
+  'claude-haiku-4-5-20251001': 50,
+  'gemini-2.5-flash': 25,
+  'gpt-5-nano': undefined,
+}
+
+/**
+ * Default concurrency for parallel evaluations to prevent bursting
+ */
+export const DEFAULT_CONCURRENCY = 10
 
 /**
  * Progress bar configuration
@@ -28,13 +41,83 @@ export const PROGRESS_BAR = {
 export const DRY_RUN: boolean = process.env.DRY_RUN === 'true'
 
 /**
- * Limits applied when DRY_RUN is enabled
+ * Limits applied during dry run mode
  */
 export const DRY_RUN_LIMITS = {
   /** Maximum number of questions to evaluate */
   maxQuestions: 10,
-  /** Maximum number of formats to test */
-  maxFormats: undefined as number | undefined,
-  /** Models to use in dry run */
-  allowedModels: [] as string[],
 }
+
+/**
+ * Threshold values for filtering and aggregation questions
+ */
+export const QUESTION_THRESHOLDS = {
+  tabular: {
+    salaryRanges: [60000, 80000, 100000, 120000],
+    experienceYears: [5, 10, 15, 20],
+    departmentSalaryThreshold: 80000,
+    departmentExperienceThreshold: 10,
+  },
+  nested: {
+    highValueOrders: [200, 400, 600],
+    statusValueThreshold: 300,
+    itemCountThreshold: 3,
+    totalThresholdsForItems: [300, 500],
+  },
+  analytics: {
+    views: [5000, 7000],
+    conversions: [10, 30],
+    viewsForFiltering: [6000, 7000],
+    conversionsForFiltering: 15,
+    revenueThresholds: [500, 1000, 1500, 2000, 2500],
+    viewsThresholdForRevenue: 6000,
+    clicksForFiltering: [250, 400],
+    conversionsForClickFiltering: 15,
+    revenueForBounceRate: [1000, 1500],
+    bounceRateThreshold: 0.5,
+  },
+  github: {
+    stars: [100000, 150000, 200000],
+    forks: [20000, 35000, 50000],
+    watchers: [5000, 8000],
+    starForkCombinations: [
+      { stars: 75000, forks: 15000 },
+      { stars: 100000, forks: 20000 },
+      { stars: 150000, forks: 30000 },
+      { stars: 200000, forks: 45000 },
+    ],
+    starWatcherCombinations: [
+      { stars: 100000, watchers: 7000 },
+      { stars: 150000, watchers: 9000 },
+    ],
+  },
+} as const
+
+/**
+ * Question generation configuration
+ */
+export const QUESTION_LIMITS = {
+  tabular: {
+    fieldRetrieval: 20,
+    aggregationDepartments: 6,
+    filteringMultiConditionDepartments: 6,
+    filteringExperience: 4,
+    filteringDepartmentExp: 3,
+    filteringDepartmentActive: 3,
+  },
+  nested: {
+    fieldRetrievalOrders: 8,
+    fieldRetrievalCustomers: 10,
+    aggregationStatuses: 5,
+    filteringStatusAndValue: 5,
+    filteringStatusAndItems: 3,
+  },
+  analytics: {
+    fieldRetrievalDates: 13,
+  },
+  github: {
+    fieldRetrievalRepos: 11,
+    aggregationBranches: 2,
+    filteringStarsAndForks: 8,
+  },
+} as const

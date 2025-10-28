@@ -1,12 +1,3 @@
-/**
- * Datasets for TOON benchmarks
- *
- * These datasets are designed to test TOON's strengths and weaknesses:
- * - Tabular: Uniform records (TOON optimal)
- * - Nested: Complex structures with nested objects
- * - Analytics: Time-series data
- */
-
 import type { Dataset } from './types'
 import { faker } from '@faker-js/faker'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
@@ -128,7 +119,7 @@ const tabularDataset: Dataset = {
   description: 'Uniform employee records (TOON optimal format)',
   data: {
     employees: Array.from({ length: 100 }, (_, i): Employee => {
-      const yearsExp = faker.number.int({ min: 1, max: 20 })
+      const yearsExp = faker.number.int({ min: 1, max: 25 })
       return {
         id: i + 1,
         name: faker.person.fullName(),

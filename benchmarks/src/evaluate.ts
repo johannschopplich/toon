@@ -1,28 +1,19 @@
-/**
- * LLM evaluation logic for TOON benchmarks
- *
- * Handles:
- * - Model configuration
- * - Question evaluation with LLMs
- * - Answer validation using LLM-as-judge
- */
-
 import type { LanguageModelV2 } from '@ai-sdk/provider'
 import type { EvaluationResult, Question } from './types'
 import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
+import * as prompts from '@clack/prompts'
 import { generateText } from 'ai'
-import { consola } from 'consola'
 
 /**
  * Models used for evaluation
  */
-export const models: Record<string, LanguageModelV2> = {
-  'gpt-5-nano': openai('gpt-5-nano'),
-  'claude-haiku-4-5': anthropic('claude-haiku-4-5-20251001'),
-  'gemini-2.5-flash': google('gemini-2.5-flash'),
-}
+export const models: LanguageModelV2[] = [
+  openai('gpt-5-nano'),
+  google('gemini-2.5-flash'),
+  anthropic('claude-haiku-4-5-20251001'),
+]
 
 /**
  * Evaluate a single question with a specific format and model
@@ -33,14 +24,12 @@ export async function evaluateQuestion(
     formatName,
     formattedData,
     model,
-    modelName,
   }:
   {
     question: Question
     formatName: string
     formattedData: string
     model: LanguageModelV2
-    modelName: string
   },
 ): Promise<EvaluationResult> {
   const prompt = `
@@ -59,10 +48,11 @@ Provide only the direct answer, without any additional explanation or formatting
   const { text, usage } = await generateText({
     model,
     prompt,
-    temperature: !model.modelId.startsWith('gpt-') ? 0 : undefined,
+    temperature: !model.modelId.startsWith('gpt-5') ? 0 : undefined,
   })
 
   const latencyMs = performance.now() - startTime
+
   const isCorrect = await validateAnswer({
     actual: text.trim(),
     expected: question.groundTruth,
@@ -72,7 +62,7 @@ Provide only the direct answer, without any additional explanation or formatting
   return {
     questionId: question.id,
     format: formatName,
-    model: modelName,
+    model: model.modelId,
     expected: question.groundTruth,
     actual: text.trim(),
     isCorrect,
@@ -115,14 +105,14 @@ Respond with only "YES" or "NO".
 
   try {
     const { text } = await generateText({
-      model: models['gpt-5-nano']!,
+      model: models.find(m => m.modelId === 'gpt-5-nano')!,
       prompt,
     })
 
     return text.trim().toUpperCase() === 'YES'
   }
   catch (error) {
-    consola.error('Validation error:', error)
+    prompts.log.error(`Validation error: ${error}`)
     // Fallback to simple string comparison
     return actual.toLowerCase().trim() === expected.toLowerCase().trim()
   }
