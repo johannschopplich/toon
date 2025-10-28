@@ -215,19 +215,19 @@ metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
 Accuracy across **3 LLMs** on **154 data retrieval questions**:
 
 ```
-gemini-2.5-flash
-  xml          ██████████████████░░  90.3% (139/154)
-  csv          ██████████████████░░  89.0% (137/154)
-  toon         █████████████████░░░  87.0% (134/154)
-  json         ████████████████░░░░  79.2% (122/154)
-  yaml         ███████████████░░░░░  76.0% (117/154)
-
 gpt-5-nano
   toon         ███████████████████░  96.1% (148/154)
   csv          ██████████████████░░  90.3% (139/154)
   yaml         ██████████████████░░  89.0% (137/154)
   json         ██████████████████░░  87.7% (135/154)
   xml          █████████████████░░░  83.8% (129/154)
+
+gemini-2.5-flash
+  xml          ██████████████████░░  90.3% (139/154)
+  csv          ██████████████████░░  89.0% (137/154)
+  toon         █████████████████░░░  87.0% (134/154)
+  json         ████████████████░░░░  79.2% (122/154)
+  yaml         ███████████████░░░░░  76.0% (117/154)
 
 claude-haiku-4-5-20251001
   json         ██████████░░░░░░░░░░  48.7% (75/154)
@@ -286,16 +286,6 @@ claude-haiku-4-5-20251001
 
 #### Performance by Model
 
-##### gemini-2.5-flash
-
-| Format | Accuracy | Correct/Total |
-| ------ | -------- | ------------- |
-| `xml` | 90.3% | 139/154 |
-| `csv` | 89.0% | 137/154 |
-| `toon` | 87.0% | 134/154 |
-| `json` | 79.2% | 122/154 |
-| `yaml` | 76.0% | 117/154 |
-
 ##### gpt-5-nano
 
 | Format | Accuracy | Correct/Total |
@@ -305,6 +295,16 @@ claude-haiku-4-5-20251001
 | `yaml` | 89.0% | 137/154 |
 | `json` | 87.7% | 135/154 |
 | `xml` | 83.8% | 129/154 |
+
+##### gemini-2.5-flash
+
+| Format | Accuracy | Correct/Total |
+| ------ | -------- | ------------- |
+| `xml` | 90.3% | 139/154 |
+| `csv` | 89.0% | 137/154 |
+| `toon` | 87.0% | 134/154 |
+| `json` | 79.2% | 122/154 |
+| `yaml` | 76.0% | 117/154 |
 
 ##### claude-haiku-4-5-20251001
 
@@ -360,7 +360,7 @@ Four datasets designed to test different structural patterns:
 
 #### Models & Configuration
 
-- **Models tested**: `gemini-2.5-flash`, `gpt-5-nano`, `claude-haiku-4-5-20251001`
+- **Models tested**: `claude-haiku-4-5-20251001`, `gemini-2.5-flash`, `gpt-5-nano`
 - **Token counting**: Using `gpt-tokenizer` with `o200k_base` encoding (GPT-5 tokenizer)
 - **Temperature**: 0 (for non-reasoning models)
 - **Total evaluations**: 154 questions × 5 formats × 3 models = 2,310 LLM calls
