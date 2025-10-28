@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { encode } from '../src/index'
+import { decode, encode } from '../src/index'
 
 describe('primitives', () => {
   it('encodes safe strings without quotes', () => {
@@ -765,5 +765,397 @@ describe('length marker option', () => {
   it('default is false (no length marker)', () => {
     const obj = { tags: ['reading', 'gaming', 'coding'] }
     expect(encode(obj)).toBe('tags[3]: reading,gaming,coding')
+  })
+})
+
+describe('decode', () => {
+  describe('primitives', () => {
+    it('decodes null', () => {
+      expect(decode('null')).toBe(null)
+    })
+
+    it('decodes booleans', () => {
+      expect(decode('true')).toBe(true)
+      expect(decode('false')).toBe(false)
+    })
+
+    it('decodes numbers', () => {
+      expect(decode('42')).toBe(42)
+      expect(decode('-3.14')).toBe(-3.14)
+      expect(decode('0')).toBe(0)
+    })
+
+    it('decodes unquoted strings', () => {
+      expect(decode('hello')).toBe('hello')
+      expect(decode('hello world')).toBe('hello world')
+    })
+
+    it('decodes quoted strings', () => {
+      expect(decode('"true"')).toBe('true')
+      expect(decode('"false"')).toBe('false')
+      expect(decode('"42"')).toBe('42')
+      expect(decode('""')).toBe('')
+    })
+
+    it('unescapes control characters', () => {
+      expect(decode('"line1\\nline2"')).toBe('line1\nline2')
+      expect(decode('"tab\\there"')).toBe('tab\there')
+      expect(decode('"C:\\\\Users\\\\path"')).toBe('C:\\Users\\path')
+      expect(decode('"say \\"hello\\""')).toBe('say "hello"')
+    })
+  })
+
+  describe('objects', () => {
+    it('decodes simple objects', () => {
+      const toon = 'id: 123\nname: Ada\nactive: true'
+      expect(decode(toon)).toEqual({
+        id: 123,
+        name: 'Ada',
+        active: true,
+      })
+    })
+
+    it('decodes empty input as empty object', () => {
+      expect(decode('')).toEqual({})
+      expect(decode('  ')).toEqual({})
+    })
+
+    it('decodes objects with null values', () => {
+      const toon = 'id: 123\nvalue: null'
+      expect(decode(toon)).toEqual({
+        id: 123,
+        value: null,
+      })
+    })
+
+    it('decodes nested objects', () => {
+      const toon = 'user:\n  id: 123\n  name: Ada'
+      expect(decode(toon)).toEqual({
+        user: {
+          id: 123,
+          name: 'Ada',
+        },
+      })
+    })
+
+    it('decodes objects with quoted keys', () => {
+      const toon = '"user name": Ada\n"order-id": 123'
+      expect(decode(toon)).toEqual({
+        'user name': 'Ada',
+        'order-id': 123,
+      })
+    })
+
+    it('decodes empty nested objects', () => {
+      const toon = 'config:'
+      expect(decode(toon)).toEqual({
+        config: {},
+      })
+    })
+  })
+
+  describe('inline primitive arrays', () => {
+    it('decodes inline primitive arrays', () => {
+      const toon = 'tags[3]: admin,ops,dev'
+      expect(decode(toon)).toEqual({
+        tags: ['admin', 'ops', 'dev'],
+      })
+    })
+
+    it('decodes empty arrays', () => {
+      const toon = 'items[0]:'
+      expect(decode(toon)).toEqual({
+        items: [],
+      })
+    })
+
+    it('decodes arrays with numbers', () => {
+      const toon = 'scores[3]: 10,20,30'
+      expect(decode(toon)).toEqual({
+        scores: [10, 20, 30],
+      })
+    })
+
+    it('decodes arrays with quoted values', () => {
+      const toon = 'items[2]: "true",true'
+      expect(decode(toon)).toEqual({
+        items: ['true', true],
+      })
+    })
+
+    it('decodes arrays with length marker', () => {
+      const toon = 'tags[#3]: reading,gaming,coding'
+      expect(decode(toon)).toEqual({
+        tags: ['reading', 'gaming', 'coding'],
+      })
+    })
+  })
+
+  describe('tabular arrays', () => {
+    it('decodes tabular arrays', () => {
+      const toon = 'items[2]{sku,qty,price}:\n  A1,2,9.99\n  B2,1,14.5'
+      expect(decode(toon)).toEqual({
+        items: [
+          { sku: 'A1', qty: 2, price: 9.99 },
+          { sku: 'B2', qty: 1, price: 14.5 },
+        ],
+      })
+    })
+
+    it('decodes tabular arrays with quoted fields', () => {
+      const toon = 'users[2]{id,"full name",active}:\n  1,Alice Smith,true\n  2,Bob Jones,false'
+      expect(decode(toon)).toEqual({
+        users: [
+          { 'id': 1, 'full name': 'Alice Smith', 'active': true },
+          { 'id': 2, 'full name': 'Bob Jones', 'active': false },
+        ],
+      })
+    })
+
+    it('decodes tabular arrays with quoted values', () => {
+      const toon = 'items[2]{id,desc}:\n  1,"hello, world"\n  2,"a:b"'
+      expect(decode(toon)).toEqual({
+        items: [
+          { id: 1, desc: 'hello, world' },
+          { id: 2, desc: 'a:b' },
+        ],
+      })
+    })
+  })
+
+  describe('list arrays', () => {
+    it('decodes mixed arrays', () => {
+      const toon = 'items[3]:\n  - 1\n  - text\n  - true'
+      expect(decode(toon)).toEqual({
+        items: [1, 'text', true],
+      })
+    })
+
+    it('decodes arrays of objects', () => {
+      const toon = 'items[2]:\n  - id: 1\n    name: First\n  - id: 2\n    name: Second'
+      expect(decode(toon)).toEqual({
+        items: [
+          { id: 1, name: 'First' },
+          { id: 2, name: 'Second' },
+        ],
+      })
+    })
+
+    it('decodes arrays with empty objects', () => {
+      const toon = 'items[2]:\n  - \n  - id: 1'
+      expect(decode(toon)).toEqual({
+        items: [
+          {},
+          { id: 1 },
+        ],
+      })
+    })
+
+    it('decodes nested objects in lists', () => {
+      const toon = 'items[1]:\n  - user:\n      id: 123\n      name: Ada\n    status: active'
+      expect(decode(toon)).toEqual({
+        items: [
+          {
+            user: {
+              id: 123,
+              name: 'Ada',
+            },
+            status: 'active',
+          },
+        ],
+      })
+    })
+  })
+
+  describe('arrays of arrays', () => {
+    it('decodes arrays of arrays', () => {
+      const toon = 'pairs[2]:\n  - [2]: 1,2\n  - [2]: 3,4'
+      expect(decode(toon)).toEqual({
+        pairs: [
+          [1, 2],
+          [3, 4],
+        ],
+      })
+    })
+
+    it('decodes arrays of arrays with empty inner arrays', () => {
+      const toon = 'data[2]:\n  - [0]:\n  - [2]: a,b'
+      expect(decode(toon)).toEqual({
+        data: [
+          [],
+          ['a', 'b'],
+        ],
+      })
+    })
+  })
+
+  describe('nested tabular arrays', () => {
+    it('decodes tabular arrays inside list items', () => {
+      const toon = 'items[1]:\n  - users[2]{id,name}:\n      1,Ada\n      2,Bob\n    status: active'
+      expect(decode(toon)).toEqual({
+        items: [
+          {
+            users: [
+              { id: 1, name: 'Ada' },
+              { id: 2, name: 'Bob' },
+            ],
+            status: 'active',
+          },
+        ],
+      })
+    })
+  })
+
+  describe('root arrays', () => {
+    it('decodes root primitive arrays', () => {
+      const toon = '[3]: a,b,c'
+      expect(decode(toon)).toEqual(['a', 'b', 'c'])
+    })
+
+    it('decodes root tabular arrays', () => {
+      const toon = '[2]{id,name}:\n  1,Ada\n  2,Bob'
+      expect(decode(toon)).toEqual([
+        { id: 1, name: 'Ada' },
+        { id: 2, name: 'Bob' },
+      ])
+    })
+
+    it('decodes root list arrays', () => {
+      const toon = '[2]:\n  - id: 1\n  - id: 2'
+      expect(decode(toon)).toEqual([
+        { id: 1 },
+        { id: 2 },
+      ])
+    })
+  })
+
+  describe('alternative delimiters', () => {
+    it('decodes tab-delimited arrays', () => {
+      const toon = 'items[2\t]{sku\tqty}:\n  A1\t2\n  B2\t1'
+      expect(decode(toon)).toEqual({
+        items: [
+          { sku: 'A1', qty: 2 },
+          { sku: 'B2', qty: 1 },
+        ],
+      })
+    })
+
+    it('decodes pipe-delimited arrays', () => {
+      const toon = 'tags[3|]: reading|gaming|coding'
+      expect(decode(toon)).toEqual({
+        tags: ['reading', 'gaming', 'coding'],
+      })
+    })
+
+    it('decodes pipe-delimited tabular arrays', () => {
+      const toon = 'items[2|]{id|name}:\n  1|Ada\n  2|Bob'
+      expect(decode(toon)).toEqual({
+        items: [
+          { id: 1, name: 'Ada' },
+          { id: 2, name: 'Bob' },
+        ],
+      })
+    })
+  })
+
+  describe('roundtrip (encode → decode)', () => {
+    it('roundtrips simple objects', () => {
+      const obj = { id: 123, name: 'Ada', active: true }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips nested objects', () => {
+      const obj = {
+        user: {
+          id: 123,
+          name: 'Ada',
+        },
+        status: 'active',
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips primitive arrays', () => {
+      const obj = { tags: ['admin', 'ops', 'dev'] }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips tabular arrays', () => {
+      const obj = {
+        items: [
+          { sku: 'A1', qty: 2, price: 9.99 },
+          { sku: 'B2', qty: 1, price: 14.5 },
+        ],
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips mixed arrays', () => {
+      const obj = {
+        items: [
+          { id: 1, name: 'First' },
+          { id: 2, name: 'Second', extra: true },
+        ],
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips arrays of arrays', () => {
+      const obj = {
+        pairs: [
+          [1, 2],
+          [3, 4],
+        ],
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips complex nested structures', () => {
+      const obj = {
+        users: [
+          {
+            id: 1,
+            name: 'Alice',
+            tags: ['admin', 'dev'],
+          },
+          {
+            id: 2,
+            name: 'Bob',
+            tags: ['user'],
+          },
+        ],
+        metadata: {
+          created: '2025-01-01',
+          version: 1,
+        },
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips empty containers', () => {
+      const obj = {
+        items: [],
+        config: {},
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
+
+    it('roundtrips special characters', () => {
+      const obj = {
+        note: 'hello, world',
+        path: 'C:\\Users\\path',
+        json: '{"key": "value"}',
+      }
+      const encoded = encode(obj)
+      expect(decode(encoded)).toEqual(obj)
+    })
   })
 })

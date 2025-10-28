@@ -169,3 +169,84 @@ export function formatHeader(
 }
 
 // #endregion
+
+// #region String unescaping (decode)
+
+export function unescapeString(value: string): string {
+  return value
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
+    .replace(/\\"/g, DOUBLE_QUOTE)
+    .replace(/\\\\/g, BACKSLASH)
+}
+
+// #endregion
+
+// #region Primitive decoding
+
+export function decodePrimitive(value: string): JsonPrimitive {
+  const trimmed = value.trim()
+
+  // null
+  if (trimmed === NULL_LITERAL) {
+    return null
+  }
+
+  // boolean
+  if (trimmed === TRUE_LITERAL) {
+    return true
+  }
+  if (trimmed === FALSE_LITERAL) {
+    return false
+  }
+
+  // quoted string - check if it starts and ends with quotes and the ending quote is not escaped
+  if (trimmed.startsWith(DOUBLE_QUOTE) && trimmed.length >= 2) {
+    // Check if string is a valid quoted string
+    if (trimmed.endsWith(DOUBLE_QUOTE) && !trimmed.endsWith(`\\${DOUBLE_QUOTE}`)) {
+      const content = trimmed.slice(1, -1)
+      return unescapeString(content)
+    }
+    // Handle case where the ending quote might be escaped (e.g., "say \"hello\"")
+    // Count trailing backslashes before the final quote
+    let backslashCount = 0
+    for (let i = trimmed.length - 2; i >= 1; i--) {
+      if (trimmed[i] === '\\') {
+        backslashCount++
+      }
+      else {
+        break
+      }
+    }
+    // If even number of backslashes (or zero), the quote is not escaped
+    if (trimmed.endsWith(DOUBLE_QUOTE) && backslashCount % 2 === 0) {
+      const content = trimmed.slice(1, -1)
+      return unescapeString(content)
+    }
+  }
+
+  // number (try to parse as number)
+  const num = Number(trimmed)
+  if (!Number.isNaN(num) && /^-?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i.test(trimmed)) {
+    return num
+  }
+
+  // unquoted string
+  return trimmed
+}
+
+export function decodeKey(key: string): string {
+  const trimmed = key.trim()
+
+  // quoted key
+  if (trimmed.startsWith(DOUBLE_QUOTE) && trimmed.endsWith(DOUBLE_QUOTE)) {
+    const content = trimmed.slice(1, -1)
+    return unescapeString(content)
+  }
+
+  // unquoted key
+  return trimmed
+}
+
+// #endregion
