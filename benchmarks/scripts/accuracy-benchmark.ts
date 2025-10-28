@@ -84,8 +84,8 @@ for (const model of activeModels) {
   const rpmLimit = MODEL_RPM_LIMITS[modelId]
   const queue = new PQueue({
     concurrency: DEFAULT_CONCURRENCY,
-    intervalCap: rpmLimit,
-    interval: rpmLimit ? 60_000 : undefined,
+    intervalCap: rpmLimit ?? Infinity,
+    interval: rpmLimit ? 60_000 : 0,
   })
 
   const evalSpinner = prompts.spinner()

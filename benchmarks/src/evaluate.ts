@@ -3,6 +3,7 @@ import type { EvaluationResult, Question } from './types'
 import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
+import { xai } from '@ai-sdk/xai'
 import * as prompts from '@clack/prompts'
 import { generateText } from 'ai'
 
@@ -11,8 +12,9 @@ import { generateText } from 'ai'
  */
 export const models: LanguageModelV2[] = [
   openai('gpt-5-nano'),
-  google('gemini-2.5-flash'),
   anthropic('claude-haiku-4-5-20251001'),
+  google('gemini-2.5-flash'),
+  xai('grok-4-fast-non-reasoning'),
 ]
 
 /**
@@ -45,16 +47,13 @@ Provide only the direct answer, without any additional explanation or formatting
 `.trim()
 
   const startTime = performance.now()
-  const { text, usage } = await generateText({
-    model,
-    prompt,
-    temperature: !model.modelId.startsWith('gpt-5') ? 0 : undefined,
-  })
+  const { text, usage } = await generateText({ model, prompt })
 
+  const actual = text.trim()
   const latencyMs = performance.now() - startTime
 
   const isCorrect = await validateAnswer({
-    actual: text.trim(),
+    actual,
     expected: question.groundTruth,
     question: question.prompt,
   })
@@ -64,7 +63,7 @@ Provide only the direct answer, without any additional explanation or formatting
     format: formatName,
     model: model.modelId,
     expected: question.groundTruth,
-    actual: text.trim(),
+    actual,
     isCorrect,
     inputTokens: usage.inputTokens,
     outputTokens: usage.outputTokens,

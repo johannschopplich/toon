@@ -3,6 +3,7 @@ import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import { BENCHMARKS_DIR } from './constants'
 import { datasets } from './datasets'
+import { models } from './evaluate'
 import { createProgressBar, ensureDir, tokenize } from './utils'
 
 /**
@@ -50,9 +51,8 @@ export function generateMarkdownReport(
   const toon = formatResults.find(r => r.format === 'toon')
   const json = formatResults.find(r => r.format === 'json')
 
-  // Build model-by-model breakdown with ASCII bars
-  const modelNames = [...new Set(results.map(r => r.model))].reverse()
-  const modelCount = modelNames.length
+  const modelIds = models.map(m => m.modelId)
+  const modelNames = modelIds.filter(id => results.some(r => r.model === id))
 
   const modelBreakdown = modelNames.map((modelName, i) => {
     const modelResults = formatResults.map((fr) => {
@@ -183,16 +183,14 @@ ${tableRows}
   const analyticsSize = datasets.find(d => d.name === 'analytics')?.data.metrics?.length || 0
   const githubSize = datasets.find(d => d.name === 'github')?.data.repositories?.length || 0
 
-  // Calculate number of formats and models
+  // Calculate number of formats and evaluations
   const formatCount = formatResults.length
-  const modelsUsed = [...new Set(results.map(r => r.model))]
-  const modelsListStr = modelsUsed.map(m => `\`${m}\``).join(', ')
-  const totalEvaluations = totalQuestions * formatCount * modelsUsed.length
+  const totalEvaluations = totalQuestions * formatCount * modelNames.length
 
   return `
 ### Retrieval Accuracy
 
-Accuracy across **${modelCount} ${modelCount === 1 ? 'LLM' : 'LLMs'}** on **${totalQuestions} data retrieval questions**:
+Accuracy across **${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'}** on ${totalQuestions} data retrieval questions:
 
 \`\`\`
 ${modelBreakdown}
@@ -253,10 +251,10 @@ ${totalQuestions} questions are generated dynamically across three categories:
 
 #### Models & Configuration
 
-- **Models tested**: ${modelsListStr}
+- **Models tested**: ${modelNames.map(m => `\`${m}\``).join(', ')}
 - **Token counting**: Using \`gpt-tokenizer\` with \`o200k_base\` encoding (GPT-5 tokenizer)
-- **Temperature**: 0 (for non-reasoning models)
-- **Total evaluations**: ${totalQuestions} questions × ${formatCount} formats × ${modelsUsed.length} models = ${totalEvaluations.toLocaleString('en-US')} LLM calls
+- **Temperature**: Not set (models use their defaults)
+- **Total evaluations**: ${totalQuestions} questions × ${formatCount} formats × ${modelNames.length} models = ${totalEvaluations.toLocaleString('en-US')} LLM calls
 
 </details>
 `.trimStart()

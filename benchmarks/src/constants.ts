@@ -15,6 +15,7 @@ export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
   'claude-haiku-4-5-20251001': 50,
   'gemini-2.5-flash': 25,
   'gpt-5-nano': undefined,
+  'grok-4-fast-non-reasoning': 50,
 }
 
 /**

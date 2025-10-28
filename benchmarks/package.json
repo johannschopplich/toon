@@ -5,14 +5,14 @@
   "scripts": {
     "benchmark:token-efficiency": "tsx scripts/token-efficiency-benchmark.ts",
     "benchmark:accuracy": "tsx --env-file=.env scripts/accuracy-benchmark.ts",
-    "fetch:github-repos": "tsx scripts/fetch-github-repos.ts",
-    "test": "vitest"
+    "fetch:github-repos": "tsx scripts/fetch-github-repos.ts"
   },
   "devDependencies": {
     "@ai-sdk/anthropic": "^2.0.37",
     "@ai-sdk/google": "^2.0.23",
     "@ai-sdk/openai": "^2.0.53",
     "@ai-sdk/provider": "^2.0.0",
+    "@ai-sdk/xai": "^2.0.28",
     "@antfu/eslint-config": "^6.1.0",
     "@clack/prompts": "^0.11.0",
     "@faker-js/faker": "^10.1.0",
