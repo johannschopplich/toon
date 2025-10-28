@@ -8,18 +8,19 @@ import { generateAnalyticsData, generateOrderData } from '../src/datasets'
 import { formatters } from '../src/formatters'
 import { createProgressBar, ensureDir, tokenize } from '../src/utils'
 
+interface FormatMetrics {
+  name: string
+  tokens: number
+  savings: number
+  savingsPercent: string
+}
+
 interface BenchmarkResult {
   name: string
   emoji: string
   description: string
   data: Record<string, any>
-  jsonTokens: number
-  toonTokens: number
-  xmlTokens: number
-  jsonSavings: number
-  jsonSavingsPercent: string
-  xmlSavings: number
-  xmlSavingsPercent: string
+  formats: FormatMetrics[]
   showDetailed: boolean
 }
 
@@ -68,10 +69,7 @@ for (const example of BENCHMARK_EXAMPLES) {
   const xmlTokens = tokenize(xmlString)
 
   const jsonSavings = jsonTokens - toonTokens
-  const jsonSavingsPercent = ((jsonSavings / jsonTokens) * 100).toFixed(1)
-
   const xmlSavings = xmlTokens - toonTokens
-  const xmlSavingsPercent = ((xmlSavings / xmlTokens) * 100).toFixed(1)
 
   totalJsonTokens += jsonTokens
   totalToonTokens += toonTokens
@@ -82,13 +80,26 @@ for (const example of BENCHMARK_EXAMPLES) {
     emoji: example.emoji,
     description: example.description,
     data,
-    jsonTokens,
-    toonTokens,
-    xmlTokens,
-    jsonSavings,
-    jsonSavingsPercent,
-    xmlSavings,
-    xmlSavingsPercent,
+    formats: [
+      {
+        name: 'toon',
+        tokens: toonTokens,
+        savings: 0,
+        savingsPercent: '0.0',
+      },
+      {
+        name: 'json',
+        tokens: jsonTokens,
+        savings: jsonSavings,
+        savingsPercent: ((jsonSavings / jsonTokens) * 100).toFixed(1),
+      },
+      {
+        name: 'xml',
+        tokens: xmlTokens,
+        savings: xmlSavings,
+        savingsPercent: ((xmlSavings / xmlTokens) * 100).toFixed(1),
+      },
+    ],
     showDetailed: example.showDetailed,
   })
 }
@@ -102,15 +113,19 @@ const totalXmlSavingsPercent = ((totalXmlSavings / totalXmlTokens) * 100).toFixe
 // Generate ASCII bar chart visualization (stacked compact format)
 const datasetRows = results
   .map((result) => {
-    const percentage = Number.parseFloat(result.jsonSavingsPercent)
+    const toon = result.formats.find(f => f.name === 'toon')!
+    const json = result.formats.find(f => f.name === 'json')!
+    const xml = result.formats.find(f => f.name === 'xml')!
+
+    const percentage = Number.parseFloat(json.savingsPercent)
     const bar = createProgressBar(100 - percentage, 100) // Invert to show TOON tokens
-    const toonStr = result.toonTokens.toLocaleString('en-US')
-    const jsonStr = result.jsonTokens.toLocaleString('en-US')
-    const xmlStr = result.xmlTokens.toLocaleString('en-US')
+    const toonStr = toon.tokens.toLocaleString('en-US')
+    const jsonStr = json.tokens.toLocaleString('en-US')
+    const xmlStr = xml.tokens.toLocaleString('en-US')
 
     const line1 = `${result.emoji} ${result.name.padEnd(25)} ${bar}  ${toonStr.padStart(6)} tokens`
-    const line2 = `                             vs JSON: ${jsonStr.padStart(6)}  💰 ${result.jsonSavingsPercent}% saved`
-    const line3 = `                             vs XML:  ${xmlStr.padStart(6)}  💰 ${result.xmlSavingsPercent}% saved`
+    const line2 = `                             vs JSON: ${jsonStr.padStart(6)}  💰 ${json.savingsPercent}% saved`
+    const line3 = `                             vs XML:  ${xmlStr.padStart(6)}  💰 ${xml.savingsPercent}% saved`
 
     return `${line1}\n${line2}\n${line3}`
   })
@@ -152,19 +167,22 @@ const detailedExamples = results
 
     const separator = i < filtered.length - 1 ? '\n\n---' : ''
 
+    const json = result.formats.find(f => f.name === 'json')!
+    const toon = result.formats.find(f => f.name === 'toon')!
+
     return `#### ${result.emoji} ${result.name}
 
 **Configuration:** ${result.description}
 
-**Savings:** ${result.jsonSavings.toLocaleString('en-US')} tokens (${result.jsonSavingsPercent}% reduction vs JSON)
+**Savings:** ${json.savings.toLocaleString('en-US')} tokens (${json.savingsPercent}% reduction vs JSON)
 
-**JSON** (${result.jsonTokens.toLocaleString('en-US')} tokens):
+**JSON** (${json.tokens.toLocaleString('en-US')} tokens):
 
 \`\`\`json
 ${JSON.stringify(displayData, undefined, 2)}
 \`\`\`
 
-**TOON** (${result.toonTokens.toLocaleString('en-US')} tokens):
+**TOON** (${toon.tokens.toLocaleString('en-US')} tokens):
 
 \`\`\`
 ${encode(displayData)}
