@@ -580,26 +580,18 @@ encode({ config: {} }) // config:
 
 ### Quoting Rules
 
-TOON quotes strings **only when necessary** to maximize token efficiency. Inner spaces are allowed; leading or trailing spaces force quotes. Unicode and emoji are safe unquoted.
+TOON quotes strings **only when necessary** to maximize token efficiency:
+
+- Inner spaces are allowed; leading or trailing spaces force quotes.
+- Unicode and emoji are safe unquoted.
+- Quotes and control characters are escaped with backslash.
 
 > [!NOTE]
 > When using alternative delimiters (tab or pipe), the quoting rules adapt automatically. Strings containing the active delimiter will be quoted, while other delimiters remain safe.
 
-#### Keys
+#### Object Keys and Field Names
 
-Keys are quoted when any of the following is true:
-
-| Condition | Examples |
-|---|---|
-| Contains spaces, commas, colons, quotes, control chars | `"full name"`, `"a,b"`, `"order:id"`, `"tab\there"` |
-| Contains brackets or braces | `"[index]"`, `"{key}"` |
-| Leading hyphen | `"-lead"` |
-| Numeric-only key | `"123"` |
-| Empty key | `""` |
-
-**Notes:**
-
-- Quotes and control characters in keys are escaped (e.g., `"he said \"hi\""`, `"line\nbreak"`).
+Keys are unquoted if they match the identifier pattern: start with a letter or underscore, followed by letters, digits, underscores, or dots (e.g., `id`, `userName`, `user_name`, `user.name`, `_private`). All other keys must be quoted (e.g., `"user name"`, `"order-id"`, `"123"`, `"order:id"`, `""`).
 
 #### String Values
 
@@ -608,26 +600,16 @@ String values are quoted when any of the following is true:
 | Condition | Examples |
 |---|---|
 | Empty string | `""` |
-| Contains active delimiter, colon, quote, backslash, or control chars | `"a,b"` (comma), `"a\tb"` (tab), `"a\|b"` (pipe), `"a:b"`, `"say \"hi\""`, `"C:\\Users"`, `"line1\\nline2"` |
 | Leading or trailing spaces | `" padded "`, `"  "` |
+| Contains active delimiter, colon, quote, backslash, or control chars | `"a,b"` (comma), `"a\tb"` (tab), `"a\|b"` (pipe), `"a:b"`, `"say \"hi\""`, `"C:\\Users"`, `"line1\\nline2"` |
 | Looks like boolean/number/null | `"true"`, `"false"`, `"null"`, `"42"`, `"-3.14"`, `"1e-6"`, `"05"` |
 | Starts with `"- "` (list-like) | `"- item"` |
 | Looks like structural token | `"[5]"`, `"{key}"`, `"[3]: x,y"` |
 
+**Examples of unquoted strings:** Unicode and emoji are safe (`hello 👋 world`), as are strings with inner spaces (`hello world`).
+
 > [!IMPORTANT]
 > **Delimiter-aware quoting:** Unquoted strings never contain `:` or the active delimiter. This makes TOON reliably parseable with simple heuristics: split key/value on first `: `, and split array values on the delimiter declared in the array header. When using tab or pipe delimiters, commas don't need quoting – only the active delimiter triggers quoting for both array values and object values.
-
-#### Examples
-
-```
-note: "hello, world"
-items[3]: foo,"true","- item"
-hello 👋 world         // unquoted
-" padded "             // quoted
-value: null            // null value
-name: ""               // empty string (quoted)
-text: "line1\nline2"   // multi-line string (escaped)
-```
 
 ### Tabular Format Requirements
 
@@ -651,21 +633,13 @@ Some non-JSON types are automatically normalized for LLM-safe output:
 
 | Input | Output |
 |---|---|
-| Number (finite) | Decimal form, no scientific notation; `-0` → `0` |
+| Number (finite) | Decimal form, no scientific notation (e.g., `-0` → `0`, `1e6` → `1000000`) |
 | Number (`NaN`, `±Infinity`) | `null` |
 | `BigInt` | Decimal digits (no quotes) |
 | `Date` | ISO string in quotes (e.g., `"2025-01-01T00:00:00.000Z"`) |
 | `undefined` | `null` |
 | `function` | `null` |
 | `symbol` | `null` |
-
-Number normalization examples:
-
-```
--0    → 0
-1e6   → 1000000
-1e-6  → 0.000001
-```
 
 ## API
 
@@ -695,7 +669,7 @@ const items = [
   { sku: 'B2', qty: 1, price: 14.5 }
 ]
 
-console.log(encode({ items }))
+encode({ items })
 ```
 
 **Output:**
@@ -715,8 +689,6 @@ The `delimiter` option allows you to choose between comma (default), tab, or pip
 Using tab delimiters instead of commas can reduce token count further, especially for tabular data:
 
 ```ts
-import { encode } from '@byjohann/toon'
-
 const data = {
   items: [
     { sku: 'A1', name: 'Widget', qty: 2, price: 9.99 },
@@ -724,7 +696,7 @@ const data = {
   ]
 }
 
-console.log(encode(data, { delimiter: '\t' }))
+encode(data, { delimiter: '\t' })
 ```
 
 **Output:**
@@ -751,7 +723,7 @@ items[2	]{sku	name	qty	price}:
 Pipe delimiters offer a middle ground between commas and tabs:
 
 ```ts
-console.log(encode(data, { delimiter: '|' }))
+encode(data, { delimiter: '|' })
 ```
 
 **Output:**
@@ -767,8 +739,6 @@ items[2|]{sku|name|qty|price}:
 The `lengthMarker` option adds an optional hash (`#`) prefix to array lengths to emphasize that the bracketed value represents a count, not an index:
 
 ```ts
-import { encode } from '@byjohann/toon'
-
 const data = {
   tags: ['reading', 'gaming', 'coding'],
   items: [
@@ -777,14 +747,14 @@ const data = {
   ],
 }
 
-console.log(encode(data, { lengthMarker: '#' }))
+encode(data, { lengthMarker: '#' })
 // tags[#3]: reading,gaming,coding
 // items[#2]{sku,qty,price}:
 //   A1,2,9.99
 //   B2,1,14.5
 
 // Works with custom delimiters
-console.log(encode(data, { lengthMarker: '#', delimiter: '|' }))
+encode(data, { lengthMarker: '#', delimiter: '|' })
 // tags[#3|]: reading|gaming|coding
 // items[#2|]{sku|qty|price}:
 //   A1|2|9.99
