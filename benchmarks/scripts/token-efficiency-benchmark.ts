@@ -54,6 +54,7 @@ prompts.intro('Token Efficiency Benchmark')
 let totalJsonTokens = 0
 let totalToonTokens = 0
 let totalXmlTokens = 0
+let totalYamlTokens = 0
 
 const results: BenchmarkResult[] = []
 
@@ -63,17 +64,21 @@ for (const example of BENCHMARK_EXAMPLES) {
   const jsonString = JSON.stringify(data, undefined, 2)
   const toonString = encode(data)
   const xmlString = formatters.xml!(data)
+  const yamlString = formatters.yaml!(data)
 
   const jsonTokens = tokenize(jsonString)
   const toonTokens = tokenize(toonString)
   const xmlTokens = tokenize(xmlString)
+  const yamlTokens = tokenize(yamlString)
 
   const jsonSavings = jsonTokens - toonTokens
   const xmlSavings = xmlTokens - toonTokens
+  const yamlSavings = yamlTokens - toonTokens
 
   totalJsonTokens += jsonTokens
   totalToonTokens += toonTokens
   totalXmlTokens += xmlTokens
+  totalYamlTokens += yamlTokens
 
   results.push({
     name: example.name,
@@ -99,6 +104,12 @@ for (const example of BENCHMARK_EXAMPLES) {
         savings: xmlSavings,
         savingsPercent: ((xmlSavings / xmlTokens) * 100).toFixed(1),
       },
+      {
+        name: 'yaml',
+        tokens: yamlTokens,
+        savings: yamlSavings,
+        savingsPercent: ((yamlSavings / yamlTokens) * 100).toFixed(1),
+      },
     ],
     showDetailed: example.showDetailed,
   })
@@ -110,40 +121,47 @@ const totalJsonSavingsPercent = ((totalJsonSavings / totalJsonTokens) * 100).toF
 const totalXmlSavings = totalXmlTokens - totalToonTokens
 const totalXmlSavingsPercent = ((totalXmlSavings / totalXmlTokens) * 100).toFixed(1)
 
+const totalYamlSavings = totalYamlTokens - totalToonTokens
+const totalYamlSavingsPercent = ((totalYamlSavings / totalYamlTokens) * 100).toFixed(1)
+
 // Generate ASCII bar chart visualization (stacked compact format)
 const datasetRows = results
   .map((result) => {
     const toon = result.formats.find(f => f.name === 'toon')!
     const json = result.formats.find(f => f.name === 'json')!
     const xml = result.formats.find(f => f.name === 'xml')!
+    const yaml = result.formats.find(f => f.name === 'yaml')!
 
     const percentage = Number.parseFloat(json.savingsPercent)
     const bar = createProgressBar(100 - percentage, 100) // Invert to show TOON tokens
     const toonStr = toon.tokens.toLocaleString('en-US')
     const jsonStr = json.tokens.toLocaleString('en-US')
     const xmlStr = xml.tokens.toLocaleString('en-US')
+    const yamlStr = yaml.tokens.toLocaleString('en-US')
 
     const line1 = `${result.emoji} ${result.name.padEnd(25)} ${bar}  ${toonStr.padStart(6)} tokens`
-    const line2 = `                             vs JSON: ${jsonStr.padStart(6)}  💰 ${json.savingsPercent}% saved`
-    const line3 = `                             vs XML:  ${xmlStr.padStart(6)}  💰 ${xml.savingsPercent}% saved`
+    const line2 = `                             vs JSON: ${jsonStr.padStart(6)}  (-${json.savingsPercent}%)`
+    const line3 = `                             vs YAML: ${yamlStr.padStart(6)}  (-${yaml.savingsPercent}%)`
+    const line4 = `                             vs XML:  ${xmlStr.padStart(6)}  (-${xml.savingsPercent}%)`
 
-    return `${line1}\n${line2}\n${line3}`
+    return `${line1}\n${line2}\n${line3}\n${line4}`
   })
   .join('\n\n')
 
 // Add separator and totals row
 const separator = '─────────────────────────────────────────────────────────────────────'
 
-// Calculate bar for totals (TOON vs average of JSON+XML)
-const averageComparisonTokens = (totalJsonTokens + totalXmlTokens) / 2
+// Calculate bar for totals (TOON vs average of JSON+YAML+XML)
+const averageComparisonTokens = (totalJsonTokens + totalYamlTokens + totalXmlTokens) / 3
 const totalPercentage = (totalToonTokens / averageComparisonTokens) * 100
 const totalBar = createProgressBar(totalPercentage, 100)
 
 const totalLine1 = `Total                        ${totalBar}  ${totalToonTokens.toLocaleString('en-US').padStart(6)} tokens`
-const totalLine2 = `                             vs JSON: ${totalJsonTokens.toLocaleString('en-US').padStart(6)}  💰 ${totalJsonSavingsPercent}% saved`
-const totalLine3 = `                             vs XML:  ${totalXmlTokens.toLocaleString('en-US').padStart(6)}  💰 ${totalXmlSavingsPercent}% saved`
+const totalLine2 = `                             vs JSON: ${totalJsonTokens.toLocaleString('en-US').padStart(6)}  (-${totalJsonSavingsPercent}%)`
+const totalLine3 = `                             vs YAML: ${totalYamlTokens.toLocaleString('en-US').padStart(6)}  (-${totalYamlSavingsPercent}%)`
+const totalLine4 = `                             vs XML:  ${totalXmlTokens.toLocaleString('en-US').padStart(6)}  (-${totalXmlSavingsPercent}%)`
 
-const barChartSection = `${datasetRows}\n\n${separator}\n${totalLine1}\n${totalLine2}\n${totalLine3}`
+const barChartSection = `${datasetRows}\n\n${separator}\n${totalLine1}\n${totalLine2}\n${totalLine3}\n${totalLine4}`
 
 // Generate detailed examples (only for selected examples)
 // Note: Large datasets are truncated for display readability in the report.
