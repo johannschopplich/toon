@@ -30,18 +30,18 @@ export function parseArrayHeaderLine(
 ): { header: ArrayHeaderInfo, inlineValues?: string } | undefined {
   // Don't match if the line starts with a quote (it's a quoted key, not an array)
   if (content.trimStart().startsWith(DOUBLE_QUOTE)) {
-    return undefined
+    return
   }
 
   // Find the bracket segment first
   const bracketStart = content.indexOf(OPEN_BRACKET)
   if (bracketStart === -1) {
-    return undefined
+    return
   }
 
   const bracketEnd = content.indexOf(CLOSE_BRACKET, bracketStart)
   if (bracketEnd === -1) {
-    return undefined
+    return
   }
 
   // Find the colon that comes after all brackets and braces
@@ -60,7 +60,7 @@ export function parseArrayHeaderLine(
   // Now find colon after brackets and braces
   colonIndex = content.indexOf(COLON, Math.max(bracketEnd, braceEnd))
   if (colonIndex === -1) {
-    return undefined
+    return
   }
 
   const key = bracketStart > 0 ? content.slice(0, bracketStart) : undefined
@@ -68,13 +68,13 @@ export function parseArrayHeaderLine(
 
   const bracketContent = content.slice(bracketStart + 1, bracketEnd)
 
-  // Try to parse bracket segment; return undefined if it fails
-  let parsedBracket
+  // Try to parse bracket segment
+  let parsedBracket: ReturnType<typeof parseBracketSegment>
   try {
     parsedBracket = parseBracketSegment(bracketContent, defaultDelimiter)
   }
   catch {
-    return undefined
+    return
   }
 
   const { length, delimiter, hasLengthMarker } = parsedBracket
