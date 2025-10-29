@@ -159,7 +159,7 @@ Four datasets designed to test different structural patterns:
 
 #### Evaluation Process
 
-1. **Format conversion:** Each dataset is converted to all 5 formats (TOON, CSV, XML, JSON, YAML).
+1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, CSV, XML, JSON, YAML).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
 3. **Validate with LLM-as-judge**: `gpt-5-nano` validates if the answer is semantically correct (e.g., `50000` = `$50,000`, `Engineering` = `engineering`, `2025-01-01` = `January 1, 2025`).
 

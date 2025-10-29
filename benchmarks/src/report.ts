@@ -248,7 +248,7 @@ ${totalQuestions} questions are generated dynamically across three categories:
 
 #### Evaluation Process
 
-1. **Format conversion:** Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => f.format.toUpperCase()).join(', ')}).
+1. **Format conversion**: Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => f.format.toUpperCase()).join(', ')}).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
 3. **Validate with LLM-as-judge**: \`gpt-5-nano\` validates if the answer is semantically correct (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`).
 

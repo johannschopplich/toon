@@ -50,21 +50,25 @@ users[2]{id,name,role}:
 
 ```
 ⭐ GitHub Repositories       ██████████████░░░░░░░░░░░   8,745 tokens
-                             vs JSON: 15,145  💰 42.3% saved
-                             vs XML:  17,095  💰 48.8% saved
+                             vs JSON: 15,145  (-42.3%)
+                             vs YAML: 13,129  (-33.4%)
+                             vs XML:  17,095  (-48.8%)
 
 📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░   4,507 tokens
-                             vs JSON: 10,977  💰 58.9% saved
-                             vs XML:  13,128  💰 65.7% saved
+                             vs JSON: 10,977  (-58.9%)
+                             vs YAML:  8,810  (-48.8%)
+                             vs XML:  13,128  (-65.7%)
 
 🛒 E-Commerce Order          ████████████████░░░░░░░░░     166 tokens
-                             vs JSON:    257  💰 35.4% saved
-                             vs XML:     271  💰 38.7% saved
+                             vs JSON:    257  (-35.4%)
+                             vs YAML:    197  (-15.7%)
+                             vs XML:     271  (-38.7%)
 
 ─────────────────────────────────────────────────────────────────────
-Total                        ████████████░░░░░░░░░░░░░  13,418 tokens
-                             vs JSON: 26,379  💰 49.1% saved
-                             vs XML:  30,494  💰 56.0% saved
+Total                        █████████████░░░░░░░░░░░░  13,418 tokens
+                             vs JSON: 26,379  (-49.1%)
+                             vs YAML: 22,136  (-39.4%)
+                             vs XML:  30,494  (-56.0%)
 ```
 
 <details>
@@ -371,7 +375,7 @@ Four datasets designed to test different structural patterns:
 
 #### Evaluation Process
 
-1. **Format conversion:** Each dataset is converted to all 5 formats (TOON, CSV, XML, JSON, YAML).
+1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, CSV, XML, JSON, YAML).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
 3. **Validate with LLM-as-judge**: `gpt-5-nano` validates if the answer is semantically correct (e.g., `50000` = `$50,000`, `Engineering` = `engineering`, `2025-01-01` = `January 1, 2025`).
 
@@ -764,6 +768,48 @@ encode(data, { lengthMarker: '#', delimiter: '|' })
 //   B2|1|14.5
 ```
 
+### `decode(input: string, options?: DecodeOptions): JsonValue`
+
+Converts a TOON-formatted string back to JavaScript values.
+
+**Parameters:**
+
+- `input` – A TOON-formatted string to parse
+- `options` – Optional decoding options:
+  - `indent?: number` – Expected number of spaces per indentation level (default: `2`)
+  - `strict?: boolean` – Enable strict validation (default: `true`)
+
+**Returns:**
+
+A JavaScript value (object, array, or primitive) representing the parsed TOON data.
+
+**Example:**
+
+```ts
+import { decode } from '@byjohann/toon'
+
+const toon = `items[2]{sku,qty,price}:
+  A1,2,9.99
+  B2,1,14.5`
+
+const data = decode(toon)
+// {
+//   items: [
+//     { sku: 'A1', qty: 2, price: 9.99 },
+//     { sku: 'B2', qty: 1, price: 14.5 }
+//   ]
+// }
+```
+
+**Strict Mode:**
+
+By default, the decoder validates input strictly:
+
+- **Invalid escape sequences** – Throws on `"\x"`, unterminated strings
+- **Syntax errors** – Throws on missing colons, malformed headers
+- **Array length mismatches** – Throws when declared length doesn't match actual count
+- **Delimiter mismatches** – Throws when row delimiters don't match header
+
 ## Notes and Limitations
 
 - Format familiarity matters as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only – when this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be cheaper at scale.
@@ -785,7 +831,7 @@ Wrap your encoded data in a fenced code block (label it \`\`\`toon for clarity).
 For output, be more explicit. When you want the model to **generate** TOON:
 
 - **Show the expected header** (`users[N]{id,name,role}:`). The model fills rows instead of repeating keys, reducing generation errors.
-- **State the rules**: 2-space indent, no trailing spaces, `[N]` matches row count.
+- **State the rules:** 2-space indent, no trailing spaces, `[N]` matches row count.
 
 Here's a prompt that works for both reading and generating:
 
@@ -850,16 +896,16 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ## Ports in Other Languages
 
-- **Elixir**: [toon_ex](https://github.com/kentaro/toon_ex)
-- **PHP**: [toon-php](https://github.com/HelgeSverre/toon-php)
-- **Python**: [pytoon](https://github.com/bpradana/pytoon)
+- **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
+- **PHP:** [toon-php](https://github.com/HelgeSverre/toon-php)
+- **Python:** [pytoon](https://github.com/bpradana/pytoon)
   - [python-toon](https://github.com/xaviviro/python-toon)
   - [toon-python](https://gitlab.com/KanTakahiro/toon-python)
-- **Ruby**: [toon-ruby](https://github.com/andrepcg/toon-ruby)
-- **Java**: [JToon](https://github.com/felipestanzani/JToon)
-- **.NET**: [toon.NET](https://github.com/ghost1face/toon.NET)
-- **Swift**: [TOONEncoder](https://github.com/mattt/TOONEncoder)
-- **Go** [gotoon](https://github.com/alpkeskin/gotoon)
+- **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
+- **Java:** [JToon](https://github.com/felipestanzani/JToon)
+- **.NET:** [toon.NET](https://github.com/ghost1face/toon.NET)
+- **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
+- **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
 
 ## License
 

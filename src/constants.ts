@@ -11,6 +11,7 @@ export const COMMA = ','
 export const COLON = ':'
 export const SPACE = ' '
 export const PIPE = '|'
+export const HASH = '#'
 
 // #endregion
 
