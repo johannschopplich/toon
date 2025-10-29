@@ -630,22 +630,6 @@ String values are quoted when any of the following is true:
 > [!IMPORTANT]
 > **Delimiter-aware quoting:** Unquoted strings never contain `:` or the active delimiter. This makes TOON reliably parseable with simple heuristics: split key/value on first `: `, and split array values on the delimiter declared in the array header. When using tab or pipe delimiters, commas don't need quoting – only the active delimiter triggers quoting for both array values and object values.
 
-### Tabular Format Requirements
-
-For arrays of objects to use the efficient tabular format, all of the following must be true:
-
-| Requirement | Detail |
-|---|---|
-| All elements are objects | No primitives in the array |
-| Identical key sets | No missing or extra keys across rows |
-| Primitive values only | No nested arrays or objects |
-| Header delimiter | Comma is implicit in headers (`[N]{f1,f2}`); tab and pipe are explicit (`[N	]{f1	f2}`, `[N|]{f1|f2}`) |
-| Header key order | Taken from the first object |
-| Header key quoting | Same rules as object keys; keys containing the active delimiter must be quoted |
-| Row value quoting | Same rules as string values; values containing the active delimiter must be quoted |
-
-If any condition fails, TOON falls back to list format.
-
 ## Type Conversions
 
 Some non-JSON types are automatically normalized for LLM-safe output:
