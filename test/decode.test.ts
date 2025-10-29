@@ -367,6 +367,14 @@ describe('delimiter options', () => {
     })
 
     it.each([
+      { parent: '[1\t]', nested: '[3]', values: 'a,b,c' },
+      { parent: '[1|]', nested: '[3]', values: 'a,b,c' },
+    ])('nested arrays inside list items default to comma delimiter', ({ parent, nested, values }) => {
+      const toon = `items${parent}:\n  - tags${nested}: ${values}`
+      expect(decode(toon)).toEqual({ items: [{ tags: ['a', 'b', 'c'] }] })
+    })
+
+    it.each([
       { header: '[3\t]', joined: 'x\ty\tz' },
       { header: '[3|]', joined: 'x|y|z' },
     ])('parses root arrays of primitives with custom delimiters', ({ header, joined }) => {

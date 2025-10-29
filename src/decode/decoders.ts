@@ -267,7 +267,7 @@ function decodeListItem(
 
   // Check for array header after hyphen
   if (isArrayHeaderAfterHyphen(afterHyphen)) {
-    const arrayHeader = parseArrayHeaderLine(afterHyphen, activeDelimiter)
+    const arrayHeader = parseArrayHeaderLine(afterHyphen, DEFAULT_DELIMITER)
     if (arrayHeader) {
       return decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
     }
