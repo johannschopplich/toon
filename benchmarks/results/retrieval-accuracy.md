@@ -32,7 +32,7 @@ grok-4-fast-non-reasoning
   csv          █████████░░░░░░░░░░░  45.5% (70/154)
 ```
 
-**Advantage:** TOON achieves **69.2% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens**.
+**Key tradeoff:** TOON achieves **69.2% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens** on these datasets.
 
 <details>
 <summary><strong>Performance by dataset and model</strong></summary>
@@ -132,7 +132,7 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 #### Datasets Tested
 
-Four datasets designed to test different structural patterns:
+Four datasets designed to test different structural patterns (all contain arrays of uniform objects, TOON's optimal format):
 
 1. **Tabular** (100 employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
 2. **Nested** (50 e-commerce orders): Complex structures with nested customer objects and item arrays.

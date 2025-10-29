@@ -83,7 +83,7 @@ export function generateMarkdownReport(
 
   // Build summary comparison
   const summaryComparison = toon && json
-    ? `**Advantage:** TOON achieves **${(toon.accuracy * 100).toFixed(1)}% accuracy** (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using **${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens**.`
+    ? `**Key tradeoff:** TOON achieves **${(toon.accuracy * 100).toFixed(1)}% accuracy** (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using **${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens** on these datasets.`
     : ''
 
   // Build performance by dataset
@@ -221,7 +221,7 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 #### Datasets Tested
 
-Four datasets designed to test different structural patterns:
+Four datasets designed to test different structural patterns (all contain arrays of uniform objects, TOON's optimal format):
 
 1. **Tabular** (${tabularSize} employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
 2. **Nested** (${nestedSize} e-commerce orders): Complex structures with nested customer objects and item arrays.

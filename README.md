@@ -4,7 +4,7 @@
 
 **Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for LLM input, not output.
 
-TOON's sweet spot is **uniform complex objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts.
+TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
 
 ## Why TOON?
 
@@ -43,6 +43,8 @@ users[2]{id,name,role}:
 - 🧺 **Tabular arrays:** declare keys once, then stream rows without repetition
 
 ## Benchmarks
+
+The benchmarks test datasets that favor TOON's strengths (uniform tabular data). Real-world performance depends heavily on your data structure.
 
 <!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
 
@@ -248,7 +250,7 @@ grok-4-fast-non-reasoning
   csv          █████████░░░░░░░░░░░  45.5% (70/154)
 ```
 
-**Advantage:** TOON achieves **69.2% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens**.
+**Key tradeoff:** TOON achieves **69.2% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens** on these datasets.
 
 <details>
 <summary><strong>Performance by dataset and model</strong></summary>
@@ -348,7 +350,7 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 #### Datasets Tested
 
-Four datasets designed to test different structural patterns:
+Four datasets designed to test different structural patterns (all contain arrays of uniform objects, TOON's optimal format):
 
 1. **Tabular** (100 employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
 2. **Nested** (50 e-commerce orders): Complex structures with nested customer objects and item arrays.
@@ -812,9 +814,9 @@ By default, the decoder validates input strictly:
 
 ## Notes and Limitations
 
-- Format familiarity matters as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only – when this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be cheaper at scale.
-  - **TOON** is best for uniform complex (but not deeply nested) objects, especially large arrays of such objects.
-  - **JSON** is best for non-uniform data and deeply nested structures.
+- Format familiarity and structure matter as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only. When this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be more efficient at scale.
+  - **TOON excels at:** Uniform arrays of objects (same fields, primitive values), especially large datasets with consistent structure.
+  - **JSON is better for:** Non-uniform data, deeply nested structures, and objects with varying field sets.
 - **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
 - **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
 
