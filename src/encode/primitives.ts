@@ -1,4 +1,4 @@
-import type { JsonPrimitive } from './types'
+import type { JsonPrimitive } from '../types'
 import {
   BACKSLASH,
   COMMA,
@@ -8,7 +8,7 @@ import {
   LIST_ITEM_MARKER,
   NULL_LITERAL,
   TRUE_LITERAL,
-} from './constants'
+} from '../constants'
 
 // #region Primitive encoding
 

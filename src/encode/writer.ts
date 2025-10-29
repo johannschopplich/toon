@@ -1,5 +1,5 @@
-import type { Depth } from './types'
-import { LIST_ITEM_PREFIX } from './constants'
+import type { Depth } from '../types'
+import { LIST_ITEM_PREFIX } from '../constants'
 
 export class LineWriter {
   private readonly lines: string[] = []

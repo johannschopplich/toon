@@ -5,8 +5,8 @@ import type {
   JsonPrimitive,
   JsonValue,
   ResolvedEncodeOptions,
-} from './types'
-import { LIST_ITEM_MARKER } from './constants'
+} from '../types'
+import { LIST_ITEM_MARKER } from '../constants'
 import {
   isArrayOfArrays,
   isArrayOfObjects,

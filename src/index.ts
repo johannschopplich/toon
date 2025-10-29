@@ -8,8 +8,8 @@ import type {
 import { DEFAULT_DELIMITER } from './constants'
 import { decodeValueFromLines } from './decode/decoders'
 import { LineCursor, toParsedLines } from './decode/scanner'
-import { encodeValue } from './encoders'
-import { normalizeValue } from './normalize'
+import { encodeValue } from './encode/encoders'
+import { normalizeValue } from './encode/normalize'
 
 export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
 export type {

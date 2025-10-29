@@ -3,7 +3,7 @@ import type {
   JsonObject,
   JsonPrimitive,
   JsonValue,
-} from './types'
+} from '../types'
 
 // #region Normalization (unknown → JsonValue)
 
