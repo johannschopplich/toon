@@ -27,13 +27,13 @@ export function encode(input: unknown, options?: EncodeOptions): string {
 
 export function decode(input: string, options?: DecodeOptions): JsonValue {
   const resolvedOptions = resolveDecodeOptions(options)
-  const lines = toParsedLines(input, resolvedOptions.indent, resolvedOptions.strict)
+  const scanResult = toParsedLines(input, resolvedOptions.indent, resolvedOptions.strict)
 
-  if (lines.length === 0) {
+  if (scanResult.lines.length === 0) {
     throw new TypeError('Cannot decode empty input: input must be a non-empty string')
   }
 
-  const cursor = new LineCursor(lines)
+  const cursor = new LineCursor(scanResult.lines, scanResult.blankLines)
   return decodeValueFromLines(cursor, resolvedOptions)
 }
 

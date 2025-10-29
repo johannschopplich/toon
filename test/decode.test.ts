@@ -602,3 +602,83 @@ describe('strict mode: indentation validation', () => {
     })
   })
 })
+
+describe('blank lines in arrays', () => {
+  describe('strict mode: errors on blank lines inside arrays', () => {
+    it('throws on blank line inside list array', () => {
+      const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
+      expect(() => decode(teon)).toThrow(/blank line/i)
+      expect(() => decode(teon)).toThrow(/list array/i)
+    })
+
+    it('throws on blank line inside tabular array', () => {
+      const teon = 'items[2]{id}:\n  1\n\n  2'
+      expect(() => decode(teon)).toThrow(/blank line/i)
+      expect(() => decode(teon)).toThrow(/tabular array/i)
+    })
+
+    it('throws on multiple blank lines inside array', () => {
+      const teon = 'items[2]:\n  - a\n\n\n  - b'
+      expect(() => decode(teon)).toThrow(/blank line/i)
+    })
+
+    it('throws on blank line with spaces inside array', () => {
+      const teon = 'items[2]:\n  - a\n  \n  - b'
+      expect(() => decode(teon)).toThrow(/blank line/i)
+    })
+
+    it('throws on blank line in nested list array', () => {
+      const teon = 'outer[2]:\n  - inner[2]:\n    - a\n\n    - b\n  - x'
+      expect(() => decode(teon)).toThrow(/blank line/i)
+    })
+  })
+
+  describe('accepts blank lines outside arrays', () => {
+    it('accepts blank line between root-level fields', () => {
+      const teon = 'a: 1\n\nb: 2'
+      expect(decode(teon)).toEqual({ a: 1, b: 2 })
+    })
+
+    it('accepts trailing newline at end of file', () => {
+      const teon = 'a: 1\n'
+      expect(decode(teon)).toEqual({ a: 1 })
+    })
+
+    it('accepts multiple trailing newlines', () => {
+      const teon = 'a: 1\n\n\n'
+      expect(decode(teon)).toEqual({ a: 1 })
+    })
+
+    it('accepts blank line after array ends', () => {
+      const teon = 'items[1]:\n  - a\n\nb: 2'
+      expect(decode(teon)).toEqual({ items: ['a'], b: 2 })
+    })
+
+    it('accepts blank line between nested object fields', () => {
+      const teon = 'a:\n  b: 1\n\n  c: 2'
+      expect(decode(teon)).toEqual({ a: { b: 1, c: 2 } })
+    })
+  })
+
+  describe('non-strict mode: ignores blank lines', () => {
+    it('ignores blank lines inside list array', () => {
+      const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
+      expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b', 'c'] })
+    })
+
+    it('ignores blank lines inside tabular array', () => {
+      const teon = 'items[2]{id,name}:\n  1,Alice\n\n  2,Bob'
+      expect(decode(teon, { strict: false })).toEqual({
+        items: [
+          { id: 1, name: 'Alice' },
+          { id: 2, name: 'Bob' },
+        ],
+      })
+    })
+
+    it('ignores multiple blank lines in arrays', () => {
+      const teon = 'items[2]:\n  - a\n\n\n  - b'
+      expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b'] })
+    })
+  })
+})

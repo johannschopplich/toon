@@ -1,4 +1,4 @@
-import type { ArrayHeaderInfo, Delimiter, Depth, ResolvedDecodeOptions } from '../types'
+import type { ArrayHeaderInfo, BlankLineInfo, Delimiter, Depth, ResolvedDecodeOptions } from '../types'
 import type { LineCursor } from './scanner'
 import { COLON, LIST_ITEM_PREFIX } from '../constants'
 
@@ -68,6 +68,44 @@ export function validateNoExtraTabularRows(
     && isDataRow(nextLine.content, header.delimiter)
   ) {
     throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
+  }
+}
+
+/**
+ * Validates that there are no blank lines within a specific line range and depth.
+ *
+ * @remarks
+ * In strict mode, blank lines inside arrays/tabular rows are not allowed.
+ *
+ * @param startLine The starting line number (inclusive)
+ * @param endLine The ending line number (inclusive)
+ * @param blankLines Array of blank line information
+ * @param strict Whether strict mode is enabled
+ * @param context Description of the context (e.g., "list array", "tabular array")
+ * @throws SyntaxError if blank lines are found in strict mode
+ */
+export function validateNoBlankLinesInRange(
+  startLine: number,
+  endLine: number,
+  blankLines: BlankLineInfo[],
+  strict: boolean,
+  context: string,
+): void {
+  if (!strict)
+    return
+
+  // Find blank lines within the range
+  // Note: We don't filter by depth because ANY blank line between array items is an error,
+  // regardless of its indentation level
+  const blanksInRange = blankLines.filter(
+    blank => blank.lineNumber > startLine
+      && blank.lineNumber < endLine,
+  )
+
+  if (blanksInRange.length > 0) {
+    throw new SyntaxError(
+      `Line ${blanksInRange[0]!.lineNumber}: Blank lines inside ${context} are not allowed in strict mode`,
+    )
   }
 }
 

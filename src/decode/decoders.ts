@@ -3,7 +3,7 @@ import type { LineCursor } from './scanner'
 import { COLON, DEFAULT_DELIMITER, LIST_ITEM_PREFIX } from '../constants'
 import { findClosingQuote } from '../shared/string-utils'
 import { isArrayHeaderAfterHyphen, isObjectFirstFieldAfterHyphen, mapRowValuesToPrimitives, parseArrayHeaderLine, parseDelimitedValues, parseKeyToken, parsePrimitiveToken } from './parser'
-import { assertExpectedCount, validateNoExtraListItems, validateNoExtraTabularRows } from './validation'
+import { assertExpectedCount, validateNoBlankLinesInRange, validateNoExtraListItems, validateNoExtraTabularRows } from './validation'
 
 // #region Entry decoding
 
@@ -179,6 +179,10 @@ function decodeListArray(
   const items: JsonValue[] = []
   const itemDepth = baseDepth + 1
 
+  // Track line range for blank line validation
+  let startLine: number | undefined
+  let endLine: number | undefined
+
   while (!cursor.atEnd() && items.length < header.length) {
     const line = cursor.peek()
     if (!line || line.depth < itemDepth) {
@@ -186,8 +190,20 @@ function decodeListArray(
     }
 
     if (line.depth === itemDepth && line.content.startsWith(LIST_ITEM_PREFIX)) {
+      // Track first and last item line numbers
+      if (startLine === undefined) {
+        startLine = line.lineNumber
+      }
+      endLine = line.lineNumber
+
       const item = decodeListItem(cursor, itemDepth, header.delimiter, options)
       items.push(item)
+
+      // Update endLine to the current cursor position (after item was decoded)
+      const currentLine = cursor.current()
+      if (currentLine) {
+        endLine = currentLine.lineNumber
+      }
     }
     else {
       break
@@ -195,6 +211,17 @@ function decodeListArray(
   }
 
   assertExpectedCount(items.length, header.length, 'list array items', options)
+
+  // In strict mode, check for blank lines inside the array
+  if (options.strict && startLine !== undefined && endLine !== undefined) {
+    validateNoBlankLinesInRange(
+      startLine, // From first item line
+      endLine, // To last item line
+      cursor.getBlankLines(),
+      options.strict,
+      'list array',
+    )
+  }
 
   // In strict mode, check for extra items
   if (options.strict) {
@@ -213,6 +240,10 @@ function decodeTabularArray(
   const objects: JsonObject[] = []
   const rowDepth = baseDepth + 1
 
+  // Track line range for blank line validation
+  let startLine: number | undefined
+  let endLine: number | undefined
+
   while (!cursor.atEnd() && objects.length < header.length) {
     const line = cursor.peek()
     if (!line || line.depth < rowDepth) {
@@ -220,6 +251,12 @@ function decodeTabularArray(
     }
 
     if (line.depth === rowDepth) {
+      // Track first and last row line numbers
+      if (startLine === undefined) {
+        startLine = line.lineNumber
+      }
+      endLine = line.lineNumber
+
       cursor.advance()
       const values = parseDelimitedValues(line.content, header.delimiter)
       assertExpectedCount(values.length, header.fields!.length, 'tabular row values', options)
@@ -239,6 +276,17 @@ function decodeTabularArray(
   }
 
   assertExpectedCount(objects.length, header.length, 'tabular rows', options)
+
+  // In strict mode, check for blank lines inside the array
+  if (options.strict && startLine !== undefined && endLine !== undefined) {
+    validateNoBlankLinesInRange(
+      startLine, // From first row line
+      endLine, // To last row line
+      cursor.getBlankLines(),
+      options.strict,
+      'tabular array',
+    )
+  }
 
   // In strict mode, check for extra rows
   if (options.strict) {

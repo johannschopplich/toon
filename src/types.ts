@@ -70,6 +70,13 @@ export interface ParsedLine {
   depth: Depth
   indent: number
   content: string
+  lineNumber: number
+}
+
+export interface BlankLineInfo {
+  lineNumber: number
+  indent: number
+  depth: Depth
 }
 
 // #endregion
