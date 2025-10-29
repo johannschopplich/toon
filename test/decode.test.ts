@@ -473,212 +473,214 @@ describe('length marker option', () => {
   })
 })
 
-describe('error handling', () => {
-  it('throws on array length mismatch (inline primitives)', () => {
-    const toon = 'tags[2]: a,b,c'
-    expect(() => decode(toon)).toThrow()
-  })
-
-  it('throws on array length mismatch (list format)', () => {
-    const toon = 'items[1]:\n  - 1\n  - 2'
-    expect(() => decode(toon)).toThrow()
-  })
-
-  it('throws when tabular row value count does not match header field count', () => {
-    const toon = 'items[2]{id,name}:\n  1,Ada\n  2'
-    expect(() => decode(toon)).toThrow()
-  })
-
-  it('throws when tabular row count does not match header length', () => {
-    const toon = '[1]{id}:\n  1\n  2'
-    expect(() => decode(toon)).toThrow()
-  })
-
-  it('throws on invalid escape sequences', () => {
-    expect(() => decode('"a\\x"')).toThrow()
-    expect(() => decode('"unterminated')).toThrow()
-  })
-
-  it('throws on missing colon in key-value context', () => {
-    expect(() => decode('a:\n  user')).toThrow()
-  })
-
-  it('throws on delimiter mismatch', () => {
-    const toon = 'items[2\t]{a\tb}:\n  1,2\n  3,4'
-    expect(() => decode(toon)).toThrow()
-  })
-})
-
-describe('strict mode: indentation validation', () => {
-  describe('non-multiple indentation errors', () => {
-    it('throws when object field has non-multiple indentation', () => {
-      const toon = 'a:\n   b: 1' // 3 spaces with indent=2
-      expect(() => decode(toon)).toThrow(/indentation/i)
-      expect(() => decode(toon)).toThrow(/exact multiple/i)
+describe('validation and error handling', () => {
+  describe('length and structure errors', () => {
+    it('throws on array length mismatch (inline primitives)', () => {
+      const toon = 'tags[2]: a,b,c'
+      expect(() => decode(toon)).toThrow()
     })
 
-    it('throws when list item has non-multiple indentation', () => {
-      const toon = 'items[2]:\n   - id: 1\n   - id: 2' // 3 spaces
-      expect(() => decode(toon)).toThrow(/indentation/i)
+    it('throws on array length mismatch (list format)', () => {
+      const toon = 'items[1]:\n  - 1\n  - 2'
+      expect(() => decode(toon)).toThrow()
     })
 
-    it('throws with custom indent size when non-multiple', () => {
-      const toon = 'a:\n   b: 1' // 3 spaces with indent=4
-      expect(() => decode(toon, { indent: 4 })).toThrow(/exact multiple of 4/i)
+    it('throws when tabular row value count does not match header field count', () => {
+      const toon = 'items[2]{id,name}:\n  1,Ada\n  2'
+      expect(() => decode(toon)).toThrow()
     })
 
-    it('accepts correct indentation with custom indent size', () => {
-      const toon = 'a:\n    b: 1' // 4 spaces with indent=4
-      expect(decode(toon, { indent: 4 })).toEqual({ a: { b: 1 } })
+    it('throws when tabular row count does not match header length', () => {
+      const toon = '[1]{id}:\n  1\n  2'
+      expect(() => decode(toon)).toThrow()
+    })
+
+    it('throws on invalid escape sequences', () => {
+      expect(() => decode('"a\\x"')).toThrow()
+      expect(() => decode('"unterminated')).toThrow()
+    })
+
+    it('throws on missing colon in key-value context', () => {
+      expect(() => decode('a:\n  user')).toThrow()
+    })
+
+    it('throws on delimiter mismatch', () => {
+      const toon = 'items[2\t]{a\tb}:\n  1,2\n  3,4'
+      expect(() => decode(toon)).toThrow()
     })
   })
 
-  describe('tab character errors', () => {
-    it('throws when tab character used in indentation', () => {
-      const toon = 'a:\n\tb: 1'
-      expect(() => decode(toon)).toThrow(/tab/i)
-    })
+  describe('strict mode: indentation validation', () => {
+    describe('non-multiple indentation errors', () => {
+      it('throws when object field has non-multiple indentation', () => {
+        const toon = 'a:\n   b: 1' // 3 spaces with indent=2
+        expect(() => decode(toon)).toThrow(/indentation/i)
+        expect(() => decode(toon)).toThrow(/exact multiple/i)
+      })
 
-    it('throws when mixed tabs and spaces in indentation', () => {
-      const toon = 'a:\n \tb: 1' // space + tab
-      expect(() => decode(toon)).toThrow(/tab/i)
-    })
+      it('throws when list item has non-multiple indentation', () => {
+        const toon = 'items[2]:\n   - id: 1\n   - id: 2' // 3 spaces
+        expect(() => decode(toon)).toThrow(/indentation/i)
+      })
 
-    it('throws when tab at start of line', () => {
-      const toon = '\ta: 1'
-      expect(() => decode(toon)).toThrow(/tab/i)
-    })
-  })
+      it('throws with custom indent size when non-multiple', () => {
+        const toon = 'a:\n   b: 1' // 3 spaces with indent=4
+        expect(() => decode(toon, { indent: 4 })).toThrow(/exact multiple of 4/i)
+      })
 
-  describe('tabs in quoted strings are allowed', () => {
-    it('accepts tabs in quoted string values', () => {
-      const toon = 'text: "hello\tworld"'
-      expect(decode(toon)).toEqual({ text: 'hello\tworld' })
-    })
-
-    it('accepts tabs in quoted keys', () => {
-      const toon = '"key\ttab": value'
-      expect(decode(toon)).toEqual({ 'key\ttab': 'value' })
-    })
-
-    it('accepts tabs in quoted array elements', () => {
-      const toon = 'items[2]: "a\tb","c\td"'
-      expect(decode(toon)).toEqual({ items: ['a\tb', 'c\td'] })
-    })
-  })
-
-  describe('non-strict mode', () => {
-    it('accepts non-multiple indentation when strict=false', () => {
-      const toon = 'a:\n   b: 1' // 3 spaces with indent=2
-      expect(decode(toon, { strict: false })).toEqual({ a: { b: 1 } })
-    })
-
-    it('accepts tab indentation when strict=false', () => {
-      const toon = 'a:\n\tb: 1'
-      // Tabs are ignored in indentation counting, so depth=0, "b: 1" at root
-      expect(decode(toon, { strict: false })).toEqual({ a: {}, b: 1 })
-    })
-
-    it('accepts deeply nested non-multiples when strict=false', () => {
-      const toon = 'a:\n   b:\n     c: 1' // 3 and 5 spaces
-      expect(decode(toon, { strict: false })).toEqual({ a: { b: { c: 1 } } })
-    })
-  })
-
-  describe('edge cases', () => {
-    it('empty lines do not trigger validation errors', () => {
-      const toon = 'a: 1\n\nb: 2'
-      expect(decode(toon)).toEqual({ a: 1, b: 2 })
-    })
-
-    it('root-level content (0 indentation) is always valid', () => {
-      const toon = 'a: 1\nb: 2\nc: 3'
-      expect(decode(toon)).toEqual({ a: 1, b: 2, c: 3 })
-    })
-
-    it('lines with only spaces are not validated if empty', () => {
-      const toon = 'a: 1\n   \nb: 2'
-      expect(decode(toon)).toEqual({ a: 1, b: 2 })
-    })
-  })
-})
-
-describe('blank lines in arrays', () => {
-  describe('strict mode: errors on blank lines inside arrays', () => {
-    it('throws on blank line inside list array', () => {
-      const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
-      expect(() => decode(teon)).toThrow(/blank line/i)
-      expect(() => decode(teon)).toThrow(/list array/i)
-    })
-
-    it('throws on blank line inside tabular array', () => {
-      const teon = 'items[2]{id}:\n  1\n\n  2'
-      expect(() => decode(teon)).toThrow(/blank line/i)
-      expect(() => decode(teon)).toThrow(/tabular array/i)
-    })
-
-    it('throws on multiple blank lines inside array', () => {
-      const teon = 'items[2]:\n  - a\n\n\n  - b'
-      expect(() => decode(teon)).toThrow(/blank line/i)
-    })
-
-    it('throws on blank line with spaces inside array', () => {
-      const teon = 'items[2]:\n  - a\n  \n  - b'
-      expect(() => decode(teon)).toThrow(/blank line/i)
-    })
-
-    it('throws on blank line in nested list array', () => {
-      const teon = 'outer[2]:\n  - inner[2]:\n    - a\n\n    - b\n  - x'
-      expect(() => decode(teon)).toThrow(/blank line/i)
-    })
-  })
-
-  describe('accepts blank lines outside arrays', () => {
-    it('accepts blank line between root-level fields', () => {
-      const teon = 'a: 1\n\nb: 2'
-      expect(decode(teon)).toEqual({ a: 1, b: 2 })
-    })
-
-    it('accepts trailing newline at end of file', () => {
-      const teon = 'a: 1\n'
-      expect(decode(teon)).toEqual({ a: 1 })
-    })
-
-    it('accepts multiple trailing newlines', () => {
-      const teon = 'a: 1\n\n\n'
-      expect(decode(teon)).toEqual({ a: 1 })
-    })
-
-    it('accepts blank line after array ends', () => {
-      const teon = 'items[1]:\n  - a\n\nb: 2'
-      expect(decode(teon)).toEqual({ items: ['a'], b: 2 })
-    })
-
-    it('accepts blank line between nested object fields', () => {
-      const teon = 'a:\n  b: 1\n\n  c: 2'
-      expect(decode(teon)).toEqual({ a: { b: 1, c: 2 } })
-    })
-  })
-
-  describe('non-strict mode: ignores blank lines', () => {
-    it('ignores blank lines inside list array', () => {
-      const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
-      expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b', 'c'] })
-    })
-
-    it('ignores blank lines inside tabular array', () => {
-      const teon = 'items[2]{id,name}:\n  1,Alice\n\n  2,Bob'
-      expect(decode(teon, { strict: false })).toEqual({
-        items: [
-          { id: 1, name: 'Alice' },
-          { id: 2, name: 'Bob' },
-        ],
+      it('accepts correct indentation with custom indent size', () => {
+        const toon = 'a:\n    b: 1' // 4 spaces with indent=4
+        expect(decode(toon, { indent: 4 })).toEqual({ a: { b: 1 } })
       })
     })
 
-    it('ignores multiple blank lines in arrays', () => {
-      const teon = 'items[2]:\n  - a\n\n\n  - b'
-      expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b'] })
+    describe('tab character errors', () => {
+      it('throws when tab character used in indentation', () => {
+        const toon = 'a:\n\tb: 1'
+        expect(() => decode(toon)).toThrow(/tab/i)
+      })
+
+      it('throws when mixed tabs and spaces in indentation', () => {
+        const toon = 'a:\n \tb: 1' // space + tab
+        expect(() => decode(toon)).toThrow(/tab/i)
+      })
+
+      it('throws when tab at start of line', () => {
+        const toon = '\ta: 1'
+        expect(() => decode(toon)).toThrow(/tab/i)
+      })
+    })
+
+    describe('tabs in quoted strings are allowed', () => {
+      it('accepts tabs in quoted string values', () => {
+        const toon = 'text: "hello\tworld"'
+        expect(decode(toon)).toEqual({ text: 'hello\tworld' })
+      })
+
+      it('accepts tabs in quoted keys', () => {
+        const toon = '"key\ttab": value'
+        expect(decode(toon)).toEqual({ 'key\ttab': 'value' })
+      })
+
+      it('accepts tabs in quoted array elements', () => {
+        const toon = 'items[2]: "a\tb","c\td"'
+        expect(decode(toon)).toEqual({ items: ['a\tb', 'c\td'] })
+      })
+    })
+
+    describe('non-strict mode', () => {
+      it('accepts non-multiple indentation when strict=false', () => {
+        const toon = 'a:\n   b: 1' // 3 spaces with indent=2
+        expect(decode(toon, { strict: false })).toEqual({ a: { b: 1 } })
+      })
+
+      it('accepts tab indentation when strict=false', () => {
+        const toon = 'a:\n\tb: 1'
+        // Tabs are ignored in indentation counting, so depth=0, "b: 1" at root
+        expect(decode(toon, { strict: false })).toEqual({ a: {}, b: 1 })
+      })
+
+      it('accepts deeply nested non-multiples when strict=false', () => {
+        const toon = 'a:\n   b:\n     c: 1' // 3 and 5 spaces
+        expect(decode(toon, { strict: false })).toEqual({ a: { b: { c: 1 } } })
+      })
+    })
+
+    describe('edge cases', () => {
+      it('empty lines do not trigger validation errors', () => {
+        const toon = 'a: 1\n\nb: 2'
+        expect(decode(toon)).toEqual({ a: 1, b: 2 })
+      })
+
+      it('root-level content (0 indentation) is always valid', () => {
+        const toon = 'a: 1\nb: 2\nc: 3'
+        expect(decode(toon)).toEqual({ a: 1, b: 2, c: 3 })
+      })
+
+      it('lines with only spaces are not validated if empty', () => {
+        const toon = 'a: 1\n   \nb: 2'
+        expect(decode(toon)).toEqual({ a: 1, b: 2 })
+      })
+    })
+  })
+
+  describe('strict mode: blank lines in arrays', () => {
+    describe('errors on blank lines inside arrays', () => {
+      it('throws on blank line inside list array', () => {
+        const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
+        expect(() => decode(teon)).toThrow(/blank line/i)
+        expect(() => decode(teon)).toThrow(/list array/i)
+      })
+
+      it('throws on blank line inside tabular array', () => {
+        const teon = 'items[2]{id}:\n  1\n\n  2'
+        expect(() => decode(teon)).toThrow(/blank line/i)
+        expect(() => decode(teon)).toThrow(/tabular array/i)
+      })
+
+      it('throws on multiple blank lines inside array', () => {
+        const teon = 'items[2]:\n  - a\n\n\n  - b'
+        expect(() => decode(teon)).toThrow(/blank line/i)
+      })
+
+      it('throws on blank line with spaces inside array', () => {
+        const teon = 'items[2]:\n  - a\n  \n  - b'
+        expect(() => decode(teon)).toThrow(/blank line/i)
+      })
+
+      it('throws on blank line in nested list array', () => {
+        const teon = 'outer[2]:\n  - inner[2]:\n    - a\n\n    - b\n  - x'
+        expect(() => decode(teon)).toThrow(/blank line/i)
+      })
+    })
+
+    describe('accepts blank lines outside arrays', () => {
+      it('accepts blank line between root-level fields', () => {
+        const teon = 'a: 1\n\nb: 2'
+        expect(decode(teon)).toEqual({ a: 1, b: 2 })
+      })
+
+      it('accepts trailing newline at end of file', () => {
+        const teon = 'a: 1\n'
+        expect(decode(teon)).toEqual({ a: 1 })
+      })
+
+      it('accepts multiple trailing newlines', () => {
+        const teon = 'a: 1\n\n\n'
+        expect(decode(teon)).toEqual({ a: 1 })
+      })
+
+      it('accepts blank line after array ends', () => {
+        const teon = 'items[1]:\n  - a\n\nb: 2'
+        expect(decode(teon)).toEqual({ items: ['a'], b: 2 })
+      })
+
+      it('accepts blank line between nested object fields', () => {
+        const teon = 'a:\n  b: 1\n\n  c: 2'
+        expect(decode(teon)).toEqual({ a: { b: 1, c: 2 } })
+      })
+    })
+
+    describe('non-strict mode: ignores blank lines', () => {
+      it('ignores blank lines inside list array', () => {
+        const teon = 'items[3]:\n  - a\n\n  - b\n  - c'
+        expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b', 'c'] })
+      })
+
+      it('ignores blank lines inside tabular array', () => {
+        const teon = 'items[2]{id,name}:\n  1,Alice\n\n  2,Bob'
+        expect(decode(teon, { strict: false })).toEqual({
+          items: [
+            { id: 1, name: 'Alice' },
+            { id: 2, name: 'Bob' },
+          ],
+        })
+      })
+
+      it('ignores multiple blank lines in arrays', () => {
+        const teon = 'items[2]:\n  - a\n\n\n  - b'
+        expect(decode(teon, { strict: false })).toEqual({ items: ['a', 'b'] })
+      })
     })
   })
 })
