@@ -2,32 +2,26 @@
 
 Command-line tool for converting between JSON and TOON (Token-Oriented Object Notation) formats.
 
-## Installation
-
-```bash
-npm install -g @byjohann/toon-cli
-```
-
 ## Usage
 
 ```bash
 # Encode JSON to TOON
-toon input.json -o output.toon
+npx @byjohann/toon-cli input.json -o output.toon
 
 # Decode TOON to JSON
-toon data.toon -o output.json
+npx @byjohann/toon-cli data.toon -o output.json
 
 # Output to stdout (no -o flag)
-toon input.json
+npx @byjohann/toon-cli input.json
 
 # Custom delimiter
-toon input.json --delimiter "|" -o output.toon
+npx @byjohann/toon-cli input.json --delimiter "|" -o output.toon
 
 # Length marker
-toon input.json --length-marker "#" -o output.toon
+npx @byjohann/toon-cli input.json --length-marker "#" -o output.toon
 
 # Disable strict mode (decoding)
-toon data.toon --no-strict -o output.json
+npx @byjohann/toon-cli data.toon --no-strict -o output.json
 ```
 
 ## Options
