@@ -32,6 +32,14 @@ describe('primitives', () => {
     expect(decode('null')).toBe(null)
   })
 
+  it('treats unquoted invalid numeric formats as strings', () => {
+    expect(decode('05')).toBe('05')
+    expect(decode('007')).toBe('007')
+    expect(decode('0123')).toBe('0123')
+    expect(decode('a: 05')).toEqual({ a: '05' })
+    expect(decode('nums[3]: 05,007,0123')).toEqual({ nums: ['05', '007', '0123'] })
+  })
+
   it('respects ambiguity quoting (quoted primitives remain strings)', () => {
     expect(decode('"true"')).toBe('true')
     expect(decode('"false"')).toBe('false')

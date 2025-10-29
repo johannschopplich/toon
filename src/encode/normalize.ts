@@ -1,9 +1,4 @@
-import type {
-  JsonArray,
-  JsonObject,
-  JsonPrimitive,
-  JsonValue,
-} from '../types'
+import type { JsonArray, JsonObject, JsonPrimitive, JsonValue } from '../types'
 
 // #region Normalization (unknown → JsonValue)
 

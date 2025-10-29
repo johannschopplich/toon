@@ -1,10 +1,4 @@
-import type {
-  DecodeOptions,
-  EncodeOptions,
-  JsonValue,
-  ResolvedDecodeOptions,
-  ResolvedEncodeOptions,
-} from './types'
+import type { DecodeOptions, EncodeOptions, JsonValue, ResolvedDecodeOptions, ResolvedEncodeOptions } from './types'
 import { DEFAULT_DELIMITER } from './constants'
 import { decodeValueFromLines } from './decode/decoders'
 import { LineCursor, toParsedLines } from './decode/scanner'

@@ -1,35 +1,9 @@
-import type {
-  ArrayHeaderInfo,
-  Delimiter,
-  Depth,
-  JsonArray,
-  JsonObject,
-  JsonPrimitive,
-  JsonValue,
-  ParsedLine,
-  ResolvedDecodeOptions,
-} from '../types'
+import type { ArrayHeaderInfo, Delimiter, Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ParsedLine, ResolvedDecodeOptions } from '../types'
 import type { LineCursor } from './scanner'
-import {
-  COLON,
-  DEFAULT_DELIMITER,
-  LIST_ITEM_PREFIX,
-} from '../constants'
-import {
-  isArrayHeaderAfterHyphen,
-  isObjectFirstFieldAfterHyphen,
-  mapRowValuesToPrimitives,
-  parseArrayHeaderLine,
-  parseDelimitedValues,
-  parseKeyToken,
-  parsePrimitiveToken,
-} from './parser'
-import { findClosingQuote } from './utils'
-import {
-  assertExpectedCount,
-  validateNoExtraListItems,
-  validateNoExtraTabularRows,
-} from './validation'
+import { COLON, DEFAULT_DELIMITER, LIST_ITEM_PREFIX } from '../constants'
+import { findClosingQuote } from '../shared/string-utils'
+import { isArrayHeaderAfterHyphen, isObjectFirstFieldAfterHyphen, mapRowValuesToPrimitives, parseArrayHeaderLine, parseDelimitedValues, parseKeyToken, parsePrimitiveToken } from './parser'
+import { assertExpectedCount, validateNoExtraListItems, validateNoExtraTabularRows } from './validation'
 
 // #region Entry decoding
 

@@ -1,27 +1,7 @@
-import type {
-  ArrayHeaderInfo,
-  Delimiter,
-  JsonPrimitive,
-} from '../types'
-import {
-  BACKSLASH,
-  CARRIAGE_RETURN,
-  CLOSE_BRACE,
-  CLOSE_BRACKET,
-  COLON,
-  DELIMITERS,
-  DOUBLE_QUOTE,
-  FALSE_LITERAL,
-  HASH,
-  NEWLINE,
-  NULL_LITERAL,
-  OPEN_BRACE,
-  OPEN_BRACKET,
-  PIPE,
-  TAB,
-  TRUE_LITERAL,
-} from '../constants'
-import { findClosingQuote, hasUnquotedChar } from './utils'
+import type { ArrayHeaderInfo, Delimiter, JsonPrimitive } from '../types'
+import { BACKSLASH, CLOSE_BRACE, CLOSE_BRACKET, COLON, DELIMITERS, DOUBLE_QUOTE, FALSE_LITERAL, HASH, NULL_LITERAL, OPEN_BRACE, OPEN_BRACKET, PIPE, TAB, TRUE_LITERAL } from '../constants'
+import { isBooleanOrNullLiteral, isNumericLiteral } from '../shared/literal-utils'
+import { findClosingQuote, findUnquotedChar, unescapeString } from '../shared/string-utils'
 
 // #region Array header parsing
 
@@ -224,24 +204,6 @@ export function parsePrimitiveToken(token: string): JsonPrimitive {
   return trimmed
 }
 
-export function isBooleanOrNullLiteral(token: string): boolean {
-  return token === TRUE_LITERAL || token === FALSE_LITERAL || token === NULL_LITERAL
-}
-
-export function isNumericLiteral(token: string): boolean {
-  if (!token)
-    return false
-
-  // Must not have leading zeros (except for "0" itself or decimals like "0.5")
-  if (token.length > 1 && token[0] === '0' && token[1] !== '.') {
-    return false
-  }
-
-  // Check if it's a valid number
-  const num = Number(token)
-  return !Number.isNaN(num) && Number.isFinite(num)
-}
-
 export function parseStringLiteral(token: string): string {
   const trimmed = token.trim()
 
@@ -263,53 +225,6 @@ export function parseStringLiteral(token: string): string {
   }
 
   return trimmed
-}
-
-export function unescapeString(value: string): string {
-  let result = ''
-  let i = 0
-
-  while (i < value.length) {
-    if (value[i] === BACKSLASH) {
-      if (i + 1 >= value.length) {
-        throw new SyntaxError('Invalid escape sequence: backslash at end of string')
-      }
-
-      const next = value[i + 1]
-      if (next === 'n') {
-        result += NEWLINE
-        i += 2
-        continue
-      }
-      if (next === 't') {
-        result += TAB
-        i += 2
-        continue
-      }
-      if (next === 'r') {
-        result += CARRIAGE_RETURN
-        i += 2
-        continue
-      }
-      if (next === BACKSLASH) {
-        result += BACKSLASH
-        i += 2
-        continue
-      }
-      if (next === DOUBLE_QUOTE) {
-        result += DOUBLE_QUOTE
-        i += 2
-        continue
-      }
-
-      throw new SyntaxError(`Invalid escape sequence: \\${next}`)
-    }
-
-    result += value[i]
-    i++
-  }
-
-  return result
 }
 
 export function parseUnquotedKey(content: string, start: number): { key: string, end: number } {
@@ -367,11 +282,11 @@ export function parseKeyToken(content: string, start: number): { key: string, en
 // #region Array content detection helpers
 
 export function isArrayHeaderAfterHyphen(content: string): boolean {
-  return content.trim().startsWith(OPEN_BRACKET) && hasUnquotedChar(content, COLON)
+  return content.trim().startsWith(OPEN_BRACKET) && findUnquotedChar(content, COLON) !== -1
 }
 
 export function isObjectFirstFieldAfterHyphen(content: string): boolean {
-  return hasUnquotedChar(content, COLON)
+  return findUnquotedChar(content, COLON) !== -1
 }
 
 // #endregion

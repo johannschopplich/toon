@@ -1,26 +1,7 @@
-import type {
-  Depth,
-  JsonArray,
-  JsonObject,
-  JsonPrimitive,
-  JsonValue,
-  ResolvedEncodeOptions,
-} from '../types'
+import type { Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions } from '../types'
 import { LIST_ITEM_MARKER } from '../constants'
-import {
-  isArrayOfArrays,
-  isArrayOfObjects,
-  isArrayOfPrimitives,
-  isJsonArray,
-  isJsonObject,
-  isJsonPrimitive,
-} from './normalize'
-import {
-  encodeAndJoinPrimitives,
-  encodeKey,
-  encodePrimitive,
-  formatHeader,
-} from './primitives'
+import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
+import { encodeAndJoinPrimitives, encodeKey, encodePrimitive, formatHeader } from './primitives'
 import { LineWriter } from './writer'
 
 // #region Encode normalized JsonValue

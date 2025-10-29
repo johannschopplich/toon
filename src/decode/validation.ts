@@ -7,7 +7,7 @@ import { COLON, LIST_ITEM_PREFIX } from '../constants'
  *
  * @param actual The actual count
  * @param expected The expected count
- * @param itemType The type of items being counted (e.g., 'list array items', 'tabular rows')
+ * @param itemType The type of items being counted (e.g., `list array items`, `tabular rows`)
  * @param options Decode options
  * @throws RangeError if counts don't match in strict mode
  */
@@ -45,31 +45,6 @@ export function validateNoExtraListItems(
 }
 
 /**
- * Checks if a line represents a data row (as opposed to a key-value pair) in a tabular array.
- *
- * @param content The line content
- * @param delimiter The delimiter used in the table
- * @returns true if the line is a data row, false if it's a key-value pair
- */
-export function isDataRow(content: string, delimiter: Delimiter): boolean {
-  const colonPos = content.indexOf(COLON)
-  const delimiterPos = content.indexOf(delimiter)
-
-  // No colon = definitely a data row
-  if (colonPos === -1) {
-    return true
-  }
-
-  // Has delimiter and it comes before colon = data row
-  if (delimiterPos !== -1 && delimiterPos < colonPos) {
-    return true
-  }
-
-  // Colon before delimiter or no delimiter = key-value pair
-  return false
-}
-
-/**
  * Validates that there are no extra tabular rows beyond the expected count.
  *
  * @param cursor The line cursor
@@ -94,4 +69,29 @@ export function validateNoExtraTabularRows(
   ) {
     throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
   }
+}
+
+/**
+ * Checks if a line represents a data row (as opposed to a key-value pair) in a tabular array.
+ *
+ * @param content The line content
+ * @param delimiter The delimiter used in the table
+ * @returns true if the line is a data row, false if it's a key-value pair
+ */
+function isDataRow(content: string, delimiter: Delimiter): boolean {
+  const colonPos = content.indexOf(COLON)
+  const delimiterPos = content.indexOf(delimiter)
+
+  // No colon = definitely a data row
+  if (colonPos === -1) {
+    return true
+  }
+
+  // Has delimiter and it comes before colon = data row
+  if (delimiterPos !== -1 && delimiterPos < colonPos) {
+    return true
+  }
+
+  // Colon before delimiter or no delimiter = key-value pair
+  return false
 }
