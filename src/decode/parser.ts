@@ -2,7 +2,7 @@ import type {
   ArrayHeaderInfo,
   Delimiter,
   JsonPrimitive,
-} from './types'
+} from '../types'
 import {
   BACKSLASH,
   CARRIAGE_RETURN,
@@ -20,7 +20,8 @@ import {
   PIPE,
   TAB,
   TRUE_LITERAL,
-} from './constants'
+} from '../constants'
+import { findClosingQuote, hasUnquotedChar } from './string-utils'
 
 // #region Array header parsing
 
@@ -246,26 +247,19 @@ export function parseStringLiteral(token: string): string {
 
   if (trimmed.startsWith(DOUBLE_QUOTE)) {
     // Find the closing quote, accounting for escaped quotes
-    let i = 1
-    while (i < trimmed.length) {
-      if (trimmed[i] === BACKSLASH && i + 1 < trimmed.length) {
-        // Skip escaped character
-        i += 2
-        continue
-      }
-      if (trimmed[i] === DOUBLE_QUOTE) {
-        // Found closing quote
-        if (i !== trimmed.length - 1) {
-          throw new SyntaxError('Unexpected characters after closing quote')
-        }
-        const content = trimmed.slice(1, i)
-        return unescapeString(content)
-      }
-      i++
+    const closingQuoteIndex = findClosingQuote(trimmed, 0)
+
+    if (closingQuoteIndex === -1) {
+      // No closing quote was found
+      throw new SyntaxError('Unterminated string: missing closing quote')
     }
 
-    // If we get here, no closing quote was found
-    throw new SyntaxError('Unterminated string: missing closing quote')
+    if (closingQuoteIndex !== trimmed.length - 1) {
+      throw new SyntaxError('Unexpected characters after closing quote')
+    }
+
+    const content = trimmed.slice(1, closingQuoteIndex)
+    return unescapeString(content)
   }
 
   return trimmed
@@ -338,35 +332,25 @@ export function parseUnquotedKey(content: string, start: number): { key: string,
 }
 
 export function parseQuotedKey(content: string, start: number): { key: string, end: number } {
-  let i = start + 1 // Skip opening quote
-  let keyContent = ''
+  // Find the closing quote, accounting for escaped quotes
+  const closingQuoteIndex = findClosingQuote(content, start)
 
-  while (i < content.length) {
-    if (content[i] === BACKSLASH && i + 1 < content.length) {
-      keyContent += content[i]! + content[i + 1]
-      i += 2
-      continue
-    }
-
-    if (content[i] === DOUBLE_QUOTE) {
-      // Found closing quote
-      const key = unescapeString(keyContent)
-      let end = i + 1
-
-      // Validate and skip colon after quoted key
-      if (end >= content.length || content[end] !== COLON) {
-        throw new SyntaxError('Missing colon after key')
-      }
-      end++
-
-      return { key, end }
-    }
-
-    keyContent += content[i]
-    i++
+  if (closingQuoteIndex === -1) {
+    throw new SyntaxError('Unterminated quoted key')
   }
 
-  throw new SyntaxError('Unterminated quoted key')
+  // Extract and unescape the key content
+  const keyContent = content.slice(start + 1, closingQuoteIndex)
+  const key = unescapeString(keyContent)
+  let end = closingQuoteIndex + 1
+
+  // Validate and skip colon after quoted key
+  if (end >= content.length || content[end] !== COLON) {
+    throw new SyntaxError('Missing colon after key')
+  }
+  end++
+
+  return { key, end }
 }
 
 export function parseKeyToken(content: string, start: number): { key: string, end: number } {
@@ -383,11 +367,11 @@ export function parseKeyToken(content: string, start: number): { key: string, en
 // #region Array content detection helpers
 
 export function isArrayHeaderAfterHyphen(content: string): boolean {
-  return content.trim().startsWith(OPEN_BRACKET) && content.includes(COLON)
+  return content.trim().startsWith(OPEN_BRACKET) && hasUnquotedChar(content, COLON)
 }
 
 export function isObjectFirstFieldAfterHyphen(content: string): boolean {
-  return content.includes(COLON)
+  return hasUnquotedChar(content, COLON)
 }
 
 // #endregion

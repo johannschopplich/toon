@@ -6,10 +6,10 @@ import type {
   ResolvedEncodeOptions,
 } from './types'
 import { DEFAULT_DELIMITER } from './constants'
-import { decodeValueFromLines } from './decoders'
+import { decodeValueFromLines } from './decode/decoders'
 import { encodeValue } from './encoders'
 import { normalizeValue } from './normalize'
-import { LineCursor, toParsedLines } from './scanner'
+import { LineCursor, toParsedLines } from './decode/scanner'
 
 export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
 export type {

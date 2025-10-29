@@ -1,6 +1,6 @@
-import type { LineCursor } from './scanner'
 import type {
   ArrayHeaderInfo,
+  Delimiter,
   Depth,
   JsonArray,
   JsonObject,
@@ -8,12 +8,13 @@ import type {
   JsonValue,
   ParsedLine,
   ResolvedDecodeOptions,
-} from './types'
+} from '../types'
+import type { LineCursor } from './scanner'
 import {
   COLON,
   DEFAULT_DELIMITER,
   LIST_ITEM_PREFIX,
-} from './constants'
+} from '../constants'
 import {
   isArrayHeaderAfterHyphen,
   isObjectFirstFieldAfterHyphen,
@@ -23,6 +24,12 @@ import {
   parseKeyToken,
   parsePrimitiveToken,
 } from './parser'
+import { findClosingQuote } from './string-utils'
+import {
+  assertExpectedCount,
+  validateNoExtraListItems,
+  validateNoExtraTabularRows,
+} from './validation'
 
 // #region Entry decoding
 
@@ -33,7 +40,7 @@ export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecode
   }
 
   // Check for root array
-  if (isRootArrayHeaderLine(first)) {
+  if (isArrayHeaderAfterHyphen(first.content)) {
     const headerInfo = parseArrayHeaderLine(first.content, DEFAULT_DELIMITER)
     if (headerInfo) {
       cursor.advance() // Move past the header line
@@ -50,28 +57,17 @@ export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecode
   return decodeObject(cursor, 0, options)
 }
 
-function isRootArrayHeaderLine(line: ParsedLine): boolean {
-  return isArrayHeaderAfterHyphen(line.content)
-}
-
 function isKeyValueLine(line: ParsedLine): boolean {
   const content = line.content
   // Look for unquoted colon or quoted key followed by colon
   if (content.startsWith('"')) {
-    // Quoted key
-    let i = 1
-    while (i < content.length) {
-      if (content[i] === '\\' && i + 1 < content.length) {
-        i += 2
-        continue
-      }
-      if (content[i] === '"') {
-        // Found end of quoted key, check for colon
-        return content[i + 1] === COLON
-      }
-      i++
+    // Quoted key - find the closing quote
+    const closingQuoteIndex = findClosingQuote(content, 0)
+    if (closingQuoteIndex === -1) {
+      return false
     }
-    return false
+    // Check if there's a colon after the quoted key
+    return closingQuoteIndex + 1 < content.length && content[closingQuoteIndex + 1] === COLON
   }
   else {
     // Unquoted key - look for first colon not inside quotes
@@ -227,11 +223,8 @@ function decodeListArray(
   assertExpectedCount(items.length, header.length, 'list array items', options)
 
   // In strict mode, check for extra items
-  if (options.strict && !cursor.atEnd()) {
-    const nextLine = cursor.peek()
-    if (nextLine && nextLine.depth === itemDepth && nextLine.content.startsWith(LIST_ITEM_PREFIX)) {
-      throw new RangeError(`Expected ${header.length} list array items, but found more`)
-    }
+  if (options.strict) {
+    validateNoExtraListItems(cursor, itemDepth, header.length)
   }
 
   return items
@@ -274,30 +267,8 @@ function decodeTabularArray(
   assertExpectedCount(objects.length, header.length, 'tabular rows', options)
 
   // In strict mode, check for extra rows
-  if (options.strict && !cursor.atEnd()) {
-    const nextLine = cursor.peek()
-    if (nextLine && nextLine.depth === rowDepth && !nextLine.content.startsWith(LIST_ITEM_PREFIX)) {
-      // A key-value pair has a colon (and if it has delimiter, colon comes first)
-      // A data row either has no colon, or has delimiter before colon
-      const hasColon = nextLine.content.includes(COLON)
-      const hasDelimiter = nextLine.content.includes(header.delimiter)
-
-      if (!hasColon) {
-        // No colon = data row (for single-field tables)
-        throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
-      }
-      else if (hasDelimiter) {
-        // Has both colon and delimiter - check which comes first
-        const colonPos = nextLine.content.indexOf(COLON)
-        const delimiterPos = nextLine.content.indexOf(header.delimiter)
-        if (delimiterPos < colonPos) {
-          // Delimiter before colon = data row
-          throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
-        }
-        // Colon before delimiter = key-value pair, OK
-      }
-      // Has colon but no delimiter = key-value pair, OK
-    }
+  if (options.strict) {
+    validateNoExtraTabularRows(cursor, rowDepth, header)
   }
 
   return objects
@@ -310,7 +281,7 @@ function decodeTabularArray(
 function decodeListItem(
   cursor: LineCursor,
   baseDepth: Depth,
-  activeDelimiter: string,
+  activeDelimiter: Delimiter,
   options: ResolvedDecodeOptions,
 ): JsonValue {
   const line = cursor.next()
@@ -322,7 +293,7 @@ function decodeListItem(
 
   // Check for array header after hyphen
   if (isArrayHeaderAfterHyphen(afterHyphen)) {
-    const arrayHeader = parseArrayHeaderLine(afterHyphen, activeDelimiter as any)
+    const arrayHeader = parseArrayHeaderLine(afterHyphen, activeDelimiter)
     if (arrayHeader) {
       return decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
     }
@@ -344,7 +315,7 @@ function decodeObjectFromListItem(
   options: ResolvedDecodeOptions,
 ): JsonObject {
   const afterHyphen = firstLine.content.slice(LIST_ITEM_PREFIX.length)
-  const { key, value, followDepth } = decodeFirstFieldOnHyphen(afterHyphen, cursor, baseDepth, options)
+  const { key, value, followDepth } = decodeKeyValue(afterHyphen, cursor, baseDepth, options)
 
   const obj: JsonObject = { [key]: value }
 
@@ -365,25 +336,6 @@ function decodeObjectFromListItem(
   }
 
   return obj
-}
-
-function decodeFirstFieldOnHyphen(
-  rest: string,
-  cursor: LineCursor,
-  baseDepth: Depth,
-  options: ResolvedDecodeOptions,
-): { key: string, value: JsonValue, followDepth: Depth } {
-  return decodeKeyValue(rest, cursor, baseDepth, options)
-}
-
-// #endregion
-
-// #region Validation
-
-function assertExpectedCount(actual: number, expected: number, what: string, options: ResolvedDecodeOptions): void {
-  if (options.strict && actual !== expected) {
-    throw new RangeError(`Expected ${expected} ${what}, but got ${actual}`)
-  }
 }
 
 // #endregion

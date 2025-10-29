@@ -1,5 +1,5 @@
-import type { Depth, ParsedLine } from './types'
-import { SPACE } from './constants'
+import type { Depth, ParsedLine } from '../types'
+import { SPACE } from '../constants'
 
 export class LineCursor {
   private lines: ParsedLine[]
@@ -32,6 +32,21 @@ export class LineCursor {
 
   get length(): number {
     return this.lines.length
+  }
+
+  peekAtDepth(targetDepth: Depth): ParsedLine | undefined {
+    const line = this.peek()
+    if (!line || line.depth < targetDepth) {
+      return undefined
+    }
+    if (line.depth === targetDepth) {
+      return line
+    }
+    return undefined
+  }
+
+  hasMoreAtDepth(targetDepth: Depth): boolean {
+    return this.peekAtDepth(targetDepth) !== undefined
   }
 }
 
