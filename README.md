@@ -840,18 +840,18 @@ For output, be more explicit. When you want the model to **generate** TOON:
 
 Here's a prompt that works for both reading and generating:
 
-```
+````
 Data is in TOON format (2-space indent, arrays show length and fields).
 
-\`\`\`toon
+```toon
 users[3]{id,name,role,lastLogin}:
   1,Alice,admin,2025-01-15T10:30:00Z
   2,Bob,user,2025-01-14T15:22:00Z
   3,Charlie,user,2025-01-13T09:45:00Z
-\`\`\`
+```
 
 Task: Return only users with role "user" as TOON. Use the same header. Set [N] to match the row count. Output only the code block.
-```
+````
 
 > [!TIP]
 > For large uniform tables, use `encode(data, { delimiter: '\t' })` and tell the model "fields are tab-separated." Tabs often tokenize better than commas and reduce the need for quote-escaping.
