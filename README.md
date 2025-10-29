@@ -6,6 +6,9 @@
 
 TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
 
+> [!TIP]
+> Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
+
 ## Why TOON?
 
 AI is becoming cheaper and more accessible, but larger context windows allow for larger data inputs as well. **LLM tokens still cost money** – and standard JSON is verbose and token-expensive:
