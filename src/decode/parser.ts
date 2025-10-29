@@ -66,7 +66,7 @@ export function parseArrayHeaderLine(
     const foundBraceEnd = content.indexOf(CLOSE_BRACE, braceStart)
     if (foundBraceEnd !== -1 && foundBraceEnd < colonIndex) {
       const fieldsContent = content.slice(braceStart + 1, foundBraceEnd)
-      fields = parseFieldsSegment(fieldsContent, delimiter)
+      fields = parseDelimitedValues(fieldsContent, delimiter).map(field => parseStringLiteral(field.trim()))
     }
   }
 
@@ -112,10 +112,6 @@ export function parseBracketSegment(
   }
 
   return { length, delimiter, hasLengthMarker }
-}
-
-export function parseFieldsSegment(seg: string, delimiter: Delimiter): string[] {
-  return parseDelimitedValues(seg, delimiter).map(field => parseStringLiteral(field.trim()))
 }
 
 // #endregion
