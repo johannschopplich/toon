@@ -37,7 +37,7 @@ export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecode
     const headerInfo = parseArrayHeaderLine(first.content, DEFAULT_DELIMITER)
     if (headerInfo) {
       cursor.advance() // Move past the header line
-      return decodeArrayFromHeader(headerInfo.header, first, cursor, 0, options)
+      return decodeArrayFromHeader(headerInfo.header, headerInfo.inlineValues, cursor, 0, options)
     }
   }
 
@@ -51,9 +51,7 @@ export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecode
 }
 
 function isRootArrayHeaderLine(line: ParsedLine): boolean {
-  const content = line.content.trim()
-  // Root array: starts with [ and has a colon
-  return content.startsWith('[') && content.includes(COLON)
+  return isArrayHeaderAfterHyphen(line.content)
 }
 
 function isKeyValueLine(line: ParsedLine): boolean {
@@ -106,6 +104,44 @@ function decodeObject(cursor: LineCursor, baseDepth: Depth, options: ResolvedDec
   return obj
 }
 
+function decodeKeyValue(
+  content: string,
+  cursor: LineCursor,
+  baseDepth: Depth,
+  options: ResolvedDecodeOptions,
+): { key: string, value: JsonValue, followDepth: Depth } {
+  // Check for array header first (before parsing key)
+  const arrayHeader = parseArrayHeaderLine(content, DEFAULT_DELIMITER)
+  if (arrayHeader && arrayHeader.header.key) {
+    const value = decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
+    // After an array, subsequent fields are at baseDepth + 1 (where array content is)
+    return {
+      key: arrayHeader.header.key,
+      value,
+      followDepth: baseDepth + 1,
+    }
+  }
+
+  // Regular key-value pair
+  const { key, end } = parseKeyToken(content, 0)
+  const rest = content.slice(end).trim()
+
+  // No value after colon - expect nested object or empty
+  if (!rest) {
+    const nextLine = cursor.peek()
+    if (nextLine && nextLine.depth > baseDepth) {
+      const nested = decodeObject(cursor, baseDepth + 1, options)
+      return { key, value: nested, followDepth: baseDepth + 1 }
+    }
+    // Empty object
+    return { key, value: {}, followDepth: baseDepth + 1 }
+  }
+
+  // Inline primitive value
+  const value = parsePrimitiveToken(rest)
+  return { key, value, followDepth: baseDepth + 1 }
+}
+
 function decodeKeyValuePair(
   line: ParsedLine,
   cursor: LineCursor,
@@ -113,36 +149,8 @@ function decodeKeyValuePair(
   options: ResolvedDecodeOptions,
 ): [key: string, value: JsonValue] {
   cursor.advance()
-
-  // Check for array header first (before parsing key)
-  const arrayHeader = parseArrayHeaderLine(line.content, DEFAULT_DELIMITER)
-  if (arrayHeader && arrayHeader.header.key) {
-    const value = decodeArrayFromHeader(arrayHeader.header, line, cursor, baseDepth, options)
-    return [arrayHeader.header.key, value]
-  }
-
-  // Regular key-value pair
-  const { key, end } = parseKeyToken(line.content, 0)
-  const rest = line.content.slice(end).trim()
-
-  // No value after colon - expect nested object or empty
-  if (!rest) {
-    const nextLine = cursor.peek()
-    if (nextLine && nextLine.depth > baseDepth) {
-      const nested = expectNestedObject(cursor, baseDepth + 1, options)
-      return [key, nested]
-    }
-    // Empty object
-    return [key, {}]
-  }
-
-  // Inline primitive value
-  const value = parsePrimitiveToken(rest)
+  const { key, value } = decodeKeyValue(line.content, cursor, baseDepth, options)
   return [key, value]
-}
-
-function expectNestedObject(cursor: LineCursor, nestedDepth: Depth, options: ResolvedDecodeOptions): JsonObject {
-  return decodeObject(cursor, nestedDepth, options)
 }
 
 // #endregion
@@ -151,20 +159,15 @@ function expectNestedObject(cursor: LineCursor, nestedDepth: Depth, options: Res
 
 function decodeArrayFromHeader(
   header: ArrayHeaderInfo,
-  line: ParsedLine,
+  inlineValues: string | undefined,
   cursor: LineCursor,
   baseDepth: Depth,
   options: ResolvedDecodeOptions,
 ): JsonArray {
-  const arrayHeader = parseArrayHeaderLine(line.content, DEFAULT_DELIMITER)
-  if (!arrayHeader) {
-    throw new Error('Invalid array header')
-  }
-
   // Inline primitive array
-  if (arrayHeader.inlineValues) {
+  if (inlineValues) {
     // For inline arrays, cursor should already be advanced or will be by caller
-    return decodeInlinePrimitiveArray(header, arrayHeader.inlineValues, options)
+    return decodeInlinePrimitiveArray(header, inlineValues, options)
   }
 
   // For multi-line arrays (tabular or list), the cursor should already be positioned
@@ -321,7 +324,7 @@ function decodeListItem(
   if (isArrayHeaderAfterHyphen(afterHyphen)) {
     const arrayHeader = parseArrayHeaderLine(afterHyphen, activeDelimiter as any)
     if (arrayHeader) {
-      return decodeArrayFromHeader(arrayHeader.header, line, cursor, baseDepth, options)
+      return decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
     }
   }
 
@@ -370,40 +373,7 @@ function decodeFirstFieldOnHyphen(
   baseDepth: Depth,
   options: ResolvedDecodeOptions,
 ): { key: string, value: JsonValue, followDepth: Depth } {
-  // Check for array header as first field
-  const arrayHeader = parseArrayHeaderLine(rest, DEFAULT_DELIMITER)
-  if (arrayHeader) {
-    // Create a synthetic line for array decoding
-    const syntheticLine: ParsedLine = {
-      raw: rest,
-      content: rest,
-      indent: baseDepth * options.indent,
-      depth: baseDepth,
-    }
-
-    const value = decodeArrayFromHeader(arrayHeader.header, syntheticLine, cursor, baseDepth, options)
-
-    // After an array, subsequent fields are at baseDepth + 1 (where array content is)
-    return {
-      key: arrayHeader.header.key!,
-      value,
-      followDepth: baseDepth + 1,
-    }
-  }
-
-  // Regular key-value pair
-  const { key, end } = parseKeyToken(rest, 0)
-  const afterKey = rest.slice(end).trim()
-
-  if (!afterKey) {
-    // Nested object
-    const nested = expectNestedObject(cursor, baseDepth + 1, options)
-    return { key, value: nested, followDepth: baseDepth + 1 }
-  }
-
-  // Inline primitive
-  const value = parsePrimitiveToken(afterKey)
-  return { key, value, followDepth: baseDepth + 1 }
+  return decodeKeyValue(rest, cursor, baseDepth, options)
 }
 
 // #endregion
