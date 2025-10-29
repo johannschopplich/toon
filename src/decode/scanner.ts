@@ -1,5 +1,5 @@
 import type { Depth, ParsedLine } from '../types'
-import { SPACE } from '../constants'
+import { SPACE, TAB } from '../constants'
 
 export class LineCursor {
   private lines: ParsedLine[]
@@ -50,7 +50,7 @@ export class LineCursor {
   }
 }
 
-export function toParsedLines(source: string, indentSize: number): ParsedLine[] {
+export function toParsedLines(source: string, indentSize: number, strict: boolean): ParsedLine[] {
   if (!source.trim()) {
     return []
   }
@@ -58,14 +58,40 @@ export function toParsedLines(source: string, indentSize: number): ParsedLine[] 
   const lines = source.split('\n')
   const parsed: ParsedLine[] = []
 
-  for (const raw of lines) {
+  for (let i = 0; i < lines.length; i++) {
+    const raw = lines[i]!
     let indent = 0
     while (indent < raw.length && raw[indent] === SPACE) {
       indent++
     }
 
     const content = raw.slice(indent)
+
+    // Skip empty lines or lines with only whitespace
+    if (!content.trim()) {
+      continue
+    }
+
     const depth = computeDepthFromIndent(indent, indentSize)
+
+    // Strict mode validation
+    if (strict) {
+      // Find the full leading whitespace region (spaces and tabs)
+      let wsEnd = 0
+      while (wsEnd < raw.length && (raw[wsEnd] === SPACE || raw[wsEnd] === TAB)) {
+        wsEnd++
+      }
+
+      // Check for tabs in leading whitespace (before actual content)
+      if (raw.slice(0, wsEnd).includes(TAB)) {
+        throw new SyntaxError(`Line ${i + 1}: Tabs are not allowed in indentation in strict mode`)
+      }
+
+      // Check for exact multiples of indentSize
+      if (indent > 0 && indent % indentSize !== 0) {
+        throw new SyntaxError(`Line ${i + 1}: Indentation must be exact multiple of ${indentSize}, but found ${indent} spaces`)
+      }
+    }
 
     parsed.push({ raw, indent, content, depth })
   }

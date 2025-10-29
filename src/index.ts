@@ -26,15 +26,15 @@ export function encode(input: unknown, options?: EncodeOptions): string {
 }
 
 export function decode(input: string, options?: DecodeOptions): JsonValue {
-  const resolved = resolveDecodeOptions(options)
-  const lines = toParsedLines(input, resolved.indent)
+  const resolvedOptions = resolveDecodeOptions(options)
+  const lines = toParsedLines(input, resolvedOptions.indent, resolvedOptions.strict)
 
   if (lines.length === 0) {
     throw new TypeError('Cannot decode empty input: input must be a non-empty string')
   }
 
   const cursor = new LineCursor(lines)
-  return decodeValueFromLines(cursor, resolved)
+  return decodeValueFromLines(cursor, resolvedOptions)
 }
 
 function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {

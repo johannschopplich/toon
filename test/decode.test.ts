@@ -508,3 +508,97 @@ describe('error handling', () => {
     expect(() => decode(toon)).toThrow()
   })
 })
+
+describe('strict mode: indentation validation', () => {
+  describe('non-multiple indentation errors', () => {
+    it('throws when object field has non-multiple indentation', () => {
+      const toon = 'a:\n   b: 1' // 3 spaces with indent=2
+      expect(() => decode(toon)).toThrow(/indentation/i)
+      expect(() => decode(toon)).toThrow(/exact multiple/i)
+    })
+
+    it('throws when list item has non-multiple indentation', () => {
+      const toon = 'items[2]:\n   - id: 1\n   - id: 2' // 3 spaces
+      expect(() => decode(toon)).toThrow(/indentation/i)
+    })
+
+    it('throws with custom indent size when non-multiple', () => {
+      const toon = 'a:\n   b: 1' // 3 spaces with indent=4
+      expect(() => decode(toon, { indent: 4 })).toThrow(/exact multiple of 4/i)
+    })
+
+    it('accepts correct indentation with custom indent size', () => {
+      const toon = 'a:\n    b: 1' // 4 spaces with indent=4
+      expect(decode(toon, { indent: 4 })).toEqual({ a: { b: 1 } })
+    })
+  })
+
+  describe('tab character errors', () => {
+    it('throws when tab character used in indentation', () => {
+      const toon = 'a:\n\tb: 1'
+      expect(() => decode(toon)).toThrow(/tab/i)
+    })
+
+    it('throws when mixed tabs and spaces in indentation', () => {
+      const toon = 'a:\n \tb: 1' // space + tab
+      expect(() => decode(toon)).toThrow(/tab/i)
+    })
+
+    it('throws when tab at start of line', () => {
+      const toon = '\ta: 1'
+      expect(() => decode(toon)).toThrow(/tab/i)
+    })
+  })
+
+  describe('tabs in quoted strings are allowed', () => {
+    it('accepts tabs in quoted string values', () => {
+      const toon = 'text: "hello\tworld"'
+      expect(decode(toon)).toEqual({ text: 'hello\tworld' })
+    })
+
+    it('accepts tabs in quoted keys', () => {
+      const toon = '"key\ttab": value'
+      expect(decode(toon)).toEqual({ 'key\ttab': 'value' })
+    })
+
+    it('accepts tabs in quoted array elements', () => {
+      const toon = 'items[2]: "a\tb","c\td"'
+      expect(decode(toon)).toEqual({ items: ['a\tb', 'c\td'] })
+    })
+  })
+
+  describe('non-strict mode', () => {
+    it('accepts non-multiple indentation when strict=false', () => {
+      const toon = 'a:\n   b: 1' // 3 spaces with indent=2
+      expect(decode(toon, { strict: false })).toEqual({ a: { b: 1 } })
+    })
+
+    it('accepts tab indentation when strict=false', () => {
+      const toon = 'a:\n\tb: 1'
+      // Tabs are ignored in indentation counting, so depth=0, "b: 1" at root
+      expect(decode(toon, { strict: false })).toEqual({ a: {}, b: 1 })
+    })
+
+    it('accepts deeply nested non-multiples when strict=false', () => {
+      const toon = 'a:\n   b:\n     c: 1' // 3 and 5 spaces
+      expect(decode(toon, { strict: false })).toEqual({ a: { b: { c: 1 } } })
+    })
+  })
+
+  describe('edge cases', () => {
+    it('empty lines do not trigger validation errors', () => {
+      const toon = 'a: 1\n\nb: 2'
+      expect(decode(toon)).toEqual({ a: 1, b: 2 })
+    })
+
+    it('root-level content (0 indentation) is always valid', () => {
+      const toon = 'a: 1\nb: 2\nc: 3'
+      expect(decode(toon)).toEqual({ a: 1, b: 2, c: 3 })
+    })
+
+    it('lines with only spaces are not validated if empty', () => {
+      const toon = 'a: 1\n   \nb: 2'
+      expect(decode(toon)).toEqual({ a: 1, b: 2 })
+    })
+  })
+})

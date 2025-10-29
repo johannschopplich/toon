@@ -642,7 +642,7 @@ Some non-JSON types are automatically normalized for LLM-safe output:
 |---|---|
 | Number (finite) | Decimal form, no scientific notation (e.g., `-0` → `0`, `1e6` → `1000000`) |
 | Number (`NaN`, `±Infinity`) | `null` |
-| `BigInt` | Decimal digits (no quotes) |
+| `BigInt` | If within safe integer range: converted to number. Otherwise: quoted decimal string (e.g., `"9007199254740993"`) |
 | `Date` | ISO string in quotes (e.g., `"2025-01-01T00:00:00.000Z"`) |
 | `undefined` | `null` |
 | `function` | `null` |
