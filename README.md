@@ -47,10 +47,10 @@ users[2]{id,name,role}:
 
 ## Benchmarks
 
-The benchmarks test datasets that favor TOON's strengths (uniform tabular data). Real-world performance depends heavily on your data structure.
-
 > [!TIP]
 > Try the interactive [Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration) to compare token usage across CSV, JSON, YAML, and TOON with your own data.
+
+The benchmarks test datasets that favor TOON's strengths (uniform tabular data). Real-world performance depends heavily on your data structure.
 
 <!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
 
