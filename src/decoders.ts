@@ -29,7 +29,7 @@ import {
 export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecodeOptions): JsonValue {
   const first = cursor.peek()
   if (!first) {
-    throw new Error('No content to decode')
+    throw new ReferenceError('No content to decode')
   }
 
   // Check for root array
@@ -230,7 +230,7 @@ function decodeListArray(
   if (options.strict && !cursor.atEnd()) {
     const nextLine = cursor.peek()
     if (nextLine && nextLine.depth === itemDepth && nextLine.content.startsWith(LIST_ITEM_PREFIX)) {
-      throw new Error(`Expected ${header.length} list array items, but found more`)
+      throw new RangeError(`Expected ${header.length} list array items, but found more`)
     }
   }
 
@@ -284,7 +284,7 @@ function decodeTabularArray(
 
       if (!hasColon) {
         // No colon = data row (for single-field tables)
-        throw new Error(`Expected ${header.length} tabular rows, but found more`)
+        throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
       }
       else if (hasDelimiter) {
         // Has both colon and delimiter - check which comes first
@@ -292,7 +292,7 @@ function decodeTabularArray(
         const delimiterPos = nextLine.content.indexOf(header.delimiter)
         if (delimiterPos < colonPos) {
           // Delimiter before colon = data row
-          throw new Error(`Expected ${header.length} tabular rows, but found more`)
+          throw new RangeError(`Expected ${header.length} tabular rows, but found more`)
         }
         // Colon before delimiter = key-value pair, OK
       }
@@ -315,7 +315,7 @@ function decodeListItem(
 ): JsonValue {
   const line = cursor.next()
   if (!line) {
-    throw new Error('Expected list item')
+    throw new ReferenceError('Expected list item')
   }
 
   const afterHyphen = line.content.slice(LIST_ITEM_PREFIX.length)
@@ -382,7 +382,7 @@ function decodeFirstFieldOnHyphen(
 
 function assertExpectedCount(actual: number, expected: number, what: string, options: ResolvedDecodeOptions): void {
   if (options.strict && actual !== expected) {
-    throw new Error(`Expected ${expected} ${what}, but got ${actual}`)
+    throw new RangeError(`Expected ${expected} ${what}, but got ${actual}`)
   }
 }
 

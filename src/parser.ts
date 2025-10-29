@@ -256,7 +256,7 @@ export function parseStringLiteral(token: string): string {
       if (trimmed[i] === DOUBLE_QUOTE) {
         // Found closing quote
         if (i !== trimmed.length - 1) {
-          throw new Error('Unexpected characters after closing quote')
+          throw new SyntaxError('Unexpected characters after closing quote')
         }
         const content = trimmed.slice(1, i)
         return unescapeString(content)
@@ -265,7 +265,7 @@ export function parseStringLiteral(token: string): string {
     }
 
     // If we get here, no closing quote was found
-    throw new Error('Unterminated string: missing closing quote')
+    throw new SyntaxError('Unterminated string: missing closing quote')
   }
 
   return trimmed
@@ -278,7 +278,7 @@ export function unescapeString(value: string): string {
   while (i < value.length) {
     if (value[i] === BACKSLASH) {
       if (i + 1 >= value.length) {
-        throw new Error('Invalid escape sequence: backslash at end of string')
+        throw new SyntaxError('Invalid escape sequence: backslash at end of string')
       }
 
       const next = value[i + 1]
@@ -308,7 +308,7 @@ export function unescapeString(value: string): string {
         continue
       }
 
-      throw new Error(`Invalid escape sequence: \\${next}`)
+      throw new SyntaxError(`Invalid escape sequence: \\${next}`)
     }
 
     result += value[i]
@@ -326,7 +326,7 @@ export function parseUnquotedKey(content: string, start: number): { key: string,
 
   // Validate that a colon was found
   if (end >= content.length || content[end] !== COLON) {
-    throw new Error('Missing colon after key')
+    throw new SyntaxError('Missing colon after key')
   }
 
   const key = content.slice(start, end).trim()
@@ -355,7 +355,7 @@ export function parseQuotedKey(content: string, start: number): { key: string, e
 
       // Validate and skip colon after quoted key
       if (end >= content.length || content[end] !== COLON) {
-        throw new Error('Missing colon after key')
+        throw new SyntaxError('Missing colon after key')
       }
       end++
 
@@ -366,7 +366,7 @@ export function parseQuotedKey(content: string, start: number): { key: string, e
     i++
   }
 
-  throw new Error('Unterminated quoted key')
+  throw new SyntaxError('Unterminated quoted key')
 }
 
 export function parseKeyToken(content: string, start: number): { key: string, end: number } {
