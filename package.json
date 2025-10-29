@@ -1,7 +1,7 @@
 {
   "name": "@byjohann/toon",
   "type": "module",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "packageManager": "pnpm@10.19.0",
   "description": "Token-Oriented Object Notation – a token-efficient JSON alternative for LLM prompts",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
