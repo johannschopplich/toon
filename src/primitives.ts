@@ -124,7 +124,7 @@ function isValidUnquotedKey(key: string): boolean {
 
 // #region Value joining
 
-export function joinEncodedValues(values: readonly JsonPrimitive[], delimiter: string = COMMA): string {
+export function encodeAndJoinPrimitives(values: readonly JsonPrimitive[], delimiter: string = COMMA): string {
   return values.map(v => encodePrimitive(v, delimiter)).join(delimiter)
 }
 

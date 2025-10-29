@@ -17,11 +17,11 @@ import {
 import {
   isArrayHeaderAfterHyphen,
   isObjectFirstFieldAfterHyphen,
+  mapRowValuesToPrimitives,
   parseArrayHeaderLine,
+  parseDelimitedValues,
   parseKeyToken,
   parsePrimitiveToken,
-  parseRowValuesToPrimitives,
-  splitDelimitedValues,
 } from './parser'
 
 // #region Entry decoding
@@ -192,8 +192,8 @@ function decodeInlinePrimitiveArray(
     return []
   }
 
-  const values = splitDelimitedValues(inlineValues, header.delimiter)
-  const primitives = parseRowValuesToPrimitives(values)
+  const values = parseDelimitedValues(inlineValues, header.delimiter)
+  const primitives = mapRowValuesToPrimitives(values)
 
   assertExpectedCount(primitives.length, header.length, 'inline array items', options)
 
@@ -254,10 +254,10 @@ function decodeTabularArray(
 
     if (line.depth === rowDepth) {
       cursor.advance()
-      const values = splitDelimitedValues(line.content, header.delimiter)
+      const values = parseDelimitedValues(line.content, header.delimiter)
       assertExpectedCount(values.length, header.fields!.length, 'tabular row values', options)
 
-      const primitives = parseRowValuesToPrimitives(values)
+      const primitives = mapRowValuesToPrimitives(values)
       const obj: JsonObject = {}
 
       for (let i = 0; i < header.fields!.length; i++) {

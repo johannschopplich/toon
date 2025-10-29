@@ -134,14 +134,14 @@ export function parseBracketSegment(
 }
 
 export function parseFieldsSegment(seg: string, delimiter: Delimiter): string[] {
-  return splitDelimitedValues(seg, delimiter).map(field => parseStringLiteral(field.trim()))
+  return parseDelimitedValues(seg, delimiter).map(field => parseStringLiteral(field.trim()))
 }
 
 // #endregion
 
 // #region Delimited value parsing
 
-export function splitDelimitedValues(input: string, delimiter: Delimiter): string[] {
+export function parseDelimitedValues(input: string, delimiter: Delimiter): string[] {
   const values: string[] = []
   let current = ''
   let inQuotes = false
@@ -183,7 +183,7 @@ export function splitDelimitedValues(input: string, delimiter: Delimiter): strin
   return values
 }
 
-export function parseRowValuesToPrimitives(values: string[]): JsonPrimitive[] {
+export function mapRowValuesToPrimitives(values: string[]): JsonPrimitive[] {
   return values.map(v => parsePrimitiveToken(v))
 }
 
