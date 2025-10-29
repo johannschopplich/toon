@@ -24,7 +24,7 @@ import {
   parseKeyToken,
   parsePrimitiveToken,
 } from './parser'
-import { findClosingQuote } from './string-utils'
+import { findClosingQuote } from './utils'
 import {
   assertExpectedCount,
   validateNoExtraListItems,

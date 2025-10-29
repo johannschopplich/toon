@@ -7,9 +7,9 @@ import type {
 } from './types'
 import { DEFAULT_DELIMITER } from './constants'
 import { decodeValueFromLines } from './decode/decoders'
+import { LineCursor, toParsedLines } from './decode/scanner'
 import { encodeValue } from './encoders'
 import { normalizeValue } from './normalize'
-import { LineCursor, toParsedLines } from './decode/scanner'
 
 export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
 export type {

@@ -21,7 +21,7 @@ import {
   TAB,
   TRUE_LITERAL,
 } from '../constants'
-import { findClosingQuote, hasUnquotedChar } from './string-utils'
+import { findClosingQuote, hasUnquotedChar } from './utils'
 
 // #region Array header parsing
 
