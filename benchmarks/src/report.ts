@@ -75,7 +75,7 @@ export function generateMarkdownReport(
       const countString = `(${result.correctCount}/${result.totalCount})`
       const prefix = result.format === 'toon' ? '→ ' : '  '
       const displayName = FORMATTER_DISPLAY_NAMES[result.format] || result.format
-      return `${prefix}${displayName.padEnd(12)} ${bar} ${accuracyString} ${countString}`
+      return `${prefix}${displayName.padEnd(12)}   ${bar}   ${accuracyString} ${countString}`
     }).join('\n')
 
     // Add blank line before model name, except for first model

@@ -116,7 +116,7 @@ const datasetRows = results
     const comparisonLines = formatOrder.map((formatName) => {
       const format = result.formats.find(f => f.name === formatName)!
       const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
-      const labelWithSavings = `vs ${label} (-${format.savingsPercent}%)`.padEnd(28)
+      const labelWithSavings = `vs ${label} (-${format.savingsPercent}%)`.padEnd(27)
       const tokenStr = format.tokens.toLocaleString('en-US').padStart(6)
       return `                             ${labelWithSavings}${tokenStr}`
     })
@@ -140,7 +140,7 @@ const totalComparisonLines = formatOrder.map((formatName) => {
   const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
   const tokens = totalTokensByFormat[formatName]!
   const percent = totalSavingsPercent[formatName]!
-  const labelWithSavings = `vs ${label} (-${percent}%)`.padEnd(28)
+  const labelWithSavings = `vs ${label} (-${percent}%)`.padEnd(27)
   const tokenStr = tokens.toLocaleString('en-US').padStart(6)
   return `                             ${labelWithSavings}${tokenStr}`
 })
