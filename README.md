@@ -956,7 +956,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ## Ports in Other Languages
 
-- **.NET:** [toon.NET](https://github.com/ghost1face/toon.NET)
+- **.NET9:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
 - **Dart:** [toon](https://github.com/wisamidris77/toon)
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
 - **Gleam:** [toon_codec](https://github.com/axelbellec/toon_codec)
