@@ -1,0 +1,53 @@
+name: Update README Contributors Section
+
+permissions:
+  contents: write
+  pull-requests: write
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  update-contributors:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const { data: contributors } = await github.rest.repos.listContributors({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            const avatarSize = 90;
+            const html = contributors
+              .filter(c => !c.type || c.type !== "Bot") // include only real users
+              .map(c => `<a href="${c.html_url}"><img src="${c.avatar_url}&s=${avatarSize}" width="${avatarSize}" height="${avatarSize}" style="border-radius:50%;margin:6px;" title="${c.login}"/></a>`)
+              .join('');
+
+            const newSection = `<!-- CONTRIBUTORS_START -->\n<p align="center">${html}</p>\n<!-- CONTRIBUTORS_END -->`;
+
+            let readme = fs.readFileSync('README.md', 'utf8');
+            if (readme.includes('<!-- CONTRIBUTORS_START -->')) {
+              readme = readme.replace(/<!-- CONTRIBUTORS_START -->([\s\S]*?)<!-- CONTRIBUTORS_END -->/, newSection);
+            } else {
+              readme += `\n${newSection}\n`;
+            }
+
+            fs.writeFileSync('README.md', readme);
+
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update contributors section" || echo "No changes to commit"
+          git push
