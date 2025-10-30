@@ -914,6 +914,9 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **.NET:** [toon.NET](https://github.com/ghost1face/toon.NET)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
 - **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
+- **Rust (+Python Bindings):** 
+	-	[toon-rs](https://github.com/JadJabbour/toon-rs)
+	-	[toon-pyrs](https://pypi.org/project/toon-pyrs/)
 
 ## License
 
