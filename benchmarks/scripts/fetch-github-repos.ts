@@ -1,10 +1,11 @@
+import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import * as prompts from '@clack/prompts'
 import { ofetch } from 'ofetch'
 import pMap from 'p-map'
 import { BENCHMARKS_DIR } from '../src/constants'
-import { ensureDir, saveJsonFile } from '../src/utils'
+import { ensureDir } from '../src/utils'
 
 prompts.intro('GitHub Repositories Fetcher')
 
@@ -79,7 +80,8 @@ async function saveRepos(repos: Record<string, any>[]): Promise<void> {
   const outputFile = path.join(outputDir, 'github-repos.json')
 
   await ensureDir(outputDir)
-  await saveJsonFile(outputFile, repos)
+  const jsonOutput = JSON.stringify(repos, undefined, 2)
+  await fsp.writeFile(outputFile, `${jsonOutput}\n`, 'utf-8')
 
   const relativePath = path.relative(BENCHMARKS_DIR, outputFile)
   prompts.log.info(`Result saved to \`${relativePath}\``)

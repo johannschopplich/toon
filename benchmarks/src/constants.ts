@@ -14,7 +14,7 @@ export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.me
 export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
   'claude-haiku-4-5-20251001': 50,
   'gemini-2.5-flash': 25,
-  'gpt-5-nano': undefined,
+  'gpt-5-nano': 50,
   'grok-4-fast-non-reasoning': 50,
 }
 
@@ -22,6 +22,18 @@ export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
  * Default concurrency for parallel evaluations to prevent bursting
  */
 export const DEFAULT_CONCURRENCY = 10
+
+/**
+ * Display names for data format types
+ */
+export const FORMATTER_DISPLAY_NAMES: Record<string, string> = {
+  'json-pretty': 'JSON',
+  'json-compact': 'JSON compact',
+  'toon': 'TOON',
+  'csv': 'CSV',
+  'xml': 'XML',
+  'yaml': 'YAML',
+} as const
 
 /**
  * Progress bar configuration

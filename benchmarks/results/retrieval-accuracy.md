@@ -4,35 +4,39 @@ Accuracy across **4 LLMs** on 154 data retrieval questions:
 
 ```
 gpt-5-nano
-→ toon         ███████████████████░  96.1% (148/154)
-  csv          ██████████████████░░  90.3% (139/154)
-  yaml         ██████████████████░░  89.0% (137/154)
-  json         ██████████████████░░  87.7% (135/154)
-  xml          █████████████████░░░  83.8% (129/154)
+→ TOON         ███████████████████░  96.1% (148/154)
+  CSV          ██████████████████░░  91.6% (141/154)
+  YAML         ██████████████████░░  91.6% (141/154)
+  JSON compact ██████████████████░░  91.6% (141/154)
+  XML          █████████████████░░░  87.0% (134/154)
+  JSON         █████████████████░░░  86.4% (133/154)
 
 claude-haiku-4-5-20251001
-  yaml         ██████████░░░░░░░░░░  49.4% (76/154)
-→ toon         ██████████░░░░░░░░░░  48.1% (74/154)
-  csv          ██████████░░░░░░░░░░  48.1% (74/154)
-  json         █████████░░░░░░░░░░░  47.4% (73/154)
-  xml          █████████░░░░░░░░░░░  46.8% (72/154)
+  JSON         ██████████░░░░░░░░░░  50.0% (77/154)
+  YAML         ██████████░░░░░░░░░░  49.4% (76/154)
+→ TOON         ██████████░░░░░░░░░░  48.7% (75/154)
+  XML          ██████████░░░░░░░░░░  48.1% (74/154)
+  CSV          █████████░░░░░░░░░░░  47.4% (73/154)
+  JSON compact █████████░░░░░░░░░░░  44.2% (68/154)
 
 gemini-2.5-flash
-  csv          ██████████████████░░  87.7% (135/154)
-  xml          █████████████████░░░  85.1% (131/154)
-→ toon         █████████████████░░░  83.8% (129/154)
-  json         ████████████████░░░░  78.6% (121/154)
-  yaml         ███████████████░░░░░  76.6% (118/154)
+  CSV          ██████████████████░░  87.7% (135/154)
+  XML          ██████████████████░░  87.7% (135/154)
+→ TOON         █████████████████░░░  86.4% (133/154)
+  YAML         ████████████████░░░░  79.9% (123/154)
+  JSON compact ████████████████░░░░  79.9% (123/154)
+  JSON         ███████████████░░░░░  76.6% (118/154)
 
 grok-4-fast-non-reasoning
-→ toon         ██████████░░░░░░░░░░  48.7% (75/154)
-  json         ██████████░░░░░░░░░░  48.1% (74/154)
-  xml          █████████░░░░░░░░░░░  47.4% (73/154)
-  yaml         █████████░░░░░░░░░░░  46.8% (72/154)
-  csv          █████████░░░░░░░░░░░  45.5% (70/154)
+→ TOON         ██████████░░░░░░░░░░  49.4% (76/154)
+  JSON         ██████████░░░░░░░░░░  48.7% (75/154)
+  XML          █████████░░░░░░░░░░░  46.1% (71/154)
+  YAML         █████████░░░░░░░░░░░  46.1% (71/154)
+  JSON compact █████████░░░░░░░░░░░  45.5% (70/154)
+  CSV          █████████░░░░░░░░░░░  44.2% (68/154)
 ```
 
-**Key tradeoff:** TOON achieves **69.2% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens** on these datasets.
+**Key tradeoff:** TOON achieves **70.1% accuracy** (vs JSON's 65.4%) while using **46.3% fewer tokens** on these datasets.
 
 <details>
 <summary><strong>Performance by dataset and model</strong></summary>
@@ -43,41 +47,45 @@ grok-4-fast-non-reasoning
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `csv` | 67.0% | 2,337 | 134/200 |
-| `toon` | 66.5% | 2,483 | 133/200 |
-| `yaml` | 65.5% | 4,969 | 131/200 |
-| `json` | 63.5% | 6,347 | 127/200 |
-| `xml` | 66.5% | 7,314 | 133/200 |
+| `csv` | 65.5% | 2,337 | 131/200 |
+| `toon` | 67.5% | 2,483 | 135/200 |
+| `json-compact` | 65.5% | 3,943 | 131/200 |
+| `yaml` | 68.5% | 4,969 | 137/200 |
+| `xml` | 69.5% | 7,314 | 139/200 |
+| `json-pretty` | 64.5% | 6,347 | 129/200 |
 
 ##### E-commerce orders with nested structures
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
 | `toon` | 78.8% | 5,967 | 126/160 |
-| `csv` | 71.9% | 6,735 | 115/160 |
-| `yaml` | 71.9% | 7,328 | 115/160 |
-| `json` | 73.1% | 9,694 | 117/160 |
-| `xml` | 73.8% | 10,992 | 118/160 |
+| `csv` | 76.3% | 6,735 | 122/160 |
+| `json-compact` | 70.6% | 5,962 | 113/160 |
+| `yaml` | 72.5% | 7,328 | 116/160 |
+| `json-pretty` | 76.9% | 9,694 | 123/160 |
+| `xml` | 73.1% | 10,992 | 117/160 |
 
 ##### Time-series analytics data
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `csv` | 67.6% | 1,393 | 92/136 |
-| `toon` | 67.6% | 1,515 | 92/136 |
-| `yaml` | 64.7% | 2,938 | 88/136 |
-| `json` | 68.4% | 3,665 | 93/136 |
-| `xml` | 66.2% | 4,376 | 90/136 |
+| `toon` | 68.4% | 1,515 | 93/136 |
+| `csv` | 65.4% | 1,393 | 89/136 |
+| `json-compact` | 64.7% | 2,341 | 88/136 |
+| `yaml` | 66.2% | 2,938 | 90/136 |
+| `json-pretty` | 64.7% | 3,665 | 88/136 |
+| `xml` | 66.9% | 4,376 | 91/136 |
 
 ##### Top 100 GitHub repositories
 
 | Format | Accuracy | Tokens | Correct/Total |
 | ------ | -------- | ------ | ------------- |
-| `csv` | 64.2% | 8,513 | 77/120 |
-| `toon` | 62.5% | 8,745 | 75/120 |
-| `yaml` | 57.5% | 13,129 | 69/120 |
-| `json` | 55.0% | 15,145 | 66/120 |
-| `xml` | 53.3% | 17,095 | 64/120 |
+| `toon` | 65.0% | 8,745 | 78/120 |
+| `csv` | 62.5% | 8,513 | 75/120 |
+| `json-compact` | 58.3% | 11,455 | 70/120 |
+| `yaml` | 56.7% | 13,129 | 68/120 |
+| `xml` | 55.8% | 17,095 | 67/120 |
+| `json-pretty` | 52.5% | 15,145 | 63/120 |
 
 #### Performance by Model
 
@@ -86,40 +94,44 @@ grok-4-fast-non-reasoning
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
 | `toon` | 96.1% | 148/154 |
-| `csv` | 90.3% | 139/154 |
-| `yaml` | 89.0% | 137/154 |
-| `json` | 87.7% | 135/154 |
-| `xml` | 83.8% | 129/154 |
+| `csv` | 91.6% | 141/154 |
+| `yaml` | 91.6% | 141/154 |
+| `json-compact` | 91.6% | 141/154 |
+| `xml` | 87.0% | 134/154 |
+| `json-pretty` | 86.4% | 133/154 |
 
 ##### claude-haiku-4-5-20251001
 
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
+| `json-pretty` | 50.0% | 77/154 |
 | `yaml` | 49.4% | 76/154 |
-| `toon` | 48.1% | 74/154 |
-| `csv` | 48.1% | 74/154 |
-| `json` | 47.4% | 73/154 |
-| `xml` | 46.8% | 72/154 |
+| `toon` | 48.7% | 75/154 |
+| `xml` | 48.1% | 74/154 |
+| `csv` | 47.4% | 73/154 |
+| `json-compact` | 44.2% | 68/154 |
 
 ##### gemini-2.5-flash
 
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
 | `csv` | 87.7% | 135/154 |
-| `xml` | 85.1% | 131/154 |
-| `toon` | 83.8% | 129/154 |
-| `json` | 78.6% | 121/154 |
-| `yaml` | 76.6% | 118/154 |
+| `xml` | 87.7% | 135/154 |
+| `toon` | 86.4% | 133/154 |
+| `yaml` | 79.9% | 123/154 |
+| `json-compact` | 79.9% | 123/154 |
+| `json-pretty` | 76.6% | 118/154 |
 
 ##### grok-4-fast-non-reasoning
 
 | Format | Accuracy | Correct/Total |
 | ------ | -------- | ------------- |
-| `toon` | 48.7% | 75/154 |
-| `json` | 48.1% | 74/154 |
-| `xml` | 47.4% | 73/154 |
-| `yaml` | 46.8% | 72/154 |
-| `csv` | 45.5% | 70/154 |
+| `toon` | 49.4% | 76/154 |
+| `json-pretty` | 48.7% | 75/154 |
+| `xml` | 46.1% | 71/154 |
+| `yaml` | 46.1% | 71/154 |
+| `json-compact` | 45.5% | 70/154 |
+| `csv` | 44.2% | 68/154 |
 
 </details>
 
@@ -159,7 +171,7 @@ Four datasets designed to test different structural patterns (all contain arrays
 
 #### Evaluation Process
 
-1. **Format conversion**: Each dataset is converted to all 5 formats (TOON, CSV, XML, JSON, YAML).
+1. **Format conversion**: Each dataset is converted to all 6 formats (TOON, CSV, XML, YAML, JSON, JSON compact).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
 3. **Validate with LLM-as-judge**: `gpt-5-nano` validates if the answer is semantically correct (e.g., `50000` = `$50,000`, `Engineering` = `engineering`, `2025-01-01` = `January 1, 2025`).
 
@@ -168,6 +180,6 @@ Four datasets designed to test different structural patterns (all contain arrays
 - **Models tested**: `gpt-5-nano`, `claude-haiku-4-5-20251001`, `gemini-2.5-flash`, `grok-4-fast-non-reasoning`
 - **Token counting**: Using `gpt-tokenizer` with `o200k_base` encoding (GPT-5 tokenizer)
 - **Temperature**: Not set (models use their defaults)
-- **Total evaluations**: 154 questions × 5 formats × 4 models = 3,080 LLM calls
+- **Total evaluations**: 154 questions × 6 formats × 4 models = 3,696 LLM calls
 
 </details>
