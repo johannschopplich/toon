@@ -906,14 +906,13 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
 - **PHP:** [toon-php](https://github.com/HelgeSverre/toon-php)
-- **Python:** [pytoon](https://github.com/bpradana/pytoon)
-  - [python-toon](https://github.com/xaviviro/python-toon)
-  - [toon-python](https://gitlab.com/KanTakahiro/toon-python)
+- **Python:** [python-toon](https://github.com/xaviviro/python-toon)
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
 - **Java:** [JToon](https://github.com/felipestanzani/JToon)
 - **.NET:** [toon.NET](https://github.com/ghost1face/toon.NET)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
 - **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
+- **Rust:** [toon-rs](https://github.com/JadJabbour/toon-rs)
 
 ## License
 
