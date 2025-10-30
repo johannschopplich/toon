@@ -953,3 +953,9 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 ## License
 
 [MIT](./LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
+
+## Contributors
+- Speacial thanks to all contributors of toon:
+
+<!-- CONTRIBUTORS_START -->
+<!-- CONTRIBUTORS_END -->
