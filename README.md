@@ -40,10 +40,10 @@ users[2]{id,name,role}:
 ## Key Features
 
 - 💸 **Token-efficient:** typically 30–60% fewer tokens than JSON
-- 🤿 **LLM-friendly guardrails:** explicit lengths and field lists help models validate output
+- 🤿 **LLM-friendly guardrails:** explicit lengths and fields enable validation
 - 🍱 **Minimal syntax:** removes redundant punctuation (braces, brackets, most quotes)
-- 📐 **Indentation-based structure:** replaces braces with whitespace for better readability
-- 🧺 **Tabular arrays:** declare keys once, then stream rows without repetition
+- 📐 **Indentation-based structure:** like YAML, uses whitespace instead of braces
+- 🧺 **Tabular arrays:** declare keys once, stream data as rows
 
 ## Benchmarks
 

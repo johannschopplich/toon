@@ -1,15 +1,15 @@
-import type { DecodeOptions, EncodeOptions } from '../../src'
+import type { DecodeOptions, Delimiter, EncodeOptions } from '../../src'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand, runMain } from 'citty'
 import { consola } from 'consola'
-import { version } from '../../package.json' with { type: 'json' }
-import { decode, DELIMITERS, encode } from '../../src'
+import { name, version } from '../../package.json' with { type: 'json' }
+import { decode, DEFAULT_DELIMITER, DELIMITERS, encode } from '../../src'
 
 const main = defineCommand({
   meta: {
-    name: 'toon',
+    name,
     description: 'TOON CLI — Convert between JSON and TOON formats',
     version,
   },
@@ -71,8 +71,8 @@ const main = defineCommand({
     }
 
     // Validate delimiter
-    const delimiter = args.delimiter || ','
-    if (!Object.values(DELIMITERS).includes(delimiter as any)) {
+    const delimiter = args.delimiter || DEFAULT_DELIMITER
+    if (!(Object.values(DELIMITERS)).includes(delimiter as Delimiter)) {
       throw new Error(`Invalid delimiter "${delimiter}". Valid delimiters are: comma (,), tab (\\t), pipe (|)`)
     }
 
@@ -83,7 +83,7 @@ const main = defineCommand({
         await encodeToToon({
           input: inputPath,
           output: outputPath,
-          delimiter: delimiter as ',' | '\t' | '|',
+          delimiter: delimiter as Delimiter,
           indent,
           lengthMarker: args.lengthMarker === true ? '#' : false,
         })
@@ -128,9 +128,9 @@ function detectMode(
 async function encodeToToon(config: {
   input: string
   output?: string
-  delimiter: ',' | '\t' | '|'
+  delimiter: Delimiter
   indent: number
-  lengthMarker: '#' | false
+  lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
 }) {
   const jsonContent = await fsp.readFile(config.input, 'utf-8')
 
