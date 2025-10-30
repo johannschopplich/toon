@@ -488,24 +488,10 @@ user:
   preferences[0]:
 ```
 
-## Canonical Formatting Rules
-
-TOON formatting is deterministic and minimal:
-
-- **Indentation**: 2 spaces per nesting level.
-- **Lines**:
-  - `key: value` for primitives (single space after colon).
-  - `key:` for nested/empty objects (no trailing space on that line).
-- **Arrays**:
-  - Delimiter encoding: Comma delimiters are implicit in array headers (e.g., `tags[3]:`, `items[2]{id,name}:`). Tab and pipe delimiters are explicitly shown in array headers (e.g., `tags[3|]:`, `items[2	]{id	name}:`).
-  - Primitive arrays inline: `key[N]: v1,v2` (comma) or `key[N<delim>]: v1<delim>v2` (tab/pipe).
-  - Tabular arrays: `key[N]{f1,f2}: …` (comma) or `key[N<delim>]{f1<delim>f2}: …` (tab/pipe).
-  - List items: two spaces, hyphen, space (`"  - …"`).
-- **Whitespace invariants**:
-  - No trailing spaces at end of any line.
-  - No trailing newline at end of output.
-
 ## Format Overview
+
+> [!NOTE]
+> For precise formatting rules and implementation details, see the [SPEC.md](./SPEC.md).
 
 ### Objects
 
