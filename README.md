@@ -844,9 +844,11 @@ A JavaScript value (object, array, or primitive) representing the parsed TOON da
 ```ts
 import { decode } from '@byjohann/toon'
 
-const toon = `items[2]{sku,qty,price}:
+const toon = `
+items[2]{sku,qty,price}:
   A1,2,9.99
-  B2,1,14.5`
+  B2,1,14.5
+`
 
 const data = decode(toon)
 // {
@@ -861,10 +863,10 @@ const data = decode(toon)
 
 By default, the decoder validates input strictly:
 
-- **Invalid escape sequences** – Throws on `"\x"`, unterminated strings
-- **Syntax errors** – Throws on missing colons, malformed headers
-- **Array length mismatches** – Throws when declared length doesn't match actual count
-- **Delimiter mismatches** – Throws when row delimiters don't match header
+- **Invalid escape sequences**: Throws on `"\x"`, unterminated strings.
+- **Syntax errors**: Throws on missing colons, malformed headers.
+- **Array length mismatches**: Throws when declared length doesn't match actual count.
+- **Delimiter mismatches**: Throws when row delimiters don't match header.
 
 ## Notes and Limitations
 
