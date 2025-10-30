@@ -23,9 +23,6 @@ importers:
       eslint:
         specifier: ^9.38.0
         version: 9.38.0(jiti@2.6.1)
-      gpt-tokenizer:
-        specifier: ^3.2.0
-        version: 3.2.0
       tsdown:
         specifier: ^0.15.10
         version: 0.15.10(typescript@5.9.3)
