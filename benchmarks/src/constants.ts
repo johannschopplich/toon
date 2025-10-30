@@ -36,16 +36,6 @@ export const FORMATTER_DISPLAY_NAMES: Record<string, string> = {
 } as const
 
 /**
- * Progress bar configuration
- */
-export const PROGRESS_BAR = {
-  /** Default width for progress bars */
-  defaultWidth: 25,
-  /** Compact width for inline displays */
-  compactWidth: 20,
-} as const
-
-/**
  * Enable dry run mode for quick testing with limited AI requests
  *
  * @remarks

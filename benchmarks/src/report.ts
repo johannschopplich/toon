@@ -54,6 +54,11 @@ export function generateMarkdownReport(
   const modelIds = models.map(m => m.modelId)
   const modelNames = modelIds.filter(id => results.some(r => r.model === id))
 
+  const maxDisplayNameWidth = Math.max(
+    ...Object.values(FORMATTER_DISPLAY_NAMES).map(name => name.length),
+  )
+  const progressBarWidth = 20
+
   const modelBreakdown = modelNames.map((modelName, i) => {
     const modelResults = formatResults.map((fr) => {
       const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
@@ -70,12 +75,12 @@ export function generateMarkdownReport(
     }).sort((a, b) => b.accuracy - a.accuracy)
 
     const formatLines = modelResults.map((result) => {
-      const bar = createProgressBar(result.accuracy, 1, 20)
+      const bar = createProgressBar(result.accuracy, 1, progressBarWidth)
       const accuracyString = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
       const countString = `(${result.correctCount}/${result.totalCount})`
       const prefix = result.format === 'toon' ? '→ ' : '  '
       const displayName = FORMATTER_DISPLAY_NAMES[result.format] || result.format
-      return `${prefix}${displayName.padEnd(12)}   ${bar}   ${accuracyString} ${countString}`
+      return `${prefix}${displayName.padEnd(maxDisplayNameWidth)}   ${bar}   ${accuracyString} ${countString}`
     }).join('\n')
 
     // Add blank line before model name, except for first model
