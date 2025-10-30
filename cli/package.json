@@ -1,29 +1,12 @@
 {
-  "name": "@byjohann/toon-cli",
+  "name": "@toon/cli",
   "type": "module",
-  "version": "0.1.0",
-  "license": "MIT",
-  "bin": {
-    "toon": "./dist/index.js"
-  },
-  "files": [
-    "dist"
-  ],
+  "private": true,
   "scripts": {
-    "build": "tsdown",
-    "dev": "tsdown --watch",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "dev": "tsx ./src/index.ts"
   },
   "dependencies": {
-    "@byjohann/toon": "workspace:*",
-    "commander": "^14.0.2",
-    "zod": "^4.1.12"
-  },
-  "devDependencies": {
-    "@types/node": "^24.9.1",
-    "tsdown": "^0.15.10",
-    "tsx": "^4.20.6",
-    "typescript": "^5.9.3"
+    "citty": "^0.1.6",
+    "consola": "^3.4.2"
   }
 }

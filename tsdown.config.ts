@@ -2,7 +2,10 @@ import type { UserConfig, UserConfigFn } from 'tsdown/config'
 import { defineConfig } from 'tsdown/config'
 
 const config: UserConfig | UserConfigFn = defineConfig({
-  entry: ['src/index.ts'],
+  entry: {
+    'index': 'src/index.ts',
+    'cli/index': 'cli/src/index.ts',
+  },
   dts: true,
 })
 

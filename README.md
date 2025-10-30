@@ -405,6 +405,54 @@ pnpm add @byjohann/toon
 yarn add @byjohann/toon
 ```
 
+## CLI
+
+Command-line tool for converting between JSON and TOON formats.
+
+### Usage
+
+```bash
+npx @byjohann/toon <input> [options]
+```
+
+**Auto-detection:** The CLI automatically detects the operation based on file extension (`.json` → encode, `.toon` → decode).
+
+```bash
+# Encode JSON to TOON (auto-detected)
+toon input.json -o output.toon
+
+# Decode TOON to JSON (auto-detected)
+toon data.toon -o output.json
+
+# Output to stdout
+toon input.json
+```
+
+### Options
+
+| Option | Description |
+| ------ | ----------- |
+| `-o, --output <file>` | Output file path (prints to stdout if omitted) |
+| `-e, --encode` | Force encode mode (overrides auto-detection) |
+| `-d, --decode` | Force decode mode (overrides auto-detection) |
+| `--delimiter <char>` | Array delimiter: `,` (comma), `\t` (tab), `\|` (pipe) |
+| `--indent <number>` | Indentation size (default: `2`) |
+| `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
+| `--no-strict` | Disable strict validation when decoding |
+
+### Examples
+
+```bash
+# Tab-separated output (often more token-efficient)
+toon data.json --delimiter "\t" -o output.toon
+
+# Pipe-separated with length markers
+toon data.json --delimiter "|" --length-marker -o output.toon
+
+# Lenient decoding (skip validation)
+toon data.toon --no-strict -o output.json
+```
+
 ## Quick Start
 
 ```ts

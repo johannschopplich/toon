@@ -1,133 +1,197 @@
-#!/usr/bin/env node
-
-import type { DecodeOptions, EncodeOptions } from '@byjohann/toon'
+import type { DecodeOptions, EncodeOptions } from '../../src'
+import * as fsp from 'node:fs/promises'
+import * as path from 'node:path'
 import process from 'node:process'
-import { DELIMITERS } from '@byjohann/toon'
-import { Command } from 'commander'
-import { z } from 'zod'
-import { decodeToJson } from './decode.js'
-import { encodeToToon } from './encode.js'
+import { defineCommand, runMain } from 'citty'
+import { consola } from 'consola'
+import { version } from '../../package.json' with { type: 'json' }
+import { decode, DELIMITERS, encode } from '../../src'
 
-interface CliOptions {
-  output?: string
-  encode?: boolean
-  decode?: boolean
-  delimiter?: string
-  indent?: number
-  lengthMarker?: string
-  strict?: boolean
-}
+const main = defineCommand({
+  meta: {
+    name: 'toon',
+    description: 'TOON CLI — Convert between JSON and TOON formats',
+    version,
+  },
+  args: {
+    input: {
+      type: 'positional',
+      description: 'Input file path',
+      required: true,
+    },
+    output: {
+      type: 'string',
+      description: 'Output file path',
+      alias: 'o',
+    },
+    encode: {
+      type: 'boolean',
+      description: 'Encode JSON to TOON (auto-detected by default)',
+      alias: 'e',
+    },
+    decode: {
+      type: 'boolean',
+      description: 'Decode TOON to JSON (auto-detected by default)',
+      alias: 'd',
+    },
+    delimiter: {
+      type: 'string',
+      description: 'Delimiter for arrays: comma (,), tab (\\t), or pipe (|)',
+      default: ',',
+    },
+    indent: {
+      type: 'string',
+      description: 'Indentation size',
+      default: '2',
+    },
+    lengthMarker: {
+      type: 'boolean',
+      description: 'Use length marker (#) for arrays',
+      default: false,
+    },
+    strict: {
+      type: 'boolean',
+      description: 'Enable strict mode for decoding',
+      default: true,
+    },
+  },
+  async run({ args }) {
+    const input = args.input || args._[0]
+    if (!input) {
+      throw new Error('Input file path is required')
+    }
 
-const delimiterSchema = z.enum(DELIMITERS)
+    const inputPath = path.resolve(input)
+    const outputPath = args.output ? path.resolve(args.output) : undefined
 
-// TODO: Create schema from EncodeOptions
-const lengthMarkerSchema = z.union([z.literal('#'), z.literal(false)])
+    // Parse and validate indent
+    const indent = Number.parseInt(args.indent || '2', 10)
+    if (Number.isNaN(indent) || indent < 0) {
+      throw new Error(`Invalid indent value: ${args.indent}`)
+    }
 
-function detectMode(inputFile: string, options: CliOptions): 'encode' | 'decode' {
+    // Validate delimiter
+    const delimiter = args.delimiter || ','
+    if (!Object.values(DELIMITERS).includes(delimiter as any)) {
+      throw new Error(`Invalid delimiter "${delimiter}". Valid delimiters are: comma (,), tab (\\t), pipe (|)`)
+    }
+
+    const mode = detectMode(inputPath, args.encode, args.decode)
+
+    try {
+      if (mode === 'encode') {
+        await encodeToToon({
+          input: inputPath,
+          output: outputPath,
+          delimiter: delimiter as ',' | '\t' | '|',
+          indent,
+          lengthMarker: args.lengthMarker === true ? '#' : false,
+        })
+      }
+      else {
+        await decodeToJson({
+          input: inputPath,
+          output: outputPath,
+          indent,
+          strict: args.strict !== false,
+        })
+      }
+    }
+    catch (error) {
+      consola.error(error)
+      process.exit(1)
+    }
+  },
+})
+
+function detectMode(
+  inputFile: string,
+  encodeFlag?: boolean,
+  decodeFlag?: boolean,
+): 'encode' | 'decode' {
   // Explicit flags take precedence
-  if (options.encode) {
+  if (encodeFlag)
     return 'encode'
-  }
-  if (options.decode) {
+  if (decodeFlag)
     return 'decode'
-  }
 
   // Auto-detect based on file extension
-  if (inputFile.endsWith('.json')) {
+  if (inputFile.endsWith('.json'))
     return 'encode'
-  }
-  if (inputFile.endsWith('.toon')) {
+  if (inputFile.endsWith('.toon'))
     return 'decode'
-  }
 
   // Default to encode
   return 'encode'
 }
 
-async function processFile(inputFile: string, options: CliOptions) {
-  const mode = detectMode(inputFile, options)
+async function encodeToToon(config: {
+  input: string
+  output?: string
+  delimiter: ',' | '\t' | '|'
+  indent: number
+  lengthMarker: '#' | false
+}) {
+  const jsonContent = await fsp.readFile(config.input, 'utf-8')
 
+  let data: unknown
   try {
-    if (mode === 'encode') {
-      const encodeOptions: EncodeOptions = {}
-
-      if (options.delimiter !== undefined) {
-        const result = delimiterSchema.safeParse(options.delimiter)
-        if (!result.success) {
-          throw new Error(`Invalid delimiter "${options.delimiter}". Valid delimiters are: comma (,), tab (\\t), pipe (|)`)
-        }
-        encodeOptions.delimiter = result.data
-      }
-
-      encodeOptions.indent = options.indent
-
-      if (options.lengthMarker !== undefined) {
-        const result = lengthMarkerSchema.safeParse(options.lengthMarker)
-        if (!result.success) {
-          throw new Error(`Invalid length marker "${options.lengthMarker}". Only '#' is supported`)
-        }
-        encodeOptions.lengthMarker = result.data
-      }
-
-      const result = encodeToToon({
-        input: inputFile,
-        output: options.output,
-        options: encodeOptions,
-      })
-
-      if (!options.output) {
-        console.log(result)
-      }
-      else {
-        console.log(`✓ Encoded ${inputFile} successfully → ${options.output}`)
-      }
-    }
-    else {
-      const decodeOptions: DecodeOptions = {}
-      decodeOptions.indent = options.indent
-      decodeOptions.strict = options.strict
-
-      const result = decodeToJson({
-        input: inputFile,
-        output: options.output,
-        options: decodeOptions,
-      })
-
-      if (!options.output) {
-        console.log(result)
-      }
-      else {
-        console.log(`✓ Decoded ${inputFile} successfully → ${options.output}`)
-      }
-    }
+    data = JSON.parse(jsonContent)
   }
   catch (error) {
-    console.error('✗ Error:', error instanceof Error ? error.message : String(error))
-    process.exit(1)
+    throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`)
+  }
+
+  const encodeOptions: EncodeOptions = {
+    delimiter: config.delimiter,
+    indent: config.indent,
+    lengthMarker: config.lengthMarker,
+  }
+
+  const toonOutput = encode(data, encodeOptions)
+
+  if (config.output) {
+    await fsp.writeFile(config.output, toonOutput, 'utf-8')
+    const relativeInputPath = path.relative(process.cwd(), config.input)
+    const relativeOutputPath = path.relative(process.cwd(), config.output)
+    consola.success(`Encoded \`${relativeInputPath}\` → \`${relativeOutputPath}\``)
+  }
+  else {
+    console.log(toonOutput)
   }
 }
 
-const program = new Command()
+async function decodeToJson(config: {
+  input: string
+  output?: string
+  indent: number
+  strict: boolean
+}) {
+  const toonContent = await fsp.readFile(config.input, 'utf-8')
 
-program
-  .name('toon cli')
-  .description('Token-Oriented Object Notation - Convert between JSON and TOON formats')
-  .version('0.1.0')
-  .argument('<input>', 'Input file path')
-  .option('-o, --output <file>', 'Output file path')
-  .option('-e, --encode', 'Encode JSON to TOON (auto-detected by default)')
-  .option('-d, --decode', 'Decode TOON to JSON (auto-detected by default)')
-  .option('--delimiter <char>', 'Delimiter for arrays (default: comma)')
-  .option('--indent <number>', 'Indentation size (default: 2)', Number.parseInt)
-  .option('--length-marker <char>', 'Length marker character (e.g., \'#\')')
-  .option('--no-strict', 'Disable strict mode for decoding')
-  .addHelpText('after', `
-Examples:
-  $ toon input.json -o output.toon
-  $ toon data.toon -o output.json
-  $ toon input.json --delimiter "|" -o output.toon
-  $ toon data.toon --no-strict -o output.json
-`)
-  .action(processFile)
+  let data: unknown
+  try {
+    const decodeOptions: DecodeOptions = {
+      indent: config.indent,
+      strict: config.strict,
+    }
+    data = decode(toonContent, decodeOptions)
+  }
+  catch (error) {
+    throw new Error(`Failed to decode TOON: ${error instanceof Error ? error.message : String(error)}`)
+  }
 
-program.parse()
+  const jsonOutput = JSON.stringify(data, undefined, config.indent)
+
+  if (config.output) {
+    await fsp.writeFile(config.output, jsonOutput, 'utf-8')
+    const relativeInputPath = path.relative(process.cwd(), config.input)
+    const relativeOutputPath = path.relative(process.cwd(), config.output)
+    consola.success(`Decoded \`${relativeInputPath}\` → \`${relativeOutputPath}\``)
+  }
+  else {
+    console.log(jsonOutput)
+  }
+}
+
+runMain(main)
