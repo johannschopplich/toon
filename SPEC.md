@@ -1,25 +1,77 @@
-# TOON Specification (v1.2)
+# TOON Specification v1.2
 
-Status: Draft, normative where indicated. This version specifies both encoding (producer behavior) and decoding (parser behavior).
+## Token-Oriented Object Notation
 
-- Normative statements use RFC 2119/8174 keywords: MUST, MUST NOT, SHOULD, SHOULD NOT, MAY.
-- Audience: implementers of encoders/decoders/validators; tool authors; practitioners embedding TOON in LLM prompts.
+**Version:** 1.2
+**Date:** 2025-10-31
+**Status:** Working Draft
+**Author:** Johann Schopplich ([@johannschopplich](https://github.com/johannschopplich))
+**License:** MIT
 
-Changelog:
-- v1.2:
-  - Centralized decoding rules (primitives, keys) and strict-mode checklist.
-  - Made header grammar normative and clarified delimiter scoping.
-  - Tightened strict-mode indentation (exact multiples; tabs error).
-  - Defined blank-line and trailing-newline decoding behavior with explicit skipping rules outside arrays.
-  - Clarified hyphen-based quoting: "-" or any string starting with "-" MUST be quoted.
-  - Clarified BigInt normalization (quoted string when out of safe range).
-  - Unified root-form detection and row/key disambiguation language; disambiguation uses first unquoted delimiter vs colon.
-  - Introduced "document delimiter" vs "active delimiter" terminology.
-- v1.1: Made decoding behavior normative; added strict-mode rules, delimiter-aware parsing, and reference algorithms; decoder options (indent, strict).
-- v1: Initial encoding, normalization, and conformance rules.
+---
 
-Scope:
-- Defines the data model, encoding normalization (reference JS/TS), concrete syntax, decoding semantics, and conformance requirements for producing and consuming TOON.
+## Abstract
+
+Token-Oriented Object Notation (TOON) is a compact, human-readable serialization format optimized for reduced token usage in Large Language Model contexts. This specification defines the data model, encoding normalization, concrete syntax, decoding semantics, and conformance requirements for producing and consuming TOON. TOON achieves 30-60% token reduction compared to JSON for uniform tabular data while maintaining human readability and strict validation guarantees.
+
+## Status of This Document
+
+This document is a Working Draft v1.2 and may be updated, replaced, or obsoleted. Implementers should monitor the canonical repository at https://github.com/johannschopplich/toon for changes.
+
+This specification is **stable for implementation** but not yet finalized. Breaking changes are unlikely but possible before v2.0.
+
+**Transition criteria:**
+- **Candidate Standard:** 3+ independent, interoperable implementations
+- **Final Standard:** 12 months operational experience with no blocking issues
+
+## Normative References
+
+**[RFC2119]** Bradner, S., "Key words for use in RFCs to Indicate Requirement Levels", BCP 14, RFC 2119, March 1997.
+https://www.rfc-editor.org/rfc/rfc2119
+
+**[RFC8174]** Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words", BCP 14, RFC 8174, May 2017.
+https://www.rfc-editor.org/rfc/rfc8174
+
+## Conventions and Terminology
+
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119] and [RFC8174] when, and only when, they appear in all capitals, as shown here.
+
+Audience: implementers of encoders/decoders/validators; tool authors; practitioners embedding TOON in LLM prompts.
+
+## Table of Contents
+
+1. [Terminology and Conventions](#1-terminology-and-conventions)
+2. [Data Model](#2-data-model)
+3. [Encoding Normalization (Reference Encoder)](#3-encoding-normalization-reference-encoder)
+4. [Decoding Interpretation (Reference Decoder)](#4-decoding-interpretation-reference-decoder)
+5. [Concrete Syntax and Root Form](#5-concrete-syntax-and-root-form)
+6. [Header Syntax (Normative)](#6-header-syntax-normative)
+7. [Strings and Keys](#7-strings-and-keys)
+8. [Objects](#8-objects)
+9. [Arrays](#9-arrays)
+10. [Objects as List Items](#10-objects-as-list-items)
+11. [Delimiters](#11-delimiters)
+12. [Indentation and Whitespace](#12-indentation-and-whitespace)
+13. [Conformance and Options](#13-conformance-and-options)
+14. [Strict Mode Errors and Diagnostics (Authoritative Checklist)](#14-strict-mode-errors-and-diagnostics-authoritative-checklist)
+15. [Security Considerations](#15-security-considerations)
+16. [Internationalization](#16-internationalization)
+17. [Interoperability and Mappings (Informative)](#17-interoperability-and-mappings-informative)
+18. [Media Type and File Extensions (Provisional)](#18-media-type-and-file-extensions-provisional)
+19. [TOON Core Profile (Normative Subset)](#19-toon-core-profile-normative-subset)
+20. [Versioning and Extensibility](#20-versioning-and-extensibility)
+
+**Appendices:**
+- [Appendix A: Examples (Informative)](#appendix-a-examples-informative)
+- [Appendix B: Parsing Helpers (Informative)](#appendix-b-parsing-helpers-informative)
+- [Appendix C: Test Suite and Compliance (Informative)](#appendix-c-test-suite-and-compliance-informative)
+- [Appendix D: Document Changelog (Informative)](#appendix-d-document-changelog-informative)
+- [Appendix E: Acknowledgments and License](#appendix-e-acknowledgments-and-license)
+- [Appendix F: Cross-check With Reference Behavior (Informative)](#appendix-f-cross-check-with-reference-behavior-informative)
+
+## Scope
+
+Defines the data model, encoding normalization (reference JS/TS), concrete syntax, decoding semantics, and conformance requirements for producing and consuming TOON.
 
 ## 1. Terminology and Conventions
 
@@ -404,39 +456,83 @@ Options:
 
 Note: Section 14 is authoritative for strict-mode errors; validators MAY add informative diagnostics for style and encoding invariants.
 
+### 13.1 Encoder Conformance Checklist
+
+Conforming encoders MUST:
+- [ ] Produce UTF-8 output with LF (U+000A) line endings (§5)
+- [ ] Use consistent indentation (default 2 spaces, no tabs) (§12)
+- [ ] Escape \\, ", \n, \r, \t in quoted strings; reject other escapes (§7.1)
+- [ ] Quote strings containing active delimiter, colon, or structural characters (§7.2)
+- [ ] Emit array lengths [N] matching actual item count (§6, §9)
+- [ ] Preserve object key order as encountered (§2)
+- [ ] Normalize numbers to non-exponential decimal form (§2)
+- [ ] Convert -0 to 0 (§2)
+- [ ] Convert NaN/±Infinity to null (§3)
+- [ ] Emit no trailing spaces or trailing newline (§12)
+
+### 13.2 Decoder Conformance Checklist
+
+Conforming decoders MUST:
+- [ ] Parse array headers per §6 (length, delimiter, optional fields)
+- [ ] Split inline arrays and tabular rows using active delimiter only (§11)
+- [ ] Unescape quoted strings with only valid escapes (§7.1)
+- [ ] Type unquoted primitives: true/false/null → booleans/null, numeric → number, else → string (§4)
+- [ ] Enforce strict-mode rules when strict=true (§14)
+- [ ] Accept and ignore optional # length marker (§6)
+- [ ] Preserve array order and object key order (§2)
+
+### 13.3 Validator Conformance Checklist
+
+Validators SHOULD verify:
+- [ ] Structural conformance (headers, indentation, list markers)
+- [ ] Whitespace invariants (no trailing spaces/newlines)
+- [ ] Delimiter consistency between headers and rows
+- [ ] Array length counts match declared [N]
+- [ ] All strict-mode requirements (§14)
+
 ## 14. Strict Mode Errors and Diagnostics (Authoritative Checklist)
 
-When strict mode is enabled (default), decoders MUST error on:
+When strict mode is enabled (default), decoders MUST error on the following conditions.
 
-- Array count mismatches:
-  - Inline primitive arrays: decoded value count ≠ declared N.
-  - List arrays: number of list items ≠ declared N.
-  - Tabular arrays: number of rows ≠ declared N.
-- Tabular row width mismatches:
-  - Any row’s value count ≠ field count.
+### 14.1 Array Count and Width Mismatches
+
+- Inline primitive arrays: decoded value count ≠ declared N.
+- List arrays: number of list items ≠ declared N.
+- Tabular arrays: number of rows ≠ declared N.
+- Tabular row width mismatches: any row's value count ≠ field count.
+
+### 14.2 Syntax Errors
+
 - Missing colon in key context.
 - Invalid escape sequences or unterminated strings in quoted tokens.
-- Indentation errors:
-  - Leading spaces not a multiple of indentSize.
-  - Any tab used in indentation.
-- Delimiter mismatch (e.g., rows joined by a different delimiter than declared), detected via width/count checks and header scope.
+- Delimiter mismatch (detected via width/count checks and header scope).
+
+### 14.3 Indentation Errors
+
+- Leading spaces not a multiple of indentSize.
+- Any tab used in indentation (tabs allowed in quoted strings and as HTAB delimiter).
+
+### 14.4 Structural Errors
+
 - Blank lines inside arrays/tabular rows.
 - Empty input (document with no non-empty lines after ignoring trailing newline(s) and ignorable blank lines outside arrays/tabular rows).
+
+### 14.5 Recommended Error Messages and Validator Diagnostics (Informative)
 
 Validators SHOULD additionally report:
 - Trailing spaces, trailing newlines (encoding invariants).
 - Headers missing delimiter marks when non-comma delimiter is in use.
 - Values violating delimiter-aware quoting rules.
 
-Recommended error messages (informative):
-- Missing colon after key
-- Unterminated string: missing closing quote
-- Invalid escape sequence: \x
-- Indentation must be an exact multiple of N spaces
-- Tabs are not allowed in indentation
-- Expected N tabular rows, but got M
-- Expected N list array items, but got M
-- Expected K values in row, but got L
+Recommended error messages:
+- "Missing colon after key"
+- "Unterminated string: missing closing quote"
+- "Invalid escape sequence: \x"
+- "Indentation must be an exact multiple of N spaces"
+- "Tabs are not allowed in indentation"
+- "Expected N tabular rows, but got M"
+- "Expected N list array items, but got M"
+- "Expected K values in row, but got L"
 
 ## 15. Security Considerations
 
@@ -470,7 +566,7 @@ Recommended error messages (informative):
 - Encoding: UTF-8
 - Line endings: LF (U+000A)
 
-## 19. Examples (Informative)
+## Appendix A: Examples (Informative)
 
 Objects:
 ```
@@ -558,18 +654,18 @@ links[2]{id,url}:
   2,"https://example.com?q=a:b"
 ```
 
-## 20. Parsing Helpers (Informative)
+## Appendix B: Parsing Helpers (Informative)
 
 These sketches illustrate structure and common decoding helpers. They are informative; normative behavior is defined in Sections 4–12 and 14.
 
-### 20.1 Decoding Overview
+### B.1 Decoding Overview
 
 - Split input into lines; compute depth from leading spaces and indent size (Section 12).
 - Skip ignorable blank lines outside arrays/tabular rows (Section 12).
 - Decide root form per Section 5.
 - For objects at depth d: process lines at depth d; for arrays at depth d: read rows/list items at depth d+1.
 
-### 20.2 Array Header Parsing
+### B.2 Array Header Parsing
 
 - Locate the first "[ … ]" segment on the line; parse:
   - Optional leading "#" marker (ignored semantically).
@@ -580,7 +676,7 @@ These sketches illustrate structure and common decoding helpers. They are inform
 - Return the header (key?, length, delimiter, fields?, hasLengthMarker) and any inline values after the colon.
 - Absence of a delimiter symbol in the bracket segment ALWAYS means comma for that header (no inheritance).
 
-### 20.3 parseDelimitedValues
+### B.3 parseDelimitedValues
 
 - Iterate characters left-to-right while maintaining a current token and an inQuotes flag.
 - On a double quote, toggle inQuotes.
@@ -588,14 +684,14 @@ These sketches illustrate structure and common decoding helpers. They are inform
 - Only split on the active delimiter when not in quotes (unquoted occurrences).
 - Trim surrounding spaces around each token. Empty tokens decode to empty string.
 
-### 20.4 Primitive Token Parsing
+### B.4 Primitive Token Parsing
 
 - If token starts with a quote, it MUST be a properly quoted string (no trailing characters after the closing quote). Unescape using only the five escapes; otherwise MUST error.
 - Else if token is true/false/null → boolean/null.
 - Else if token is numeric without forbidden leading zeros and finite → number.
 - Else → string.
 
-### 20.5 Object and List Item Parsing
+### B.5 Object and List Item Parsing
 
 - Key-value line: parse a key up to the first colon; missing colon → MUST error. The remainder of the line is the primitive value (if present).
 - Nested object: "key:" with nothing after colon opens a nested object. If this is:
@@ -608,7 +704,7 @@ These sketches illustrate structure and common decoding helpers. They are inform
     - Else if a colon appears → object with first field on hyphen line.
     - Else → primitive token.
 
-### 20.6 Blank-Line Handling
+### B.6 Blank-Line Handling
 
 - Track blank lines during scanning with line numbers and depth.
 - For arrays/tabular rows:
@@ -617,7 +713,7 @@ These sketches illustrate structure and common decoding helpers. They are inform
 - Outside arrays/tabular rows:
   - Blank lines SHOULD be ignored (do not affect root-form detection or object boundaries).
 
-## 21. Test Suite and Compliance (Informative)
+## Appendix C: Test Suite and Compliance (Informative)
 
 Implementations are encouraged to validate against a comprehensive test suite covering:
 - Primitive encoding/decoding, quoting, control-character escaping.
@@ -630,7 +726,28 @@ Implementations are encouraged to validate against a comprehensive test suite co
 - Normalization (BigInt, Date, undefined, NaN/Infinity, functions, symbols).
 - Decoder strict-mode errors: count mismatches, invalid escapes, missing colon, delimiter mismatches, indentation errors, blank-line handling.
 
-## 22. TOON Core Profile (Normative Subset)
+## Appendix D: Document Changelog (Informative)
+
+### v1.2 (2025-10-31)
+
+- Centralized decoding rules (primitives, keys) and strict-mode checklist.
+- Made header grammar normative and clarified delimiter scoping.
+- Tightened strict-mode indentation (exact multiples; tabs error).
+- Defined blank-line and trailing-newline decoding behavior with explicit skipping rules outside arrays.
+- Clarified hyphen-based quoting: "-" or any string starting with "-" MUST be quoted.
+- Clarified BigInt normalization (quoted string when out of safe range).
+- Unified root-form detection and row/key disambiguation language; disambiguation uses first unquoted delimiter vs colon.
+- Introduced "document delimiter" vs "active delimiter" terminology.
+
+### v1.1
+
+Made decoding behavior normative; added strict-mode rules, delimiter-aware parsing, and reference algorithms; decoder options (indent, strict).
+
+### v1.0
+
+Initial encoding, normalization, and conformance rules.
+
+## 19. TOON Core Profile (Normative Subset)
 
 This profile captures the most common, memory-friendly rules.
 
@@ -664,13 +781,13 @@ This profile captures the most common, memory-friendly rules.
 - Strict mode checks:
   - All count/width checks; missing colon; invalid escapes; indentation multiple-of-indentSize; delimiter mismatches via count checks; blank lines inside arrays/tabular rows; empty input.
 
-## 23. Versioning and Extensibility
+## 20. Versioning and Extensibility
 
 - Backward-compatible evolutions SHOULD preserve current headers, quoting rules, and indentation semantics.
 - Reserved/structural characters (colon, brackets, braces, hyphen) MUST retain current meanings.
 - Future work (non-normative): schemas, comments/annotations, additional delimiter profiles, optional \uXXXX escapes (if added, must be precisely defined).
 
-## 24. Acknowledgments and License
+## Appendix E: Acknowledgments and License
 
 ### Author
 
@@ -686,7 +803,7 @@ This specification and reference implementation are released under the MIT Licen
 
 ---
 
-Appendix: Cross-check With Reference Behavior (Informative)
+## Appendix F: Cross-check With Reference Behavior (Informative)
 
 - The reference encoder/decoder test suites implement:
   - Safe-unquoted string rules and delimiter-aware quoting (document vs active delimiter).
