@@ -54,6 +54,11 @@ const main = defineCommand({
       description: 'Enable strict mode for decoding',
       default: true,
     },
+    stats: {
+      type: 'boolean',
+      description: 'Show token statistics',
+      default: false,
+    },
   },
   async run({ args }) {
     const input = args.input || args._[0]
@@ -86,6 +91,7 @@ const main = defineCommand({
           delimiter: delimiter as Delimiter,
           indent,
           lengthMarker: args.lengthMarker === true ? '#' : false,
+          showStats: args.stats === true,
         })
       }
       else {
@@ -131,6 +137,7 @@ async function encodeToToon(config: {
   delimiter: Delimiter
   indent: number
   lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
+  showStats: boolean
 }) {
   const jsonContent = await fsp.readFile(config.input, 'utf-8')
 
@@ -158,6 +165,16 @@ async function encodeToToon(config: {
   }
   else {
     console.log(toonOutput)
+  }
+
+  if (config.showStats) {
+    const jsonTokens = Math.ceil(jsonContent.length / 4)
+    const toonTokens = Math.ceil(toonOutput.length / 4)
+    const diff = jsonTokens - toonTokens
+    const percent = ((diff / jsonTokens) * 100).toFixed(1)
+
+    consola.info(`\nToken estimate: ${jsonTokens} (JSON) → ${toonTokens} (TOON)`)
+    consola.success(`Saved ~${diff} tokens (${percent}%)`)
   }
 }
 
