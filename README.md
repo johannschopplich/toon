@@ -989,7 +989,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **PHP:** [toon-php](https://github.com/HelgeSverre/toon-php)
 - **Python:** [python-toon](https://github.com/xaviviro/python-toon) or [pytoon](https://github.com/bpradana/pytoon)
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
-- **Rust:** [toon-rs](https://github.com/JadJabbour/toon-rs)
+- **Rust:** [rtoon](https://github.com/shreyasbhat0/rtoon)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
 
 ## License
