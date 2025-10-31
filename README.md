@@ -493,11 +493,15 @@ toon input.json
 | `--delimiter <char>` | Array delimiter: `,` (comma), `\t` (tab), `\|` (pipe) |
 | `--indent <number>` | Indentation size (default: `2`) |
 | `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
+| `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
 
 ### Examples
 
 ```bash
+# Show token savings when encoding
+toon data.json --stats -o output.toon
+
 # Tab-separated output (often more token-efficient)
 toon data.json --delimiter "\t" -o output.toon
 
