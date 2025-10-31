@@ -7,9 +7,7 @@
   },
   "dependencies": {
     "citty": "^0.1.6",
-    "consola": "^3.4.2"
-  },
-  "devDependencies": {
+    "consola": "^3.4.2",
     "tokenx": "^1.2.0"
   }
 }
