@@ -23,6 +23,7 @@ TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, 
 - [Notes and Limitations](#notes-and-limitations)
 - [Syntax Cheatsheet](#syntax-cheatsheet)
 - [Other Implementations](#other-implementations)
+- [Contributing](#contributing)
 
 ## Why TOON?
 
@@ -983,6 +984,12 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
 - **Rust:** [rtoon](https://github.com/shreyasbhat0/rtoon)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
+
+## Contributing
+
+We welcome contributions! For a short, actionable guide to getting started (running tests, submitting a PR, and reporting issues) see `CONTRIBUTING.md` in the repository root. Also please review the `CODE_OF_CONDUCT.md` before contributing.
+
+If you're unsure where to start, look for issues labeled `good first issue` or `help wanted`, or open an issue to discuss a change before implementing it.
 
 ## License
 
