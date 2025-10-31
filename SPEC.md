@@ -1,5 +1,3 @@
-# TOON Specification v1.3
-
 ## Token-Oriented Object Notation
 
 **Version:** 1.3
@@ -12,7 +10,7 @@
 
 ## Abstract
 
-Token-Oriented Object Notation (TOON) is a compact, human-readable serialization format optimized for reduced token usage in Large Language Model contexts. This specification defines the data model, encoding normalization, concrete syntax, decoding semantics, and conformance requirements for producing and consuming TOON. TOON achieves 30-60% token reduction compared to JSON for uniform tabular data while maintaining human readability and strict validation guarantees.
+Token-Oriented Object Notation (TOON) is a compact, human-readable serialization format optimized for Large Language Model (LLM) contexts, achieving 30-60% token reduction versus JSON for uniform tabular data. This specification defines TOON's data model, syntax, encoding/decoding semantics, and conformance requirements.
 
 ## Status of This Document
 
@@ -32,6 +30,29 @@ https://www.rfc-editor.org/rfc/rfc2119
 **[RFC8174]** Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words", BCP 14, RFC 8174, May 2017.
 https://www.rfc-editor.org/rfc/rfc8174
 
+## Informative References
+
+**[RFC8259]** Bray, T., Ed., "The JavaScript Object Notation (JSON) Data Interchange Format", STD 90, RFC 8259, December 2017.
+https://www.rfc-editor.org/rfc/rfc8259
+
+**[RFC4180]** Shafranovich, Y., "Common Format and MIME Type for Comma-Separated Values (CSV) Files", RFC 4180, October 2005.
+https://www.rfc-editor.org/rfc/rfc4180
+
+**[RFC5234]** Crocker, D., Ed., and P. Overell, "Augmented BNF for Syntax Specifications: ABNF", STD 68, RFC 5234, January 2008.
+https://www.rfc-editor.org/rfc/rfc5234
+
+**[RFC6838]** Freed, N., Klensin, J., and T. Hansen, "Media Type Specifications and Registration Procedures", BCP 13, RFC 6838, January 2013.
+https://www.rfc-editor.org/rfc/rfc6838
+
+**[YAML]** Ben-Kiki, O., Evans, C., and I. döt Net, "YAML Ain't Markup Language (YAML™) Version 1.2", 3rd Edition, October 2021.
+https://yaml.org/spec/1.2.2/
+
+**[UNICODE]** The Unicode Consortium, "The Unicode Standard", Version 15.1, September 2023.
+https://www.unicode.org/versions/Unicode15.1.0/
+
+**[ISO8601]** ISO 8601:2019, "Date and time — Representations for information interchange".
+https://www.iso.org/standard/70907.html
+
 ## Conventions and Terminology
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in [RFC2119] and [RFC8174] when, and only when, they appear in all capitals, as shown here.
@@ -44,6 +65,7 @@ Implementations that fail to conform to any MUST or REQUIRED level requirement a
 
 ## Table of Contents
 
+- [Introduction](#introduction)
 1. [Terminology and Conventions](#1-terminology-and-conventions)
 2. [Data Model](#2-data-model)
 3. [Encoding Normalization (Reference Encoder)](#3-encoding-normalization-reference-encoder)
@@ -61,7 +83,7 @@ Implementations that fail to conform to any MUST or REQUIRED level requirement a
 15. [Security Considerations](#15-security-considerations)
 16. [Internationalization](#16-internationalization)
 17. [Interoperability and Mappings (Informative)](#17-interoperability-and-mappings-informative)
-18. [Media Type and File Extensions](#18-media-type-and-file-extensions)
+18. [IANA Considerations](#18-iana-considerations)
 19. [TOON Core Profile (Normative Subset)](#19-toon-core-profile-normative-subset)
 20. [Versioning and Extensibility](#20-versioning-and-extensibility)
 21. [Intellectual Property Considerations](#21-intellectual-property-considerations)
@@ -74,9 +96,20 @@ Implementations that fail to conform to any MUST or REQUIRED level requirement a
 - [Appendix E: Acknowledgments and License](#appendix-e-acknowledgments-and-license)
 - [Appendix F: Cross-check With Reference Behavior (Informative)](#appendix-f-cross-check-with-reference-behavior-informative)
 
-## Scope
+## Introduction
 
-Defines the data model, encoding normalization (reference JS/TS), concrete syntax, decoding semantics, and conformance requirements for producing and consuming TOON.
+TOON (Token-Oriented Object Notation) is a serialization format optimized for Large Language Model contexts where token count directly impacts costs, context capacity, and latency. While JSON and similar formats serve general purposes, TOON achieves 30-60% token reduction for tabular data through compact syntax, particularly for arrays of uniform objects. The format maintains human readability, deterministic encoding, and strict validation while modeling JSON-compatible data types.
+
+### Specification Scope
+
+This specification defines:
+
+- The abstract data model (Section 2)
+- Type normalization rules for encoders (Section 3)
+- Concrete syntax and formatting rules (Sections 5-12)
+- Parsing and decoding semantics (Section 4)
+- Conformance requirements for encoders, decoders, and validators (Section 13)
+- Security and internationalization considerations (Sections 15-16)
 
 ## 1. Terminology and Conventions
 
@@ -589,26 +622,160 @@ Recommended error messages:
 
 ## 17. Interoperability and Mappings (Informative)
 
-- JSON:
-  - TOON deterministically encodes JSON-compatible data (after normalization).
-  - Arrays of uniform objects map to CSV-like rows; other structures map to YAML-like nested forms.
-- CSV:
-  - TOON tabular sections generalize CSV with explicit lengths, field lists, and flexible delimiter choice.
-- YAML:
-  - TOON borrows indentation and list-item patterns but uses fewer quotes and explicit array headers.
+This section describes TOON's relationship with other serialization formats and provides guidance on conversion and interoperability.
 
-## 18. Media Type and File Extensions
+### 17.1 JSON Interoperability
 
-This specification does not request IANA registration at this time. The following are suggested for experimental and provisional use:
+TOON models the same data types as JSON [RFC8259]: objects, arrays, strings, numbers, booleans, and null. After normalization (Section 3), TOON can deterministically encode any JSON-compatible data structure.
 
-- **Media type:** text/toon (experimental, not IANA-registered)
+Round-trip Compatibility:
+
+JSON → TOON → JSON round-trips preserve all JSON values, with these normalization behaviors:
+- JavaScript-specific types (Date, Set, Map, BigInt) normalize per Section 3
+- NaN and ±Infinity normalize to null
+- -0 normalizes to 0
+- Object key order is preserved (as encountered)
+
+Example: JSON to TOON Conversion
+
+JSON input:
+```json
+{
+  "users": [
+    { "id": 1, "name": "Alice", "active": true },
+    { "id": 2, "name": "Bob", "active": false }
+  ],
+  "count": 2
+}
+```
+
+TOON output (tabular format):
+```
+users[2]{id,name,active}:
+  1,Alice,true
+  2,Bob,false
+count: 2
+```
+
+### 17.2 CSV Interoperability
+
+TOON's tabular format generalizes CSV [RFC4180] with several enhancements:
+
+Advantages over CSV:
+- Explicit array length markers enable validation
+- Field names declared in header (no separate header row)
+- Supports nested structures (CSV is flat-only)
+- Three delimiter options (comma/tab/pipe) vs CSV's comma-only
+- Type-aware encoding (primitives, not just strings)
+
+Example: CSV to TOON Conversion
+
+CSV input:
+```csv
+id,name,price
+A1,Widget,9.99
+B2,Gadget,14.50
+```
+
+TOON equivalent:
+```
+items[2]{id,name,price}:
+  A1,Widget,9.99
+  B2,Gadget,14.5
+```
+
+Conversion Guidelines:
+- CSV headers map to TOON field names
+- CSV data rows map to TOON tabular rows
+- CSV string escaping (double-quotes) maps to TOON quoting rules
+- CSV row count can be added as array length marker
+
+### 17.3 YAML Interoperability
+
+TOON shares YAML's indentation-based structure but differs significantly in syntax:
+
+Similarities:
+- Indentation for nesting
+- List items with hyphen markers (- )
+- Minimal quoting for simple values
+
+Differences:
+- TOON requires explicit array headers with lengths
+- TOON uses colon-space for key-value (no other separators)
+- TOON has no comment syntax (YAML has #)
+- TOON is deterministic (YAML allows multiple representations)
+
+Example: YAML to TOON Conversion
+
+YAML input:
+```yaml
+server:
+  host: localhost
+  port: 8080
+  tags:
+    - web
+    - api
+```
+
+TOON equivalent:
+```
+server:
+  host: localhost
+  port: 8080
+  tags[2]: web,api
+```
+
+## 18. IANA Considerations
+
+### 18.1 Media Type Registration
+
+This specification does not request IANA registration at this time, as the format is still in Working Draft status. When this specification reaches Candidate Standard status (per the criteria in "Status of This Document"), formal media type registration will be requested following the procedures defined in [RFC6838].
+
+### 18.2 Provisional Media Type
+
+The following provisional media type designation is RECOMMENDED for experimental implementations to facilitate interoperability:
+
+Type name: text
+
+Subtype name: toon (provisional, not IANA-registered)
+
+Required parameters: None
+
+Optional parameters:
+- charset: Although TOON is always UTF-8, the charset parameter MAY be specified as "charset=utf-8" for explicit declaration. If absent, UTF-8 MUST be assumed.
+
+**Encoding considerations:** 8-bit. TOON documents are UTF-8 encoded text with LF (U+000A) line endings.
+
+**Security considerations:** See Section 15 of this specification.
+
+**Interoperability considerations:** See Section 17 of this specification.
+
+**Published specification:** This document.
+
+**Applications that use this media type:** LLM-based applications, prompt engineering tools, data serialization for AI contexts, configuration management systems.
+
+**Fragment identifier considerations:** Not applicable. No fragment identifier syntax is defined for TOON.
+
+**Additional information:**
 - **File extension:** .toon
-- **Character encoding:** UTF-8
+- **Macintosh file type code:** TEXT
 - **Line endings:** LF (U+000A)
 
-Implementers SHOULD be aware that these designations are provisional and MAY be subject to change. When this specification reaches Candidate Standard status per Section "Status of This Document", formal IANA registration will be requested following RFC 6838 procedures.
+**Person & email address to contact for further information:** See Author section.
 
-For experimental implementations, the use of `text/toon` is RECOMMENDED for interoperability, with the understanding that this is not yet a registered media type.
+**Intended usage:** COMMON (upon standardization)
+
+**Restrictions on usage:** None
+
+**Change controller:** This specification is community-maintained. See repository at https://github.com/johannschopplich/toon
+
+### 18.3 File Extension
+
+The file extension **.toon** is RECOMMENDED for TOON documents. Implementations SHOULD recognize this extension and associate it with TOON processing.
+
+### 18.4 Implementation Status
+
+Implementers SHOULD be aware that the media type designation `text/toon` is provisional and MAY be subject to change before formal IANA registration. Early implementers are encouraged to monitor the specification repository for updates.
 
 ## Appendix A: Examples (Informative)
 
@@ -674,12 +841,10 @@ items[1]:
 
 Delimiter variations:
 ```
-# Tab delimiter
 items[2	]{sku	name	qty	price}:
   A1	Widget	2	9.99
   B2	Gadget	1	14.5
 
-# Pipe delimiter
 tags[3|]: reading|gaming|coding
 ```
 
@@ -696,6 +861,46 @@ Quoted colons and disambiguation (rows continue; colon is inside quotes):
 links[2]{id,url}:
   1,"http://a:b"
   2,"https://example.com?q=a:b"
+```
+
+Error cases (invalid TOON):
+```
+key value
+
+name: "bad\xescapse"
+
+items[1]:
+   - value
+
+items[3]{id,name}:
+  1,Alice
+  2,Bob
+
+tags[5]: a,b,c
+```
+
+Edge cases:
+```
+name: ""
+
+tags[0]:
+
+version: "123"
+enabled: "true"
+
+root:
+  level1:
+    level2:
+      level3:
+        items[2]{id,val}:
+          1,a
+          2,b
+
+message: Hello 世界 👋
+tags[3]: 🎉,🎊,🎈
+
+bignum: 9007199254740992
+decimal: 0.3333333333333333
 ```
 
 ## Appendix B: Parsing Helpers (Informative)
@@ -785,6 +990,12 @@ The reference test suite covers:
 
 ### v1.3 (2025-10-31)
 
+- Added Introduction section with specification scope.
+- Added Informative References section with citations for JSON (RFC8259), CSV (RFC4180), ABNF (RFC5234), RFC6838, YAML, Unicode, and ISO8601.
+- Expanded IANA Considerations (Section 18) with provisional media type registration template following RFC 6838 structure.
+- Expanded Interoperability section (Section 17) with JSON/CSV/YAML format mappings and conversion examples.
+- Expanded Appendix A (Examples) with error cases and edge cases.
+- Tightened Abstract to be more concise while expanding LLM abbreviation.
 - Added numeric precision requirements: JavaScript implementations SHOULD use Number.toString() precision (15-17 digits), all implementations MUST preserve round-trip fidelity (Section 2).
 - Added RFC 5234 core rules (ALPHA, DIGIT, DQUOTE, HTAB, LF, SP) to ABNF grammar definitions (Section 6).
 - Added test case for repeating decimal precision (1/3) to validate round-trip behavior.
@@ -805,6 +1016,33 @@ Added strict-mode rules, delimiter-aware parsing, and decoder options (indent, s
 ### v1.0
 
 Initial encoding, normalization, and conformance rules.
+
+## Appendix E: Acknowledgments and License
+
+### Author
+
+This specification was created and is maintained by Johann Schopplich, who also maintains the reference TypeScript/JavaScript implementation.
+
+### Community Implementations
+
+Implementations of TOON in other languages have been created by community members. For a complete list with repository links and maintainer information, see the [Other Implementations](https://github.com/johannschopplich/toon#other-implementations) section of the README.
+
+### License
+
+This specification and reference implementation are released under the MIT License (see repository for details).
+
+---
+
+## Appendix F: Cross-check With Reference Behavior (Informative)
+
+- The reference encoder/decoder test suites implement:
+  - Safe-unquoted string rules and delimiter-aware quoting (document vs active delimiter).
+  - Header formation and delimiter-aware parsing with active delimiter scoping.
+  - Length marker propagation (encoding) and acceptance (decoding).
+  - Tabular detection requiring uniform keys and primitive-only values.
+  - Objects-as-list-items parsing (+2 nested object rule; +1 siblings).
+  - Whitespace invariants for encoding and strict-mode indentation enforcement for decoding.
+  - Blank-line handling and trailing-newline acceptance.
 
 ## 19. TOON Core Profile (Normative Subset)
 
@@ -864,30 +1102,3 @@ This specification is released under the MIT License (see repository and Appendi
 Implementers should be aware that this is a community specification and not a formal standards-track document from a recognized standards body (such as IETF, W3C, or ISO). No formal patent review process has been conducted. Implementers are responsible for conducting their own intellectual property due diligence as appropriate for their use case.
 
 The MIT License permits free use, modification, and distribution of both this specification and conforming implementations, subject to the license terms.
-
-## Appendix E: Acknowledgments and License
-
-### Author
-
-This specification was created and is maintained by Johann Schopplich, who also maintains the reference TypeScript/JavaScript implementation.
-
-### Community Implementations
-
-Implementations of TOON in other languages have been created by community members. For a complete list with repository links and maintainer information, see the [Other Implementations](https://github.com/johannschopplich/toon#other-implementations) section of the README.
-
-### License
-
-This specification and reference implementation are released under the MIT License (see repository for details).
-
----
-
-## Appendix F: Cross-check With Reference Behavior (Informative)
-
-- The reference encoder/decoder test suites implement:
-  - Safe-unquoted string rules and delimiter-aware quoting (document vs active delimiter).
-  - Header formation and delimiter-aware parsing with active delimiter scoping.
-  - Length marker propagation (encoding) and acceptance (decoding).
-  - Tabular detection requiring uniform keys and primitive-only values.
-  - Objects-as-list-items parsing (+2 nested object rule; +1 siblings).
-  - Whitespace invariants for encoding and strict-mode indentation enforcement for decoding.
-  - Blank-line handling and trailing-newline acceptance.
