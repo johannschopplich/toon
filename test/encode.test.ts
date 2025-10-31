@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { encode } from '../src/index'
+import { decode, encode } from '../src/index'
 
 describe('primitives', () => {
   it('encodes safe strings without quotes', () => {
@@ -55,6 +55,14 @@ describe('primitives', () => {
     expect(encode(1e-6)).toBe('0.000001')
     expect(encode(1e20)).toBe('100000000000000000000')
     expect(encode(Number.MAX_SAFE_INTEGER)).toBe('9007199254740991')
+  })
+
+  it('preserves precision for repeating decimals', () => {
+    const value = 1 / 3
+    const encodedValue = encode({ value })
+    const decodedValue = decode(encodedValue)
+    expect((decodedValue as Record<string, unknown>)?.value).toBe(value) // Round-trip fidelity
+    expect(encodedValue).toContain('0.3333333333333333') // Default JS precision
   })
 
   it('encodes booleans', () => {
