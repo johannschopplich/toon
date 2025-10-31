@@ -2,6 +2,12 @@
 
 # Token-Oriented Object Notation (TOON)
 
+[![CI](https://github.com/johannschopplich/toon/actions/workflows/ci.yml/badge.svg)](https://github.com/johannschopplich/toon/actions)
+[![npm version](https://img.shields.io/npm/v/@byjohann/toon.svg)](https://www.npmjs.com/package/@byjohann/toon)
+[![SPEC v1.3](https://img.shields.io/badge/spec-v1.3-lightgrey)](./SPEC.md)
+[![npm downloads (total)](https://img.shields.io/npm/dt/@byjohann/toon.svg)](https://www.npmjs.com/package/@byjohann/toon)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+
 **Token-Oriented Object Notation** is a compact, human-readable format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for LLM input, not output.
 
 TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
