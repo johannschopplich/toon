@@ -15,9 +15,8 @@ TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, 
 - [Key Features](#key-features)
 - [Benchmarks](#benchmarks)
 - [📋 Full Specification](./SPEC.md)
-- [Installation](#installation)
+- [Installation & Quick Start](#installation--quick-start)
 - [CLI](#cli)
-- [Quick Start](#quick-start)
 - [Format Overview](#format-overview)
 - [API](#api)
 - [Using TOON in LLM Prompts](#using-toon-in-llm-prompts)
@@ -430,7 +429,7 @@ Four datasets designed to test different structural patterns (all contain arrays
 
 <!-- /automd -->
 
-## Installation
+## Installation & Quick Start
 
 ```bash
 # npm
@@ -441,6 +440,24 @@ pnpm add @byjohann/toon
 
 # yarn
 yarn add @byjohann/toon
+```
+
+**Example usage:**
+
+```ts
+import { encode } from '@byjohann/toon'
+
+const data = {
+  users: [
+    { id: 1, name: 'Alice', role: 'admin' },
+    { id: 2, name: 'Bob', role: 'user' }
+  ]
+}
+
+console.log(encode(data))
+// users[2]{id,name,role}:
+//   1,Alice,admin
+//   2,Bob,user
 ```
 
 ## CLI
@@ -489,35 +506,6 @@ toon data.json --delimiter "|" --length-marker -o output.toon
 
 # Lenient decoding (skip validation)
 toon data.toon --no-strict -o output.json
-```
-
-## Quick Start
-
-```ts
-import { encode } from '@byjohann/toon'
-
-const data = {
-  user: {
-    id: 123,
-    name: 'Ada',
-    tags: ['reading', 'gaming'],
-    active: true,
-    preferences: []
-  }
-}
-
-console.log(encode(data))
-```
-
-Output:
-
-```
-user:
-  id: 123
-  name: Ada
-  tags[2]: reading,gaming
-  active: true
-  preferences[0]:
 ```
 
 ## Format Overview
@@ -828,14 +816,18 @@ const data = {
   ],
 }
 
-encode(data, { lengthMarker: '#' })
+console.log(
+  encode(data, { lengthMarker: '#' })
+)
 // tags[#3]: reading,gaming,coding
 // items[#2]{sku,qty,price}:
 //   A1,2,9.99
 //   B2,1,14.5
 
-// Works with custom delimiters
-encode(data, { lengthMarker: '#', delimiter: '|' })
+// Custom delimiter with length marker
+console.log(
+  encode(data, { lengthMarker: '#', delimiter: '|' })
+)
 // tags[#3|]: reading|gaming|coding
 // items[#2|]{sku|qty|price}:
 //   A1|2|9.99
