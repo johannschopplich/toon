@@ -40,19 +40,3 @@ export function tokenize(text: string): number {
 export async function ensureDir(dirPath: string): Promise<void> {
   await fsp.mkdir(dirPath, { recursive: true })
 }
-
-/**
- * Save data as formatted JSON file
- *
- * @param filePath - Path to save the file
- * @param data - Data to serialize as JSON
- * @param indent - Indentation spaces (default: 2)
- */
-export async function saveJsonFile(
-  filePath: string,
-  data: unknown,
-  indent = 2,
-): Promise<void> {
-  const json = JSON.stringify(data, undefined, indent)
-  await fsp.writeFile(filePath, `${json}\n`, 'utf-8')
-}

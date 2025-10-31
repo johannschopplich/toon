@@ -12,11 +12,12 @@ import { encode as encodeToon } from '../../src/index'
  * CSV has inherent limitations with nested structures (see `toCSV` docs).
  */
 export const formatters: Record<string, (data: unknown) => string> = {
-  json: data => JSON.stringify(data, undefined, 2),
-  toon: data => encodeToon(data),
-  csv: data => toCSV(data),
-  xml: data => toXML(data),
-  yaml: data => stringifyYAML(data),
+  'json-pretty': data => JSON.stringify(data, undefined, 2),
+  'json-compact': data => JSON.stringify(data),
+  'toon': data => encodeToon(data),
+  'csv': data => toCSV(data),
+  'xml': data => toXML(data),
+  'yaml': data => stringifyYAML(data),
 }
 
 /**

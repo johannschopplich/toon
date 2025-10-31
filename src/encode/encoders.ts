@@ -150,8 +150,8 @@ export function encodeArrayOfObjectsAsTabular(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const headerStr = formatHeader(rows.length, { key: prefix, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
-  writer.push(depth, `${headerStr}`)
+  const formattedHeader = formatHeader(rows.length, { key: prefix, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+  writer.push(depth, `${formattedHeader}`)
 
   writeTabularRows(rows, header, writer, depth + 1, options)
 }
@@ -255,8 +255,8 @@ export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, dept
       const header = extractTabularHeader(firstValue)
       if (header) {
         // Tabular format for uniform arrays of objects
-        const headerStr = formatHeader(firstValue.length, { key: firstKey, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
-        writer.pushListItem(depth, headerStr)
+        const formattedHeader = formatHeader(firstValue.length, { key: firstKey, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+        writer.pushListItem(depth, formattedHeader)
         writeTabularRows(firstValue, header, writer, depth + 1, options)
       }
       else {

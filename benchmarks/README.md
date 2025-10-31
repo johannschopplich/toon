@@ -32,17 +32,17 @@ Results are saved to `results/token-efficiency.md`.
 
 ## Retrieval Accuracy Benchmark
 
-Tests how well LLMs can answer questions about data in different formats (TOON, JSON, XML, YAML, CSV):
+Tests how well LLMs can answer questions about data in different formats (TOON, JSON, JSON compact, XML, YAML, CSV):
 
-1. Generate 154 questions across 4 datasets
-2. Convert each dataset to all 5 formats
+1. Generate ~150-160 questions across 4 datasets
+2. Convert each dataset to all 6 formats
 3. Query each LLM with formatted data + question
 4. Validate answers using `gpt-5-nano` as judge
 5. Aggregate metrics and generate report
 
 ### Setup
 
-1. Edit [`src/evaluate.ts`](./src/evaluate.ts) and add models to the `models` array:
+1. Edit [`src/evaluate.ts`](./src/evaluate.ts) and add models to the exported `models` array:
    ```ts
    export const models: LanguageModelV2[] = [
      openai('gpt-5-nano'),

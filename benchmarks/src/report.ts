@@ -1,7 +1,7 @@
 import type { EvaluationResult, FormatResult, Question } from './types'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
-import { BENCHMARKS_DIR } from './constants'
+import { BENCHMARKS_DIR, FORMATTER_DISPLAY_NAMES } from './constants'
 import { datasets } from './datasets'
 import { models } from './evaluate'
 import { createProgressBar, ensureDir, tokenize } from './utils'
@@ -49,10 +49,15 @@ export function generateMarkdownReport(
   tokenCounts: Record<string, number>,
 ): string {
   const toon = formatResults.find(r => r.format === 'toon')
-  const json = formatResults.find(r => r.format === 'json')
+  const json = formatResults.find(r => r.format === 'json-pretty')
 
   const modelIds = models.map(m => m.modelId)
   const modelNames = modelIds.filter(id => results.some(r => r.model === id))
+
+  const maxDisplayNameWidth = Math.max(
+    ...Object.values(FORMATTER_DISPLAY_NAMES).map(name => name.length),
+  )
+  const progressBarWidth = 20
 
   const modelBreakdown = modelNames.map((modelName, i) => {
     const modelResults = formatResults.map((fr) => {
@@ -70,11 +75,12 @@ export function generateMarkdownReport(
     }).sort((a, b) => b.accuracy - a.accuracy)
 
     const formatLines = modelResults.map((result) => {
-      const bar = createProgressBar(result.accuracy, 1, 20)
-      const accuracyStr = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
-      const countStr = `(${result.correctCount}/${result.totalCount})`
+      const bar = createProgressBar(result.accuracy, 1, progressBarWidth)
+      const accuracyString = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
+      const countString = `(${result.correctCount}/${result.totalCount})`
       const prefix = result.format === 'toon' ? '→ ' : '  '
-      return `${prefix}${result.format.padEnd(12)} ${bar} ${accuracyStr} ${countStr}`
+      const displayName = FORMATTER_DISPLAY_NAMES[result.format] || result.format
+      return `${prefix}${displayName.padEnd(maxDisplayNameWidth)}   ${bar}   ${accuracyString} ${countString}`
     }).join('\n')
 
     // Add blank line before model name, except for first model
@@ -248,7 +254,7 @@ ${totalQuestions} questions are generated dynamically across three categories:
 
 #### Evaluation Process
 
-1. **Format conversion**: Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => f.format.toUpperCase()).join(', ')}).
+1. **Format conversion**: Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => FORMATTER_DISPLAY_NAMES[f.format] || f.format).join(', ')}).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
 3. **Validate with LLM-as-judge**: \`gpt-5-nano\` validates if the answer is semantically correct (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`).
 
