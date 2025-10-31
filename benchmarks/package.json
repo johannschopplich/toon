@@ -13,7 +13,6 @@
     "@ai-sdk/openai": "^2.0.53",
     "@ai-sdk/provider": "^2.0.0",
     "@ai-sdk/xai": "^2.0.28",
-    "@antfu/eslint-config": "^6.1.0",
     "@clack/prompts": "^0.11.0",
     "@faker-js/faker": "^10.1.0",
     "ai": "^5.0.80",

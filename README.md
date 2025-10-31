@@ -9,6 +9,22 @@ TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, 
 > [!TIP]
 > Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
 
+## Table of Contents
+
+- [Why TOON?](#why-toon)
+- [Key Features](#key-features)
+- [Benchmarks](#benchmarks)
+- [📋 Full Specification](./SPEC.md)
+- [Installation](#installation)
+- [CLI](#cli)
+- [Quick Start](#quick-start)
+- [Format Overview](#format-overview)
+- [API](#api)
+- [Using TOON in LLM Prompts](#using-toon-in-llm-prompts)
+- [Notes and Limitations](#notes-and-limitations)
+- [Syntax Cheatsheet](#syntax-cheatsheet)
+- [Other Implementations](#other-implementations)
+
 ## Why TOON?
 
 AI is becoming cheaper and more accessible, but larger context windows allow for larger data inputs as well. **LLM tokens still cost money** – and standard JSON is verbose and token-expensive:
@@ -84,7 +100,7 @@ Total                        ██████████████░░░
 ```
 
 <details>
-<summary><strong>View detailed examples</strong></summary>
+<summary><strong>Show detailed examples</strong></summary>
 
 #### ⭐ GitHub Repositories
 
@@ -692,7 +708,7 @@ String values are quoted when any of the following is true:
 > [!IMPORTANT]
 > **Delimiter-aware quoting:** Unquoted strings never contain `:` or the active delimiter. This makes TOON reliably parseable with simple heuristics: split key/value on first `: `, and split array values on the delimiter declared in the array header. When using tab or pipe delimiters, commas don't need quoting – only the active delimiter triggers quoting for both array values and object values.
 
-## Type Conversions
+### Type Conversions
 
 Some non-JSON types are automatically normalized for LLM-safe output:
 
@@ -911,7 +927,10 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 > [!TIP]
 > For large uniform tables, use `encode(data, { delimiter: '\t' })` and tell the model "fields are tab-separated." Tabs often tokenize better than commas and reduce the need for quote-escaping.
 
-## Quick Reference
+## Syntax Cheatsheet
+
+<details>
+<summary><strong>Show format examples</strong></summary>
 
 ```
 // Object
@@ -954,7 +973,9 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 { items: ['true', true] }       → items[2]: "true",true
 ```
 
-## Ports in Other Languages
+</details>
+
+## Other Implementations
 
 - **.NET:** [toon.NET](https://github.com/ghost1face/toon.NET)
 - **Dart:** [toon](https://github.com/wisamidris77/toon)
