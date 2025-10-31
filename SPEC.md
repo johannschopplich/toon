@@ -672,8 +672,17 @@ This profile captures the most common, memory-friendly rules.
 
 ## 24. Acknowledgments and License
 
-- Credits: Author and contributors; ports in other languages (Elixir, PHP, Python, Ruby, Java, .NET, Swift, Go).
-- License: MIT (see repository for details).
+### Author
+
+This specification was created and is maintained by Johann Schopplich, who also maintains the reference TypeScript/JavaScript implementation.
+
+### Community Implementations
+
+Implementations of TOON in other languages have been created by community members. For a complete list with repository links and maintainer information, see the [Other Implementations](https://github.com/johannschopplich/toon#other-implementations) section of the README.
+
+### License
+
+This specification and reference implementation are released under the MIT License (see repository for details).
 
 ---
 
