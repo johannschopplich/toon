@@ -979,6 +979,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 > When implementing TOON in other languages, please follow the [SPEC.md](./SPEC.md) (currently v1.3) to ensure compatibility across implementations. The [TypeScript test suite](./test) provides comprehensive examples of encoding and decoding behavior that can serve as a reference implementation.
 
 - **.NET:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
+- **Crystal:** [toon-crystal](https://github.com/mamantoha/toon-crystal)
 - **Dart:** [toon](https://github.com/wisamidris77/toon)
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
 - **Gleam:** [toon_codec](https://github.com/axelbellec/toon_codec)
