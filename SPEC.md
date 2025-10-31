@@ -16,11 +16,7 @@ Token-Oriented Object Notation (TOON) is a compact, human-readable serialization
 
 This document is a Working Draft v1.3 and may be updated, replaced, or obsoleted. Implementers should monitor the canonical repository at https://github.com/johannschopplich/toon for changes.
 
-This specification is **stable for implementation** but not yet finalized. Breaking changes are unlikely but possible before v2.0.
-
-**Transition criteria:**
-- **Candidate Standard:** 3+ independent, interoperable implementations
-- **Final Standard:** 12 months operational experience with no blocking issues
+This specification is stable for implementation but not yet finalized. Breaking changes are unlikely but possible before v2.0.
 
 ## Normative References
 
@@ -733,7 +729,7 @@ This specification does not request IANA registration at this time, as the forma
 
 ### 18.2 Provisional Media Type
 
-The following provisional media type designation is RECOMMENDED for experimental implementations to facilitate interoperability:
+The following provisional media type designation is RECOMMENDED for experimental implementations:
 
 Type name: text
 
@@ -742,38 +738,32 @@ Subtype name: toon (provisional, not IANA-registered)
 Required parameters: None
 
 Optional parameters:
-- charset: Although TOON is always UTF-8, the charset parameter MAY be specified as "charset=utf-8" for explicit declaration. If absent, UTF-8 MUST be assumed.
+- charset: Although TOON is always UTF-8, the charset parameter MAY be specified as "charset=utf-8". If absent, UTF-8 MUST be assumed.
 
-**Encoding considerations:** 8-bit. TOON documents are UTF-8 encoded text with LF (U+000A) line endings.
+Encoding considerations: 8-bit. TOON documents are UTF-8 encoded text with LF (U+000A) line endings.
 
-**Security considerations:** See Section 15 of this specification.
+Security considerations: See Section 15.
 
-**Interoperability considerations:** See Section 17 of this specification.
+Interoperability considerations: See Section 17.
 
-**Published specification:** This document.
+Published specification: This document.
 
-**Applications that use this media type:** LLM-based applications, prompt engineering tools, data serialization for AI contexts, configuration management systems.
+Applications: LLM-based applications, prompt engineering tools, data serialization for AI contexts, configuration management systems.
 
-**Fragment identifier considerations:** Not applicable. No fragment identifier syntax is defined for TOON.
+Fragment identifier considerations: None defined.
 
-**Additional information:**
-- **File extension:** .toon
-- **Macintosh file type code:** TEXT
-- **Line endings:** LF (U+000A)
+Additional information:
+- File extension: .toon
+- Macintosh file type code: TEXT
+- Contact: See Appendix E (Author section)
 
-**Person & email address to contact for further information:** See Author section.
+Intended usage: COMMON (upon standardization)
 
-**Intended usage:** COMMON (upon standardization)
+Restrictions on usage: None
 
-**Restrictions on usage:** None
+Change controller: Community-maintained. See repository at https://github.com/johannschopplich/toon
 
-**Change controller:** This specification is community-maintained. See repository at https://github.com/johannschopplich/toon
-
-### 18.3 File Extension
-
-The file extension **.toon** is RECOMMENDED for TOON documents. Implementations SHOULD recognize this extension and associate it with TOON processing.
-
-### 18.4 Implementation Status
+### 18.3 Implementation Status
 
 Implementers SHOULD be aware that the media type designation `text/toon` is provisional and MAY be subject to change before formal IANA registration. Early implementers are encouraged to monitor the specification repository for updates.
 
@@ -967,9 +957,9 @@ These sketches illustrate structure and common decoding helpers. They are inform
 ### Reference Test Suite
 
 A reference test suite is maintained at:
-**https://github.com/johannschopplich/toon/tree/main/test**
+https://github.com/johannschopplich/toon/tree/main/test
 
-The test suite is versioned alongside this specification. Implementations are encouraged to validate against this test suite, but **conformance is determined solely by adherence to the normative requirements in Sections 1-16 and Section 19** of this specification. Test coverage does not define the specification; the specification defines conformance.
+The test suite is versioned alongside this specification. Implementations are encouraged to validate against this test suite, but conformance is determined solely by adherence to the normative requirements in Sections 1-16 and Section 19 of this specification. Test coverage does not define the specification; the specification defines conformance.
 
 The reference test suite provides validation for implementations but is not exhaustive. Implementers remain responsible for ensuring their implementations conform to all normative requirements.
 
@@ -990,17 +980,11 @@ The reference test suite covers:
 
 ### v1.3 (2025-10-31)
 
-- Added Introduction section with specification scope.
-- Added Informative References section with citations for JSON (RFC8259), CSV (RFC4180), ABNF (RFC5234), RFC6838, YAML, Unicode, and ISO8601.
-- Expanded IANA Considerations (Section 18) with provisional media type registration template following RFC 6838 structure.
-- Expanded Interoperability section (Section 17) with JSON/CSV/YAML format mappings and conversion examples.
-- Expanded Appendix A (Examples) with error cases and edge cases.
-- Tightened Abstract to be more concise while expanding LLM abbreviation.
 - Added numeric precision requirements: JavaScript implementations SHOULD use Number.toString() precision (15-17 digits), all implementations MUST preserve round-trip fidelity (Section 2).
 - Added RFC 5234 core rules (ALPHA, DIGIT, DQUOTE, HTAB, LF, SP) to ABNF grammar definitions (Section 6).
 - Added test case for repeating decimal precision (1/3) to validate round-trip behavior.
 
-### v1.2 (2025-10-31)
+### v1.2 (2025-10-29)
 
 - Clarified delimiter scoping behavior between array headers.
 - Tightened strict-mode indentation requirements: leading spaces MUST be exact multiples of indentSize; tabs in indentation MUST error.
@@ -1009,11 +993,11 @@ The reference test suite covers:
 - Clarified BigInt normalization: values outside safe integer range are converted to quoted decimal strings.
 - Clarified row/key disambiguation: uses first unquoted delimiter vs colon position.
 
-### v1.1
+### v1.1 (2025-10-29)
 
 Added strict-mode rules, delimiter-aware parsing, and decoder options (indent, strict).
 
-### v1.0
+### v1.0 (2025-10-28)
 
 Initial encoding, normalization, and conformance rules.
 
@@ -1080,14 +1064,9 @@ This profile captures the most common, memory-friendly rules.
 
 ## 20. Versioning and Extensibility
 
-This specification uses semantic versioning (major.minor format):
+This specification uses semantic versioning (major.minor format). Breaking changes (incompatible with previous versions) will increment the major version number (e.g., v2.0). Minor version increments represent clarifications, additional conformance requirements, or backward-compatible additions that do not break existing conformant implementations.
 
-- **Version 1.0:** Initial release establishing core encoding, normalization, and conformance rules.
-- **Version 1.1:** Added normative decoding behavior, strict-mode rules, delimiter-aware parsing, and reference algorithms.
-- **Version 1.2:** Maintains backward compatibility with v1.1 while providing clarifications to decoding behavior, centralized primitive/key parsing rules, tightened strict-mode requirements, and formalized delimiter scoping terminology.
-- **Version 1.3 (current):** Added numeric precision requirements for round-trip fidelity, reorganized terminology with subsections, added RFC 5234 core rules to ABNF grammar, clarified media type registration status, added intellectual property considerations, and formalized test suite reference.
-
-Breaking changes (incompatible with previous versions) will increment the major version number (e.g., v2.0). Minor version increments represent clarifications, additional conformance requirements, or backward-compatible additions that do not break existing conformant implementations.
+For a detailed version history, see Appendix D.
 
 ### Extensibility
 
