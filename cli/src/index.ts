@@ -4,6 +4,7 @@ import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand, runMain } from 'citty'
 import { consola } from 'consola'
+import { estimateTokenCount } from 'tokenx'
 import { name, version } from '../../package.json' with { type: 'json' }
 import { decode, DEFAULT_DELIMITER, DELIMITERS, encode } from '../../src'
 
@@ -54,6 +55,11 @@ const main = defineCommand({
       description: 'Enable strict mode for decoding',
       default: true,
     },
+    stats: {
+      type: 'boolean',
+      description: 'Show token statistics',
+      default: false,
+    },
   },
   async run({ args }) {
     const input = args.input || args._[0]
@@ -86,6 +92,7 @@ const main = defineCommand({
           delimiter: delimiter as Delimiter,
           indent,
           lengthMarker: args.lengthMarker === true ? '#' : false,
+          printStats: args.stats === true,
         })
       }
       else {
@@ -131,6 +138,7 @@ async function encodeToToon(config: {
   delimiter: Delimiter
   indent: number
   lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
+  printStats: boolean
 }) {
   const jsonContent = await fsp.readFile(config.input, 'utf-8')
 
@@ -158,6 +166,17 @@ async function encodeToToon(config: {
   }
   else {
     console.log(toonOutput)
+  }
+
+  if (config.printStats) {
+    const jsonTokens = estimateTokenCount(jsonContent)
+    const toonTokens = estimateTokenCount(toonOutput)
+    const diff = jsonTokens - toonTokens
+    const percent = ((diff / jsonTokens) * 100).toFixed(1)
+
+    console.log()
+    consola.info(`Token estimates: ~${jsonTokens} (JSON) → ~${toonTokens} (TOON)`)
+    consola.success(`Saved ~${diff} tokens (-${percent}%)`)
   }
 }
 

@@ -95,6 +95,10 @@ importers:
       consola:
         specifier: ^3.4.2
         version: 3.4.2
+    devDependencies:
+      tokenx:
+        specifier: ^1.2.0
+        version: 1.2.0
 
 packages:
 
@@ -2199,6 +2203,9 @@ packages:
   to-valid-identifier@1.0.0:
     resolution: {integrity: sha512-41wJyvKep3yT2tyPqX/4blcfybknGB4D+oETKLs7Q76UiPqRpUJK3hr1nxelyYO0PHKVzJwlu0aCeEAsGI6rpw==}
     engines: {node: '>=20'}
+
+  tokenx@1.2.0:
+    resolution: {integrity: sha512-x4bRrL23b22H+EqW2pbhIkkt3ouj27ZGmAS1QoIqpocEO4m0sAl2H1M4L1UzKqleikY4U9lz/TbEw4jeG8tm2A==}
 
   toml-eslint-parser@0.10.0:
     resolution: {integrity: sha512-khrZo4buq4qVmsGzS5yQjKe/WsFvV8fGfOjDQN0q4iy9FjRfPWRgTFrU8u1R2iu/SfWLhY9WnCi4Jhdrcbtg+g==}
@@ -4705,6 +4712,8 @@ snapshots:
     dependencies:
       '@sindresorhus/base62': 1.0.0
       reserved-identifiers: 1.2.0
+
+  tokenx@1.2.0: {}
 
   toml-eslint-parser@0.10.0:
     dependencies:
