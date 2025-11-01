@@ -1,7 +1,7 @@
 {
   "name": "@toon-format/cli",
   "type": "module",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "packageManager": "pnpm@10.19.0",
   "description": "CLI for encoding and decoding Token-Oriented Object Notation (TOON)",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
