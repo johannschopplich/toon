@@ -989,6 +989,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **Gleam:** [toon_codec](https://github.com/axelbellec/toon_codec)
 - **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
 - **Java:** [JToon](https://github.com/felipestanzani/JToon)
+- **OCaml:** [ocaml-toon](https://github.com/davesnx/ocaml-toon)
 - **PHP:** [toon-php](https://github.com/HelgeSverre/toon-php)
 - **Python:** [python-toon](https://github.com/xaviviro/python-toon) or [pytoon](https://github.com/bpradana/pytoon)
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
