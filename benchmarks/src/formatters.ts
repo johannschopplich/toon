@@ -1,7 +1,7 @@
 import { stringify as stringifyCSV } from 'csv-stringify/sync'
 import { XMLBuilder } from 'fast-xml-parser'
 import { stringify as stringifyYAML } from 'yaml'
-import { encode as encodeToon } from '../../src/index'
+import { encode as encodeToon } from '../../packages/toon/src'
 
 /**
  * Format converters registry

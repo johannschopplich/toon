@@ -1,7 +1,7 @@
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import * as prompts from '@clack/prompts'
-import { encode } from '../../src/index'
+import { encode } from '../../packages/toon/src'
 import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, FORMATTER_DISPLAY_NAMES, ROOT_DIR } from '../src/constants'
 import { generateAnalyticsData, generateOrderData } from '../src/datasets'
