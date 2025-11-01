@@ -52,9 +52,9 @@ users[2]{id,name,role}:
 ```
 
 <details>
-<summary>Another reason</summary>
+<summary><strong>Why create a new format?</strong></summary>
 
-[![xkcd: Standards](https://imgs.xkcd.com/comics/standards_2x.png)](https://xkcd.com/927/)
+For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when you're making hundreds of LLM calls with uniform tabular data, eliminating repeated keys compounds savings significantly. If token costs matter to your use case, TOON reduces them. If not, stick with what works.
 
 </details>
 
