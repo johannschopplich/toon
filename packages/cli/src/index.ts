@@ -1,12 +1,12 @@
-import type { DecodeOptions, Delimiter, EncodeOptions } from '../../src'
+import type { DecodeOptions, Delimiter, EncodeOptions } from '../../toon/src'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand, runMain } from 'citty'
 import { consola } from 'consola'
 import { estimateTokenCount } from 'tokenx'
-import { name, version } from '../../package.json' with { type: 'json' }
-import { decode, DEFAULT_DELIMITER, DELIMITERS, encode } from '../../src'
+import { name, version } from '../../toon/package.json' with { type: 'json' }
+import { decode, DEFAULT_DELIMITER, DELIMITERS, encode } from '../../toon/src'
 
 const main = defineCommand({
   meta: {

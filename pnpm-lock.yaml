@@ -87,7 +87,7 @@ importers:
         specifier: ^2.8.1
         version: 2.8.1
 
-  cli:
+  packages/cli:
     dependencies:
       citty:
         specifier: ^0.1.6
@@ -98,6 +98,8 @@ importers:
       tokenx:
         specifier: ^1.2.0
         version: 1.2.0
+
+  packages/toon: {}
 
 packages:
 

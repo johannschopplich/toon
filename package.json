@@ -1,42 +1,17 @@
 {
-  "name": "@byjohann/toon",
+  "name": "@toon-format/monorepo",
   "type": "module",
   "version": "0.6.0",
+  "private": true,
   "packageManager": "pnpm@10.19.0",
-  "description": "Token-Oriented Object Notation – a token-efficient JSON alternative for LLM prompts",
-  "author": "Johann Schopplich <hello@johannschopplich.com>",
-  "license": "MIT",
-  "homepage": "https://github.com/johannschopplich/toon#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/johannschopplich/toon.git"
-  },
-  "bugs": {
-    "url": "https://github.com/johannschopplich/toon/issues"
-  },
-  "sideEffects": false,
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "types": "./dist/index.d.ts",
-  "bin": {
-    "toon": "bin/toon.mjs"
-  },
-  "files": [
-    "bin",
-    "dist"
-  ],
   "scripts": {
+    "build": "pnpm -r --filter=./packages/** run build",
     "automd": "automd",
-    "build": "tsdown",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "test": "vitest",
+    "test": "pnpm -r test",
     "test:types": "tsc --noEmit",
-    "release": "bumpp"
+    "release": "bumpp -r"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^6.1.0",
@@ -48,11 +23,5 @@
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
     "vitest": "^4.0.3"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "@parcel/watcher",
-      "esbuild"
-    ]
   }
 }

@@ -32,6 +32,6 @@ jobs:
       - run: pnpm run build
 
       - name: Publish to npm
-        run: npm install -g npm@latest && npm publish --access public
+        run: npm install -g npm@latest && pnpm -r publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

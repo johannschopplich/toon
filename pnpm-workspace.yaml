@@ -1,3 +1,7 @@
 packages:
   - benchmarks
-  - cli
+  - packages/*
+
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
