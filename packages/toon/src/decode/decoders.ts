@@ -112,6 +112,44 @@ function decodeKeyValue(
   return { key, value, followDepth: baseDepth + 1 }
 }
 
+// Variant for list items where nested content is at baseDepth + 2 due to list nesting
+function decodeKeyValueForListItem(
+  content: string,
+  cursor: LineCursor,
+  baseDepth: Depth,
+  options: ResolvedDecodeOptions,
+): { key: string, value: JsonValue } {
+  // Check for array header first (before parsing key)
+  const arrayHeader = parseArrayHeaderLine(content, DEFAULT_DELIMITER)
+  if (arrayHeader && arrayHeader.header.key) {
+    const value = decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
+    return {
+      key: arrayHeader.header.key,
+      value,
+    }
+  }
+
+  // Regular key-value pair
+  const { key, end } = parseKeyToken(content, 0)
+  const rest = content.slice(end).trim()
+
+  // No value after colon - expect nested object or empty
+  if (!rest) {
+    const nextLine = cursor.peek()
+    // List items add one level of nesting, so nested content is at baseDepth + 2
+    if (nextLine && nextLine.depth > baseDepth + 1) {
+      const nested = decodeObject(cursor, baseDepth + 2, options)
+      return { key, value: nested }
+    }
+    // Empty object
+    return { key, value: {} }
+  }
+
+  // Inline primitive value
+  const value = parsePrimitiveToken(rest)
+  return { key, value }
+}
+
 function decodeKeyValuePair(
   line: ParsedLine,
   cursor: LineCursor,
@@ -189,7 +227,9 @@ function decodeListArray(
       break
     }
 
-    if (line.depth === itemDepth && line.content.startsWith(LIST_ITEM_PREFIX)) {
+    // Handle both "- " (normal item) and "-" (empty item without space)
+    const isListItem = line.content.startsWith(LIST_ITEM_PREFIX) || line.content.trim() === '-'
+    if (line.depth === itemDepth && isListItem) {
       // Track first and last item line numbers
       if (startLine === undefined) {
         startLine = line.lineNumber
@@ -313,6 +353,11 @@ function decodeListItem(
 
   const afterHyphen = line.content.slice(LIST_ITEM_PREFIX.length)
 
+  // Handle empty item (just "-" with no value) - treat as empty object
+  if (!afterHyphen.trim()) {
+    return {}
+  }
+
   // Check for array header after hyphen
   if (isArrayHeaderAfterHyphen(afterHyphen)) {
     const arrayHeader = parseArrayHeaderLine(afterHyphen, DEFAULT_DELIMITER)
@@ -337,7 +382,8 @@ function decodeObjectFromListItem(
   options: ResolvedDecodeOptions,
 ): JsonObject {
   const afterHyphen = firstLine.content.slice(LIST_ITEM_PREFIX.length)
-  const { key, value, followDepth } = decodeKeyValue(afterHyphen, cursor, baseDepth, options)
+  const { key, value } = decodeKeyValueForListItem(afterHyphen, cursor, baseDepth, options)
+  const followDepth = baseDepth + 1  // Sibling fields are at baseDepth + 1
 
   const obj: JsonObject = { [key]: value }
 
