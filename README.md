@@ -15,6 +15,10 @@ TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, 
 > [!TIP]
 > Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=toon-format/toon&type=date&legend=top-left)](https://www.star-history.com/#toon-format/toon&type=date&legend=top-left)
+
 ## Table of Contents
 
 - [Why TOON?](#why-toon)
