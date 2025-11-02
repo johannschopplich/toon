@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.7.0",
   "private": true,
-  "packageManager": "pnpm@10.19.0",
+  "packageManager": "pnpm@10.20.0",
   "scripts": {
     "build": "pnpm -r --filter=./packages/** run build",
     "automd": "automd",
@@ -14,14 +14,14 @@
     "release": "bumpp -r"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^6.1.0",
-    "@types/node": "^24.9.1",
+    "@antfu/eslint-config": "^6.2.0",
+    "@types/node": "^24.9.2",
     "automd": "^0.4.2",
     "bumpp": "^10.3.1",
-    "eslint": "^9.38.0",
-    "tsdown": "^0.15.10",
+    "eslint": "^9.39.0",
+    "tsdown": "^0.15.12",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.3"
+    "vitest": "^4.0.6"
   }
 }

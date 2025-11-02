@@ -2,18 +2,26 @@
   "name": "@toon-format/toon",
   "type": "module",
   "version": "0.7.0",
-  "packageManager": "pnpm@10.19.0",
+  "packageManager": "pnpm@10.20.0",
   "description": "Token-Oriented Object Notation (TOON) – a token-efficient JSON alternative for LLM prompts",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
   "license": "MIT",
   "homepage": "https://toonformat.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johannschopplich/toon.git"
+    "url": "git+https://github.com/toon-format/toon.git"
   },
   "bugs": {
-    "url": "https://github.com/johannschopplich/toon/issues"
+    "url": "https://github.com/toon-format/toon/issues"
   },
+  "keywords": [
+    "toon",
+    "format",
+    "specification",
+    "llm",
+    "token-efficiency",
+    "data-format"
+  ],
   "sideEffects": false,
   "exports": {
     ".": {
@@ -28,5 +36,8 @@
   "scripts": {
     "build": "tsdown",
     "test": "vitest"
+  },
+  "devDependencies": {
+    "@toon-format/spec": "^1.3.0"
   }
 }

@@ -2,17 +2,17 @@
   "name": "@toon-format/cli",
   "type": "module",
   "version": "0.7.0",
-  "packageManager": "pnpm@10.19.0",
-  "description": "CLI for encoding and decoding Token-Oriented Object Notation (TOON)",
+  "packageManager": "pnpm@10.20.0",
+  "description": "CLI for JSON ↔ TOON conversion using @toon-format/toon",
   "author": "Johann Schopplich <hello@johannschopplich.com>",
   "license": "MIT",
   "homepage": "https://toonformat.dev",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/johannschopplich/toon.git"
+    "url": "git+https://github.com/toon-format/toon.git"
   },
   "bugs": {
-    "url": "https://github.com/johannschopplich/toon/issues"
+    "url": "https://github.com/toon-format/toon/issues"
   },
   "sideEffects": false,
   "exports": {
