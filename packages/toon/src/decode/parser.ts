@@ -9,13 +9,26 @@ export function parseArrayHeaderLine(
   content: string,
   defaultDelimiter: Delimiter,
 ): { header: ArrayHeaderInfo, inlineValues?: string } | undefined {
-  // Don't match if the line starts with a quote (it's a quoted key, not an array)
-  if (content.trimStart().startsWith(DOUBLE_QUOTE)) {
-    return
+  // Find bracket start - need to handle quoted keys like "key"[1]:
+  let bracketStart = -1
+  let keyEndIndex = 0
+
+  // Check if starts with quoted key
+  const trimmed = content.trimStart()
+  if (trimmed.startsWith(DOUBLE_QUOTE)) {
+    const closingQuote = findClosingQuote(trimmed, 0)
+    if (closingQuote === -1) {
+      return
+    }
+    keyEndIndex = content.indexOf(trimmed) + closingQuote + 1
+    // Look for bracket after the quoted key
+    bracketStart = content.indexOf(OPEN_BRACKET, keyEndIndex)
+  }
+  else {
+    // Unquoted key - original behavior
+    bracketStart = content.indexOf(OPEN_BRACKET)
   }
 
-  // Find the bracket segment first
-  const bracketStart = content.indexOf(OPEN_BRACKET)
   if (bracketStart === -1) {
     return
   }
@@ -44,7 +57,11 @@ export function parseArrayHeaderLine(
     return
   }
 
-  const key = bracketStart > 0 ? content.slice(0, bracketStart) : undefined
+  let key = bracketStart > 0 ? content.slice(0, bracketStart).trim() : undefined
+  // If key is quoted, unescape it
+  if (key && key.startsWith(DOUBLE_QUOTE) && key.endsWith(DOUBLE_QUOTE)) {
+    key = unescapeString(key.slice(1, -1))
+  }
   const afterColon = content.slice(colonIndex + 1).trim()
 
   const bracketContent = content.slice(bracketStart + 1, bracketEnd)
