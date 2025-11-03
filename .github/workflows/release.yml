@@ -31,6 +31,12 @@ jobs:
       - run: pnpm install
       - run: pnpm run build
 
+      - name: Copy READMEs for npm packages
+        run: |
+          cp README.md packages/toon/README.md
+          echo "✓ Copied root README to @toon-format/toon"
+          echo "✓ CLI package uses its own README"
+
       - name: Publish to npm
         run: npm install -g npm@latest && pnpm -r publish --access public --no-git-checks
         env:
