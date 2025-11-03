@@ -1,12 +1,13 @@
-import type { DecodeOptions, Delimiter, EncodeOptions } from '../../toon/src'
-import * as fsp from 'node:fs/promises'
+import type { Delimiter } from '../../toon/src'
+import type { InputSource } from './types'
 import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand, runMain } from 'citty'
 import { consola } from 'consola'
-import { estimateTokenCount } from 'tokenx'
 import { name, version } from '../../toon/package.json' with { type: 'json' }
-import { decode, DEFAULT_DELIMITER, DELIMITERS, encode } from '../../toon/src'
+import { DEFAULT_DELIMITER, DELIMITERS } from '../../toon/src'
+import { decodeToJson, encodeToToon } from './conversion'
+import { detectMode } from './utils'
 
 const main = defineCommand({
   meta: {
@@ -17,8 +18,8 @@ const main = defineCommand({
   args: {
     input: {
       type: 'positional',
-      description: 'Input file path',
-      required: true,
+      description: 'Input file path (omit or use "-" to read from stdin)',
+      required: false,
     },
     output: {
       type: 'string',
@@ -62,12 +63,11 @@ const main = defineCommand({
     },
   },
   async run({ args }) {
-    const input = args.input || args._[0]
-    if (!input) {
-      throw new Error('Input file path is required')
-    }
+    const input = args.input
 
-    const inputPath = path.resolve(input)
+    const inputSource: InputSource = !input || input === '-'
+      ? { type: 'stdin' }
+      : { type: 'file', path: path.resolve(input) }
     const outputPath = args.output ? path.resolve(args.output) : undefined
 
     // Parse and validate indent
@@ -82,12 +82,12 @@ const main = defineCommand({
       throw new Error(`Invalid delimiter "${delimiter}". Valid delimiters are: comma (,), tab (\\t), pipe (|)`)
     }
 
-    const mode = detectMode(inputPath, args.encode, args.decode)
+    const mode = detectMode(inputSource, args.encode, args.decode)
 
     try {
       if (mode === 'encode') {
         await encodeToToon({
-          input: inputPath,
+          input: inputSource,
           output: outputPath,
           delimiter: delimiter as Delimiter,
           indent,
@@ -97,7 +97,7 @@ const main = defineCommand({
       }
       else {
         await decodeToJson({
-          input: inputPath,
+          input: inputSource,
           output: outputPath,
           indent,
           strict: args.strict !== false,
@@ -110,107 +110,5 @@ const main = defineCommand({
     }
   },
 })
-
-function detectMode(
-  inputFile: string,
-  encodeFlag?: boolean,
-  decodeFlag?: boolean,
-): 'encode' | 'decode' {
-  // Explicit flags take precedence
-  if (encodeFlag)
-    return 'encode'
-  if (decodeFlag)
-    return 'decode'
-
-  // Auto-detect based on file extension
-  if (inputFile.endsWith('.json'))
-    return 'encode'
-  if (inputFile.endsWith('.toon'))
-    return 'decode'
-
-  // Default to encode
-  return 'encode'
-}
-
-async function encodeToToon(config: {
-  input: string
-  output?: string
-  delimiter: Delimiter
-  indent: number
-  lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
-  printStats: boolean
-}) {
-  const jsonContent = await fsp.readFile(config.input, 'utf-8')
-
-  let data: unknown
-  try {
-    data = JSON.parse(jsonContent)
-  }
-  catch (error) {
-    throw new Error(`Failed to parse JSON: ${error instanceof Error ? error.message : String(error)}`)
-  }
-
-  const encodeOptions: EncodeOptions = {
-    delimiter: config.delimiter,
-    indent: config.indent,
-    lengthMarker: config.lengthMarker,
-  }
-
-  const toonOutput = encode(data, encodeOptions)
-
-  if (config.output) {
-    await fsp.writeFile(config.output, toonOutput, 'utf-8')
-    const relativeInputPath = path.relative(process.cwd(), config.input)
-    const relativeOutputPath = path.relative(process.cwd(), config.output)
-    consola.success(`Encoded \`${relativeInputPath}\` → \`${relativeOutputPath}\``)
-  }
-  else {
-    console.log(toonOutput)
-  }
-
-  if (config.printStats) {
-    const jsonTokens = estimateTokenCount(jsonContent)
-    const toonTokens = estimateTokenCount(toonOutput)
-    const diff = jsonTokens - toonTokens
-    const percent = ((diff / jsonTokens) * 100).toFixed(1)
-
-    console.log()
-    consola.info(`Token estimates: ~${jsonTokens} (JSON) → ~${toonTokens} (TOON)`)
-    consola.success(`Saved ~${diff} tokens (-${percent}%)`)
-  }
-}
-
-async function decodeToJson(config: {
-  input: string
-  output?: string
-  indent: number
-  strict: boolean
-}) {
-  const toonContent = await fsp.readFile(config.input, 'utf-8')
-
-  let data: unknown
-  try {
-    const decodeOptions: DecodeOptions = {
-      indent: config.indent,
-      strict: config.strict,
-    }
-    data = decode(toonContent, decodeOptions)
-  }
-  catch (error) {
-    throw new Error(`Failed to decode TOON: ${error instanceof Error ? error.message : String(error)}`)
-  }
-
-  const jsonOutput = JSON.stringify(data, undefined, config.indent)
-
-  if (config.output) {
-    await fsp.writeFile(config.output, jsonOutput, 'utf-8')
-    const relativeInputPath = path.relative(process.cwd(), config.input)
-    const relativeOutputPath = path.relative(process.cwd(), config.output)
-    consola.success(`Decoded \`${relativeInputPath}\` → \`${relativeOutputPath}\``)
-  }
-  else {
-    console.log(jsonOutput)
-  }
-}
 
 runMain(main)

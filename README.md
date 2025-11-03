@@ -473,10 +473,12 @@ Command-line tool for converting between JSON and TOON formats.
 ### Usage
 
 ```bash
-npx @toon-format/cli <input> [options]
+npx @toon-format/cli [options] [input]
 ```
 
-**Auto-detection:** The CLI automatically detects the operation based on file extension (`.json` → encode, `.toon` → decode).
+**Standard input:** Omit the input argument or use `-` to read from stdin. This enables piping data directly from other commands.
+
+**Auto-detection:** The CLI automatically detects the operation based on file extension (`.json` → encode, `.toon` → decode). When reading from stdin, use `--encode` or `--decode` flags to specify the operation (defaults to encode).
 
 ```bash
 # Encode JSON to TOON (auto-detected)
@@ -487,6 +489,16 @@ npx @toon-format/cli data.toon -o output.json
 
 # Output to stdout
 npx @toon-format/cli input.json
+
+# Pipe from stdin (no argument needed)
+cat data.json | npx @toon-format/cli
+echo '{"name": "Ada"}' | npx @toon-format/cli
+
+# Explicit stdin with hyphen (equivalent to above)
+cat data.json | npx @toon-format/cli -
+
+# Decode from stdin
+cat data.toon | npx @toon-format/cli --decode
 ```
 
 ### Options
@@ -516,6 +528,10 @@ npx @toon-format/cli data.json --delimiter "|" --length-marker -o output.toon
 
 # Lenient decoding (skip validation)
 npx @toon-format/cli data.toon --no-strict -o output.json
+
+# Stdin workflows
+echo '{"name": "Ada", "age": 30}' | npx @toon-format/cli --stats
+cat large-dataset.json | npx @toon-format/cli --delimiter "\t" > output.toon
 ```
 
 ## Format Overview
