@@ -982,6 +982,12 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 > [!NOTE]
 > When implementing TOON in other languages, please follow the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md) (currently v1.3) to ensure compatibility across implementations. The [conformance tests](https://github.com/toon-format/spec/tree/main/tests) provide language-agnostic test fixtures that validate implementations across any language.
 
+### Official Implementations
+
+- **Python:** [toon-python](https://github.com/toon-format/toon-python) *(in development)*
+
+### Community Implementations
+
 - **.NET:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
 - **Crystal:** [toon-crystal](https://github.com/mamantoha/toon-crystal)
 - **Dart:** [toon](https://github.com/wisamidris77/toon)
