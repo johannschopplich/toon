@@ -2,3 +2,5 @@ dist
 node_modules
 .DS_Store
 .env
+packages/toon/test/fixtures/*.json
+packages/toon/test/fixtures/*.toon

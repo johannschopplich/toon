@@ -1,4 +1,4 @@
-import type { ArrayHeaderInfo, Delimiter, Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ParsedLine, ResolvedDecodeOptions } from '../types'
+import type { ArrayHeaderInfo, Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ParsedLine, ResolvedDecodeOptions } from '../types'
 import type { LineCursor } from './scanner'
 import { COLON, DEFAULT_DELIMITER, LIST_ITEM_PREFIX } from '../constants'
 import { findClosingQuote } from '../shared/string-utils'
@@ -40,8 +40,8 @@ function isKeyValueLine(line: ParsedLine): boolean {
     if (closingQuoteIndex === -1) {
       return false
     }
-    // Check if there's a colon after the quoted key
-    return closingQuoteIndex + 1 < content.length && content[closingQuoteIndex + 1] === COLON
+    // Check if colon exists after quoted key (may have array/brace syntax between)
+    return content.slice(closingQuoteIndex + 1).includes(COLON)
   }
   else {
     // Unquoted key - look for first colon not inside quotes
@@ -56,17 +56,25 @@ function isKeyValueLine(line: ParsedLine): boolean {
 function decodeObject(cursor: LineCursor, baseDepth: Depth, options: ResolvedDecodeOptions): JsonObject {
   const obj: JsonObject = {}
 
+  // Detect the actual depth of the first field (may differ from baseDepth in nested structures)
+  let computedDepth: Depth | undefined
+
   while (!cursor.atEnd()) {
     const line = cursor.peek()
     if (!line || line.depth < baseDepth) {
       break
     }
 
-    if (line.depth === baseDepth) {
-      const [key, value] = decodeKeyValuePair(line, cursor, baseDepth, options)
+    if (computedDepth === undefined && line.depth >= baseDepth) {
+      computedDepth = line.depth
+    }
+
+    if (line.depth === computedDepth) {
+      const [key, value] = decodeKeyValuePair(line, cursor, computedDepth, options)
       obj[key] = value
     }
     else {
+      // Different depth (shallower or deeper) - stop object parsing
       break
     }
   }
@@ -189,14 +197,17 @@ function decodeListArray(
       break
     }
 
-    if (line.depth === itemDepth && line.content.startsWith(LIST_ITEM_PREFIX)) {
+    // Check for list item (with or without space after hyphen)
+    const isListItem = line.content.startsWith(LIST_ITEM_PREFIX) || line.content === '-'
+
+    if (line.depth === itemDepth && isListItem) {
       // Track first and last item line numbers
       if (startLine === undefined) {
         startLine = line.lineNumber
       }
       endLine = line.lineNumber
 
-      const item = decodeListItem(cursor, itemDepth, header.delimiter, options)
+      const item = decodeListItem(cursor, itemDepth, options)
       items.push(item)
 
       // Update endLine to the current cursor position (after item was decoded)
@@ -303,7 +314,6 @@ function decodeTabularArray(
 function decodeListItem(
   cursor: LineCursor,
   baseDepth: Depth,
-  activeDelimiter: Delimiter,
   options: ResolvedDecodeOptions,
 ): JsonValue {
   const line = cursor.next()
@@ -311,7 +321,24 @@ function decodeListItem(
     throw new ReferenceError('Expected list item')
   }
 
-  const afterHyphen = line.content.slice(LIST_ITEM_PREFIX.length)
+  // Check for list item (with or without space after hyphen)
+  let afterHyphen: string
+
+  // Empty list item should be an empty object
+  if (line.content === '-') {
+    return {}
+  }
+  else if (line.content.startsWith(LIST_ITEM_PREFIX)) {
+    afterHyphen = line.content.slice(LIST_ITEM_PREFIX.length)
+  }
+  else {
+    throw new SyntaxError(`Expected list item to start with "${LIST_ITEM_PREFIX}"`)
+  }
+
+  // Empty content after list item should also be an empty object
+  if (!afterHyphen.trim()) {
+    return {}
+  }
 
   // Check for array header after hyphen
   if (isArrayHeaderAfterHyphen(afterHyphen)) {
