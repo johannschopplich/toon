@@ -9,23 +9,30 @@ export function parseArrayHeaderLine(
   content: string,
   defaultDelimiter: Delimiter,
 ): { header: ArrayHeaderInfo, inlineValues?: string } | undefined {
-  // Find bracket start - need to handle quoted keys like "key"[1]:
-  let bracketStart = -1
-  let keyEndIndex = 0
-
-  // Check if starts with quoted key
   const trimmed = content.trimStart()
+
+  // Find the bracket segment, accounting for quoted keys that may contain brackets
+  let bracketStart = -1
+
+  // For quoted keys, find bracket after closing quote (not inside the quoted string)
   if (trimmed.startsWith(DOUBLE_QUOTE)) {
-    const closingQuote = findClosingQuote(trimmed, 0)
-    if (closingQuote === -1) {
+    const closingQuoteIndex = findClosingQuote(trimmed, 0)
+    if (closingQuoteIndex === -1) {
       return
     }
-    keyEndIndex = content.indexOf(trimmed) + closingQuote + 1
-    // Look for bracket after the quoted key
+
+    const afterQuote = trimmed.slice(closingQuoteIndex + 1)
+    if (!afterQuote.startsWith(OPEN_BRACKET)) {
+      return
+    }
+
+    // Calculate position in original content and find bracket after the quoted key
+    const leadingWhitespace = content.length - trimmed.length
+    const keyEndIndex = leadingWhitespace + closingQuoteIndex + 1
     bracketStart = content.indexOf(OPEN_BRACKET, keyEndIndex)
   }
   else {
-    // Unquoted key - original behavior
+    // Unquoted key - find first bracket
     bracketStart = content.indexOf(OPEN_BRACKET)
   }
 
@@ -57,11 +64,13 @@ export function parseArrayHeaderLine(
     return
   }
 
-  let key = bracketStart > 0 ? content.slice(0, bracketStart).trim() : undefined
-  // If key is quoted, unescape it
-  if (key && key.startsWith(DOUBLE_QUOTE) && key.endsWith(DOUBLE_QUOTE)) {
-    key = unescapeString(key.slice(1, -1))
+  // Extract and parse the key (might be quoted)
+  let key: string | undefined
+  if (bracketStart > 0) {
+    const rawKey = content.slice(0, bracketStart).trim()
+    key = rawKey.startsWith(DOUBLE_QUOTE) ? parseStringLiteral(rawKey) : rawKey
   }
+
   const afterColon = content.slice(colonIndex + 1).trim()
 
   const bracketContent = content.slice(bracketStart + 1, bracketEnd)
