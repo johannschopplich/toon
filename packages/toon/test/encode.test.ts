@@ -37,7 +37,6 @@ describe('round-trip fidelity', () => {
   })
 })
 
-// Run all fixture-based tests
 for (const fixtures of fixtureFiles) {
   describe(fixtures.description, () => {
     for (const test of fixtures.tests) {
