@@ -31,7 +31,8 @@
   ],
   "scripts": {
     "dev": "tsx ./src/index.ts",
-    "build": "tsdown"
+    "build": "tsdown",
+    "test": "vitest"
   },
   "dependencies": {
     "citty": "^0.1.6",

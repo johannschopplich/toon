@@ -1,15 +1,62 @@
+import type { CommandDef } from 'citty'
 import type { Delimiter } from '../../toon/src'
 import type { InputSource } from './types'
 import * as path from 'node:path'
 import process from 'node:process'
-import { defineCommand, runMain } from 'citty'
+import { defineCommand } from 'citty'
 import { consola } from 'consola'
 import { name, version } from '../../toon/package.json' with { type: 'json' }
 import { DEFAULT_DELIMITER, DELIMITERS } from '../../toon/src'
 import { decodeToJson, encodeToToon } from './conversion'
 import { detectMode } from './utils'
 
-const main = defineCommand({
+export const mainCommand: CommandDef<{
+  input: {
+    type: 'positional'
+    description: string
+    required: false
+  }
+  output: {
+    type: 'string'
+    description: string
+    alias: string
+  }
+  encode: {
+    type: 'boolean'
+    description: string
+    alias: string
+  }
+  decode: {
+    type: 'boolean'
+    description: string
+    alias: string
+  }
+  delimiter: {
+    type: 'string'
+    description: string
+    default: string
+  }
+  indent: {
+    type: 'string'
+    description: string
+    default: string
+  }
+  lengthMarker: {
+    type: 'boolean'
+    description: string
+    default: false
+  }
+  strict: {
+    type: 'boolean'
+    description: string
+    default: true
+  }
+  stats: {
+    type: 'boolean'
+    description: string
+    default: false
+  }
+}> = defineCommand({
   meta: {
     name,
     description: 'TOON CLI — Convert between JSON and TOON formats',
@@ -110,5 +157,3 @@ const main = defineCommand({
     }
   },
 })
-
-runMain(main)
