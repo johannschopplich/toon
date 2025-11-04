@@ -8,9 +8,11 @@
 [![npm downloads (total)](https://img.shields.io/npm/dt/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-**Token-Oriented Object Notation** is a compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for LLM input, not output.
+**Token-Oriented Object Notation** is a compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for *LLM input* as a lossless, drop-in representation of JSON data.
 
 TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
+
+TOON achieves CSV-like compactness while adding explicit structure that helps LLMs parse and validate data reliably.
 
 > [!TIP]
 > Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
@@ -71,7 +73,14 @@ For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when
 > [!TIP]
 > Try the interactive [Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration) to compare token usage across CSV, JSON, YAML, and TOON with your own data.
 
-The benchmarks test datasets that favor TOON's strengths (uniform tabular data). Real-world performance depends heavily on your data structure.
+### Token Efficiency
+
+Token counts are measured using the GPT-5 `o200k_base` tokenizer via [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer). Savings are calculated against formatted JSON (2-space indentation) as the primary baseline, with additional comparisons to compact JSON (minified), YAML, and XML. Actual savings vary by model and tokenizer.
+
+The benchmarks use datasets optimized for TOON's strengths (uniform tabular data). Real-world performance depends on your data structure.
+
+> [!NOTE]
+> CSV/TSV isn't shown in the token-efficiency chart because it doesn't encode nesting without flattening. For flat datasets, see CSV token counts in the [Retrieval Accuracy](#retrieval-accuracy) tables.
 
 <!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
 
@@ -79,33 +88,33 @@ The benchmarks test datasets that favor TOON's strengths (uniform tabular data).
 
 ```
 ⭐ GitHub Repositories       ██████████████░░░░░░░░░░░    8,745 tokens
-                             vs JSON (-42.3%)           15,145
-                             vs JSON compact (-23.7%)   11,455
-                             vs YAML (-33.4%)           13,129
-                             vs XML (-48.8%)            17,095
+                             vs JSON (−42.3%)           15,145
+                             vs JSON compact (−23.7%)   11,455
+                             vs YAML (−33.4%)           13,129
+                             vs XML (−48.8%)            17,095
 
 📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░    4,507 tokens
-                             vs JSON (-58.9%)           10,977
-                             vs JSON compact (-35.7%)    7,013
-                             vs YAML (-48.8%)            8,810
-                             vs XML (-65.7%)            13,128
+                             vs JSON (−58.9%)           10,977
+                             vs JSON compact (−35.7%)    7,013
+                             vs YAML (−48.8%)            8,810
+                             vs XML (−65.7%)            13,128
 
 🛒 E-Commerce Order          ████████████████░░░░░░░░░      166 tokens
-                             vs JSON (-35.4%)              257
-                             vs JSON compact (-2.9%)       171
-                             vs YAML (-15.7%)              197
-                             vs XML (-38.7%)               271
+                             vs JSON (−35.4%)              257
+                             vs JSON compact (−2.9%)       171
+                             vs YAML (−15.7%)              197
+                             vs XML (−38.7%)               271
 
 ─────────────────────────────────────────────────────────────────────
 Total                        ██████████████░░░░░░░░░░░   13,418 tokens
-                             vs JSON (-49.1%)           26,379
-                             vs JSON compact (-28.0%)   18,639
-                             vs YAML (-39.4%)           22,136
-                             vs XML (-56.0%)            30,494
+                             vs JSON (−49.1%)           26,379
+                             vs JSON compact (−28.0%)   18,639
+                             vs YAML (−39.4%)           22,136
+                             vs XML (−56.0%)            30,494
 ```
 
 <details>
-<summary><strong>Show detailed examples</strong></summary>
+<summary><strong>View detailed examples</strong></summary>
 
 #### ⭐ GitHub Repositories
 
@@ -241,9 +250,6 @@ metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
 </details>
 
 <!-- /automd -->
-
-> [!NOTE]
-> Token savings are measured against formatted JSON (2-space indentation) as the primary baseline. Additional comparisons include compact JSON (minified), YAML, and XML to provide a comprehensive view across common data formats. Measured with [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer) using `o200k_base` encoding (GPT-5 tokenizer). Actual savings vary by model and tokenizer.
 
 <!-- automd:file src="./benchmarks/results/retrieval-accuracy.md" -->
 
@@ -909,6 +915,7 @@ By default, the decoder validates input strictly:
 - Format familiarity and structure matter as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only. When this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be more efficient at scale.
   - **TOON excels at:** Uniform arrays of objects (same fields, primitive values), especially large datasets with consistent structure.
   - **JSON is better for:** Non-uniform data, deeply nested structures, and objects with varying field sets.
+  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds minimal overhead (`[N]` length markers, delimiter scoping, deterministic quoting) to improve LLM reliability while staying close to CSV's token efficiency.
 - **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
 - **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
 

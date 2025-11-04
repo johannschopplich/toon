@@ -12,7 +12,7 @@ interface FormatMetrics {
   name: string
   tokens: number
   savings: number
-  savingsPercent: string
+  savingsPercent: number
 }
 
 interface BenchmarkResult {
@@ -75,7 +75,7 @@ for (const example of BENCHMARK_EXAMPLES) {
       name: formatName,
       tokens,
       savings,
-      savingsPercent: formatName === 'toon' ? '0.0' : ((savings / tokens) * 100).toFixed(1),
+      savingsPercent: formatName === 'toon' ? 0 : (savings / tokens) * 100,
     })
   }
 
@@ -91,14 +91,14 @@ for (const example of BENCHMARK_EXAMPLES) {
 
 // Calculate total savings percentages
 const totalToonTokens = totalTokensByFormat.toon!
-const totalSavingsPercent: Record<string, string> = {}
+const totalSavingsPercent: Record<string, number> = {}
 for (const [formatName, totalTokens] of Object.entries(totalTokensByFormat)) {
   if (formatName === 'toon') {
-    totalSavingsPercent[formatName] = '0.0'
+    totalSavingsPercent[formatName] = 0
   }
   else {
     const savings = totalTokens - totalToonTokens
-    totalSavingsPercent[formatName] = ((savings / totalTokens) * 100).toFixed(1)
+    totalSavingsPercent[formatName] = (savings / totalTokens) * 100
   }
 }
 
@@ -107,7 +107,7 @@ const formatOrder = ['json-pretty', 'json-compact', 'yaml', 'xml']
 const datasetRows = results
   .map((result) => {
     const toon = result.formats.find(f => f.name === 'toon')!
-    const percentage = Number.parseFloat(result.formats.find(f => f.name === 'json-pretty')!.savingsPercent)
+    const percentage = result.formats.find(f => f.name === 'json-pretty')!.savingsPercent
     const bar = createProgressBar(100 - percentage, 100) // Invert to show TOON tokens
     const toonStr = toon.tokens.toLocaleString('en-US')
 
@@ -116,7 +116,10 @@ const datasetRows = results
     const comparisonLines = formatOrder.map((formatName) => {
       const format = result.formats.find(f => f.name === formatName)!
       const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
-      const labelWithSavings = `vs ${label} (-${format.savingsPercent}%)`.padEnd(27)
+      const signedPercent = format.savingsPercent >= 0
+        ? `−${format.savingsPercent.toFixed(1)}%`
+        : `+${Math.abs(format.savingsPercent).toFixed(1)}%`
+      const labelWithSavings = `vs ${label} (${signedPercent})`.padEnd(27)
       const tokenStr = format.tokens.toLocaleString('en-US').padStart(6)
       return `                             ${labelWithSavings}${tokenStr}`
     })
@@ -140,7 +143,8 @@ const totalComparisonLines = formatOrder.map((formatName) => {
   const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
   const tokens = totalTokensByFormat[formatName]!
   const percent = totalSavingsPercent[formatName]!
-  const labelWithSavings = `vs ${label} (-${percent}%)`.padEnd(27)
+  const signedPercent = percent >= 0 ? `−${percent.toFixed(1)}%` : `+${Math.abs(percent).toFixed(1)}%`
+  const labelWithSavings = `vs ${label} (${signedPercent})`.padEnd(27)
   const tokenStr = tokens.toLocaleString('en-US').padStart(6)
   return `                             ${labelWithSavings}${tokenStr}`
 })
@@ -176,7 +180,7 @@ const detailedExamples = results
 
 **Configuration:** ${result.description}
 
-**Savings:** ${json.savings.toLocaleString('en-US')} tokens (${json.savingsPercent}% reduction vs JSON)
+**Savings:** ${json.savings.toLocaleString('en-US')} tokens (${json.savingsPercent.toFixed(1)}% reduction vs JSON)
 
 **JSON** (${json.tokens.toLocaleString('en-US')} tokens):
 
@@ -192,8 +196,7 @@ ${encode(displayData)}
   })
   .join('\n\n')
 
-const markdown = `### Token Efficiency
-
+const markdown = `
 \`\`\`
 ${barChartSection}
 \`\`\`
