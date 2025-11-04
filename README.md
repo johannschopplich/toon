@@ -1007,7 +1007,8 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ### Official Implementations
 
-- **Python:** [toon-python](https://github.com/toon-format/toon-python) *(in development)*
+- **Python:** [toon_format](https://github.com/toon-format/toon-python) *(in development)*
+- **Rust:** [toon_format](https://github.com/toon-format/toon-rust) *(in development)*
 
 ### Community Implementations
 
@@ -1023,7 +1024,6 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **PHP:** [toon-php](https://github.com/HelgeSverre/toon-php)
 - **Python:** [python-toon](https://github.com/xaviviro/python-toon)
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
-- **Rust:** [rtoon](https://github.com/shreyasbhat0/rtoon)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
 
 ## License
