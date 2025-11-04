@@ -5,8 +5,8 @@ import * as path from 'node:path'
 import process from 'node:process'
 import { defineCommand } from 'citty'
 import { consola } from 'consola'
-import { name, version } from '../../toon/package.json' with { type: 'json' }
 import { DEFAULT_DELIMITER, DELIMITERS } from '../../toon/src'
+import { name, version } from '../package.json' with { type: 'json' }
 import { decodeToJson, encodeToToon } from './conversion'
 import { detectMode } from './utils'
 
