@@ -1021,4 +1021,4 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ## License
 
-[MIT](./LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
+[MIT](./LICENSE) License © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)

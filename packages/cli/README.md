@@ -126,6 +126,41 @@ jq '.results' data.json | toon > filtered.toon
 - **Pipeline integration** with existing JSON-based workflows
 - **Flexible formatting** with delimiter and indentation options
 
+## Troubleshooting
+
+### Common Issues
+
+**Error: "Cannot read file"**
+- Check that the file path is correct and the file exists
+- Ensure you have read permissions for the file
+
+**Error: "Invalid JSON"**
+- Verify your JSON is valid using a JSON validator
+- Check for trailing commas or other syntax errors
+
+**Error: "Invalid TOON format"**
+- Ensure proper indentation (2 spaces by default)
+- Check that array lengths match actual row counts
+- Verify delimiter consistency in tabular arrays
+
+**Error: "Invalid delimiter"**
+- Only comma (`,`), tab (`\t`), and pipe (`|`) are supported
+- Use quotes around tab: `--delimiter "\t"`
+
+### Performance Tips
+
+- Use tab delimiters (`--delimiter "\t"`) for maximum token efficiency
+- Add `--stats` to see actual token savings
+- For large files, pipe output to avoid terminal buffer issues: `toon large.json > output.toon`
+
+### Getting Help
+
+```bash
+toon --help
+```
+
+For issues or feature requests, visit: https://github.com/toon-format/toon/issues
+
 ## Related
 
 - [@toon-format/toon](https://www.npmjs.com/package/@toon-format/toon) - JavaScript/TypeScript library
@@ -134,4 +169,4 @@ jq '.results' data.json | toon > filtered.toon
 
 ## License
 
-[MIT](https://github.com/toon-format/toon/blob/main/LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
+[MIT](https://github.com/toon-format/toon/blob/main/LICENSE) License © 2024-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
