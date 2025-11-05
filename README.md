@@ -1014,6 +1014,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 - **.NET:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
 - **C++:** [ctoon](https://github.com/mohammadraziei/ctoon)
+- **Clojure:** [toon](https://github.com/vadelabs/toon)
 - **Crystal:** [toon-crystal](https://github.com/mamantoha/toon-crystal)
 - **Dart:** [toon](https://github.com/wisamidris77/toon)
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
