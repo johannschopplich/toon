@@ -30,6 +30,18 @@ export interface EncodeOptions {
    * @default false
    */
   lengthMarker?: '#' | false
+
+  /**
+   * Optional flag to flatten nested objects to a single level.
+   * @default false
+   */
+  flatten?: boolean
+
+  /**
+   * Optional maximum depth to flatten nested objects.
+   * @default 3
+   */
+  flattenDepth?: number
 }
 
 export type ResolvedEncodeOptions = Readonly<Required<EncodeOptions>>

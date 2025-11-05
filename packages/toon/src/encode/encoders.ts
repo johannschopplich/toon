@@ -3,6 +3,7 @@ import { LIST_ITEM_MARKER } from '../constants'
 import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
 import { encodeAndJoinPrimitives, encodeKey, encodePrimitive, formatHeader } from './primitives'
 import { LineWriter } from './writer'
+import { flattenJson } from './flatten'
 
 // #region Encode normalized JsonValue
 
@@ -12,6 +13,11 @@ export function encodeValue(value: JsonValue, options: ResolvedEncodeOptions): s
   }
 
   const writer = new LineWriter(options.indent)
+
+  if (options.flatten) {
+    const maxDepth = options.flattenDepth ?? 3
+    value = flattenJson(value, maxDepth)
+  }
 
   if (isJsonArray(value)) {
     encodeArray(undefined, value, writer, 0, options)

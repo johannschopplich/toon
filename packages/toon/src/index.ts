@@ -42,6 +42,8 @@ function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
     indent: options?.indent ?? 2,
     delimiter: options?.delimiter ?? DEFAULT_DELIMITER,
     lengthMarker: options?.lengthMarker ?? false,
+    flatten: options?.flatten ?? false,
+    flattenDepth: options?.flattenDepth ?? 3,
   }
 }
 
