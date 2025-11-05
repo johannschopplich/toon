@@ -5,19 +5,25 @@ import arraysTabular from '@toon-format/spec/tests/fixtures/decode/arrays-tabula
 import blankLines from '@toon-format/spec/tests/fixtures/decode/blank-lines.json'
 import delimiters from '@toon-format/spec/tests/fixtures/decode/delimiters.json'
 import indentationErrors from '@toon-format/spec/tests/fixtures/decode/indentation-errors.json'
+import numbers from '@toon-format/spec/tests/fixtures/decode/numbers.json'
 import objects from '@toon-format/spec/tests/fixtures/decode/objects.json'
 import primitives from '@toon-format/spec/tests/fixtures/decode/primitives.json'
+import rootForm from '@toon-format/spec/tests/fixtures/decode/root-form.json'
 import validationErrors from '@toon-format/spec/tests/fixtures/decode/validation-errors.json'
+import whitespace from '@toon-format/spec/tests/fixtures/decode/whitespace.json'
 import { describe, expect, it } from 'vitest'
 import { decode } from '../src/index'
 
 const fixtureFiles = [
   primitives,
+  numbers,
   objects,
   arraysPrimitive,
   arraysTabular,
   arraysNested,
   delimiters,
+  whitespace,
+  rootForm,
   validationErrors,
   indentationErrors,
   blankLines,

@@ -30,7 +30,7 @@ export function decode(input: string, options?: DecodeOptions): JsonValue {
   const scanResult = toParsedLines(input, resolvedOptions.indent, resolvedOptions.strict)
 
   if (scanResult.lines.length === 0) {
-    throw new TypeError('Cannot decode empty input: input must be a non-empty string')
+    return {}
   }
 
   const cursor = new LineCursor(scanResult.lines, scanResult.blankLines)

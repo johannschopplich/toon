@@ -219,7 +219,9 @@ export function parsePrimitiveToken(token: string): JsonPrimitive {
 
   // Numeric literal
   if (isNumericLiteral(trimmed)) {
-    return Number.parseFloat(trimmed)
+    const parsedNumber = Number.parseFloat(trimmed)
+    // Normalize negative zero to positive zero
+    return Object.is(parsedNumber, -0) ? 0 : parsedNumber
   }
 
   // Unquoted string
@@ -227,26 +229,26 @@ export function parsePrimitiveToken(token: string): JsonPrimitive {
 }
 
 export function parseStringLiteral(token: string): string {
-  const trimmed = token.trim()
+  const trimmedToken = token.trim()
 
-  if (trimmed.startsWith(DOUBLE_QUOTE)) {
+  if (trimmedToken.startsWith(DOUBLE_QUOTE)) {
     // Find the closing quote, accounting for escaped quotes
-    const closingQuoteIndex = findClosingQuote(trimmed, 0)
+    const closingQuoteIndex = findClosingQuote(trimmedToken, 0)
 
     if (closingQuoteIndex === -1) {
       // No closing quote was found
       throw new SyntaxError('Unterminated string: missing closing quote')
     }
 
-    if (closingQuoteIndex !== trimmed.length - 1) {
+    if (closingQuoteIndex !== trimmedToken.length - 1) {
       throw new SyntaxError('Unexpected characters after closing quote')
     }
 
-    const content = trimmed.slice(1, closingQuoteIndex)
+    const content = trimmedToken.slice(1, closingQuoteIndex)
     return unescapeString(content)
   }
 
-  return trimmed
+  return trimmedToken
 }
 
 export function parseUnquotedKey(content: string, start: number): { key: string, end: number } {

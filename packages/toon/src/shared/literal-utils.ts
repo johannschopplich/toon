@@ -23,6 +23,6 @@ export function isNumericLiteral(token: string): boolean {
   }
 
   // Check if it's a valid number
-  const num = Number(token)
-  return !Number.isNaN(num) && Number.isFinite(num)
+  const numericValue = Number(token)
+  return !Number.isNaN(numericValue) && Number.isFinite(numericValue)
 }
