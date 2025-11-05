@@ -1,5 +1,3 @@
-### Token Efficiency
-
 ```
 ⭐ GitHub Repositories       ██████████████░░░░░░░░░░░    8,745 tokens
                              vs JSON (−42.3%)           15,145

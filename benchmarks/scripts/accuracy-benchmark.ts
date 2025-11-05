@@ -1,15 +1,17 @@
 import type { Question } from '../src/types'
+import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import process from 'node:process'
 import * as prompts from '@clack/prompts'
 import PQueue from 'p-queue'
-import { DEFAULT_CONCURRENCY, DRY_RUN, DRY_RUN_LIMITS, MODEL_RPM_LIMITS, ROOT_DIR } from '../src/constants'
+import { BENCHMARKS_DIR, DEFAULT_CONCURRENCY, DRY_RUN, DRY_RUN_LIMITS, MODEL_RPM_LIMITS, ROOT_DIR } from '../src/constants'
 import { datasets } from '../src/datasets'
 import { evaluateQuestion, models } from '../src/evaluate'
 import { formatters } from '../src/formatters'
 import { generateQuestions } from '../src/questions'
-import { calculateFormatResults, calculateTokenCounts, saveResults } from '../src/report'
+import { calculateFormatResults, calculateTokenCounts, generateAccuracyReport } from '../src/report'
 import { getAllModelResults, hasModelResults, saveModelResults } from '../src/storage'
+import { ensureDir } from '../src/utils'
 
 prompts.intro('Retrieval Accuracy Benchmark')
 
@@ -142,13 +144,15 @@ if (allResults.length === 0) {
   process.exit(0)
 }
 
-// Calculate token counts freshly (deterministic, no need to persist)
 const tokenCounts = calculateTokenCounts(formatters)
-
-// Calculate format statistics and save report
 const formatResults = calculateFormatResults(allResults, tokenCounts)
-const resultsDir = await saveResults(allResults, formatResults, questions, tokenCounts)
+const accuracyReport = generateAccuracyReport(allResults, formatResults, tokenCounts)
 
-const reportPath = path.join(resultsDir, 'retrieval-accuracy.md')
-prompts.log.info(`Report saved to: \`${path.relative(ROOT_DIR, reportPath)}\``)
+const resultsDir = path.join(BENCHMARKS_DIR, 'results')
+await ensureDir(resultsDir)
+
+const outputFilePath = path.join(resultsDir, 'retrieval-accuracy.md')
+await fsp.writeFile(outputFilePath, accuracyReport)
+
+prompts.log.info(`Report saved to: \`${path.relative(ROOT_DIR, outputFilePath)}\``)
 reportSpinner.stop('Report generation complete!')

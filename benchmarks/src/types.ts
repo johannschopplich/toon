@@ -32,3 +32,10 @@ export interface FormatResult {
   correctCount: number
   totalCount: number
 }
+
+export interface EfficiencyRanking {
+  format: string
+  efficiency: number
+  accuracy: number
+  tokens: number
+}

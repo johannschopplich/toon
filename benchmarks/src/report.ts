@@ -1,10 +1,30 @@
-import type { EvaluationResult, FormatResult, Question } from './types'
-import * as fsp from 'node:fs/promises'
-import * as path from 'node:path'
-import { BENCHMARKS_DIR, FORMATTER_DISPLAY_NAMES } from './constants'
+import type { EfficiencyRanking, EvaluationResult, FormatResult, Question } from './types'
+import { FORMATTER_DISPLAY_NAMES } from './constants'
 import { datasets } from './datasets'
 import { models } from './evaluate'
-import { createProgressBar, ensureDir, tokenize } from './utils'
+import { generateQuestions } from './questions'
+import { createProgressBar, tokenize } from './utils'
+
+const EFFICIENCY_CHART_STYLE: 'vertical' | 'horizontal' = 'horizontal'
+
+/**
+ * Calculate token counts for all format+dataset combinations
+ */
+export function calculateTokenCounts(
+  formatters: Record<string, (data: unknown) => string>,
+): Record<string, number> {
+  const tokenCounts: Record<string, number> = {}
+
+  for (const [formatName, formatter] of Object.entries(formatters)) {
+    for (const dataset of datasets) {
+      const formatted = formatter(dataset.data)
+      const key = `${formatName}-${dataset.name}`
+      tokenCounts[key] = tokenize(formatted)
+    }
+  }
+
+  return tokenCounts
+}
 
 /**
  * Calculate per-format statistics from evaluation results
@@ -40,9 +60,80 @@ export function calculateFormatResults(
 }
 
 /**
- * Generate embeddable markdown report from results
+ * Generate consolidated retrieval accuracy report
  */
-export function generateMarkdownReport(
+export function generateAccuracyReport(
+  results: EvaluationResult[],
+  formatResults: FormatResult[],
+  tokenCounts: Record<string, number>,
+): string {
+  const questions = generateQuestions()
+  const totalQuestions = [...new Set(results.map(r => r.questionId))].length
+  const modelIds = models.map(m => m.modelId)
+  const modelNames = modelIds.filter(id => results.some(r => r.model === id))
+
+  return `
+Benchmarks test LLM comprehension across different input formats using ${totalQuestions} data retrieval questions on ${modelNames.length} ${modelNames.length === 1 ? 'model' : 'models'}.
+
+#### Efficiency Ranking (Accuracy per 1K Tokens)
+
+${generateEfficiencyRankingReport(formatResults)}
+
+#### Per-Model Accuracy
+
+${generateDetailedAccuracyReport(formatResults, results, questions, tokenCounts)}
+`.trimStart()
+}
+
+/**
+ * Generate efficiency ranking report
+ */
+function generateEfficiencyRankingReport(
+  formatResults: FormatResult[],
+): string {
+  const toon = formatResults.find(r => r.format === 'toon')
+  const json = formatResults.find(r => r.format === 'json-pretty')
+
+  // Build efficiency ranking (accuracy per 1k tokens)
+  const efficiencyRanking = formatResults
+    .map((fr) => {
+      const efficiency = (fr.accuracy * 100) / (fr.totalTokens / 1000)
+      return {
+        format: fr.format,
+        efficiency,
+        accuracy: fr.accuracy,
+        tokens: fr.totalTokens,
+      }
+    })
+    .sort((a, b) => b.efficiency - a.efficiency)
+
+  const efficiencyChart = EFFICIENCY_CHART_STYLE === 'vertical'
+    ? generateVerticalEfficiencyChart(efficiencyRanking)
+    : generateHorizontalEfficiencyChart(efficiencyRanking)
+
+  // Build summary text
+  let summary = ''
+  if (toon && json) {
+    const toonVsJson = `**${(toon.accuracy * 100).toFixed(1)}%** accuracy (vs JSON's ${(json.accuracy * 100).toFixed(1)}%)`
+    const tokenSavings = `**${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens**`
+    summary = `TOON achieves ${toonVsJson} while using ${tokenSavings}.`
+  }
+
+  return `
+Each format's overall performance, balancing accuracy against token cost:
+
+\`\`\`
+${efficiencyChart}
+\`\`\`
+
+${summary}
+`.trim()
+}
+
+/**
+ * Generate detailed accuracy report with breakdowns and methodology
+ */
+function generateDetailedAccuracyReport(
   formatResults: FormatResult[],
   results: EvaluationResult[],
   questions: Question[],
@@ -54,125 +145,17 @@ export function generateMarkdownReport(
   const modelIds = models.map(m => m.modelId)
   const modelNames = modelIds.filter(id => results.some(r => r.model === id))
 
-  const maxDisplayNameWidth = Math.max(
-    ...Object.values(FORMATTER_DISPLAY_NAMES).map(name => name.length),
-  )
-  const progressBarWidth = 20
+  // Generate model breakdown section
+  const modelBreakdown = generateModelBreakdown(formatResults, results, modelNames)
 
-  const modelBreakdown = modelNames.map((modelName, i) => {
-    const modelResults = formatResults.map((fr) => {
-      const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
-      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
-      const totalCount = modelFormatResults.length
-      const accuracy = totalCount > 0 ? correctCount / totalCount : 0
+  // Generate summary comparison
+  const summaryComparison = generateSummaryComparison(toon, json)
 
-      return {
-        format: fr.format,
-        accuracy,
-        correctCount,
-        totalCount,
-      }
-    }).sort((a, b) => b.accuracy - a.accuracy)
+  // Generate performance by dataset
+  const datasetBreakdown = generateDatasetBreakdown(formatResults, results, questions, tokenCounts)
 
-    const formatLines = modelResults.map((result) => {
-      const bar = createProgressBar(result.accuracy, 1, progressBarWidth)
-      const accuracyString = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
-      const countString = `(${result.correctCount}/${result.totalCount})`
-      const prefix = result.format === 'toon' ? '→ ' : '  '
-      const displayName = FORMATTER_DISPLAY_NAMES[result.format] || result.format
-      return `${prefix}${displayName.padEnd(maxDisplayNameWidth)}   ${bar}   ${accuracyString} ${countString}`
-    }).join('\n')
-
-    // Add blank line before model name, except for first model
-    return `${i > 0 ? '\n' : ''}${modelName}\n${formatLines}`
-  }).join('\n')
-
-  // Build summary comparison
-  const summaryComparison = toon && json
-    ? `**Key tradeoff:** TOON achieves **${(toon.accuracy * 100).toFixed(1)}% accuracy** (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using **${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens** on these datasets.`
-    : ''
-
-  // Build performance by dataset
-  const datasetBreakdown = datasets.map((dataset) => {
-    const datasetResults = formatResults.map((fr) => {
-      const datasetFormatResults = results.filter(r => r.questionId.includes(dataset.name) || questions.find(q => q.id === r.questionId)?.dataset === dataset.name)
-      if (datasetFormatResults.length === 0)
-        return undefined
-
-      const formatDatasetResults = datasetFormatResults.filter(r => r.format === fr.format)
-      if (formatDatasetResults.length === 0)
-        return undefined
-
-      const correctCount = formatDatasetResults.filter(r => r.isCorrect).length
-      const totalCount = formatDatasetResults.length
-      const accuracy = totalCount > 0 ? correctCount / totalCount : 0
-
-      // Get token count for this dataset+format
-      const tokenKey = `${fr.format}-${dataset.name}`
-      const tokens = tokenCounts[tokenKey] || fr.totalTokens
-
-      return {
-        format: fr.format,
-        accuracy,
-        tokens,
-        correctCount,
-        totalCount,
-      }
-    }).filter(Boolean) as { format: string, accuracy: number, tokens: number, correctCount: number, totalCount: number }[]
-
-    if (datasetResults.length === 0)
-      return ''
-
-    // Sort by efficiency
-    datasetResults.sort((a, b) => {
-      const effA = (a.accuracy ** 2) / (a.tokens / 1000)
-      const effB = (b.accuracy ** 2) / (b.tokens / 1000)
-      return effB - effA
-    })
-
-    const tableRows = datasetResults.slice(0, 6).map(result =>
-      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString('en-US')} | ${result.correctCount}/${result.totalCount} |`,
-    ).join('\n')
-
-    return `
-##### ${dataset.description}
-
-| Format | Accuracy | Tokens | Correct/Total |
-| ------ | -------- | ------ | ------------- |
-${tableRows}
-`.trimStart()
-  }).filter(Boolean).join('\n').trim()
-
-  // Build performance by model
-  const modelPerformance = modelNames.map((modelName) => {
-    const modelResults = formatResults.map((fr) => {
-      const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
-      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
-      const totalCount = modelFormatResults.length
-      const accuracy = correctCount / totalCount
-
-      return {
-        format: fr.format,
-        accuracy,
-        correctCount,
-        totalCount,
-      }
-    }).sort((a, b) => b.accuracy - a.accuracy)
-
-    const tableRows = modelResults.map(result =>
-      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.correctCount}/${result.totalCount} |`,
-    ).join('\n')
-
-    return `
-##### ${modelName}
-
-| Format | Accuracy | Correct/Total |
-| ------ | -------- | ------------- |
-${tableRows}
-`.trimStart()
-  }).join('\n').trim()
-
-  // Calculate total unique questions
+  // Generate performance by model
+  const modelPerformance = generateModelPerformanceTable(formatResults, results, modelNames)
   const totalQuestions = [...new Set(results.map(r => r.questionId))].length
 
   // Calculate question type distribution
@@ -195,8 +178,6 @@ ${tableRows}
   const totalEvaluations = totalQuestions * formatCount * modelNames.length
 
   return `
-### Retrieval Accuracy
-
 Accuracy across **${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'}** on ${totalQuestions} data retrieval questions:
 
 \`\`\`
@@ -266,47 +247,245 @@ ${totalQuestions} questions are generated dynamically across three categories:
 - **Total evaluations**: ${totalQuestions} questions × ${formatCount} formats × ${modelNames.length} models = ${totalEvaluations.toLocaleString('en-US')} LLM calls
 
 </details>
-`.trimStart()
+`.trim()
 }
 
 /**
- * Calculate token counts for all format+dataset combinations
+ * Generate ASCII bar chart showing per-model accuracy across formats
  */
-export function calculateTokenCounts(
-  formatters: Record<string, (data: unknown) => string>,
-): Record<string, number> {
-  const tokenCounts: Record<string, number> = {}
-
-  for (const [formatName, formatter] of Object.entries(formatters)) {
-    for (const dataset of datasets) {
-      const formatted = formatter(dataset.data)
-      const key = `${formatName}-${dataset.name}`
-      tokenCounts[key] = tokenize(formatted)
-    }
-  }
-
-  return tokenCounts
-}
-
-/**
- * Save results to disk
- *
- * @remarks
- * Per-model results are managed separately via storage.ts
- * This function only generates the aggregated markdown report
- */
-export async function saveResults(
-  results: EvaluationResult[],
+function generateModelBreakdown(
   formatResults: FormatResult[],
+  results: EvaluationResult[],
+  modelNames: string[],
+): string {
+  const maxDisplayNameWidth = Math.max(
+    ...Object.values(FORMATTER_DISPLAY_NAMES).map(name => name.length),
+  )
+  const progressBarWidth = 20
+
+  return modelNames.map((modelName, i) => {
+    const modelResults = formatResults.map((fr) => {
+      const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
+      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
+      const totalCount = modelFormatResults.length
+      const accuracy = totalCount > 0 ? correctCount / totalCount : 0
+
+      return {
+        format: fr.format,
+        accuracy,
+        correctCount,
+        totalCount,
+      }
+    }).sort((a, b) => b.accuracy - a.accuracy)
+
+    const formatLines = modelResults.map((result) => {
+      const bar = createProgressBar(result.accuracy, 1, progressBarWidth)
+      const accuracyString = `${(result.accuracy * 100).toFixed(1)}%`.padStart(6)
+      const countString = `(${result.correctCount}/${result.totalCount})`
+      const prefix = result.format === 'toon' ? '→ ' : '  '
+      const displayName = FORMATTER_DISPLAY_NAMES[result.format] || result.format
+      return `${prefix}${displayName.padEnd(maxDisplayNameWidth)}   ${bar}   ${accuracyString} ${countString}`
+    }).join('\n')
+
+    // Add blank line before model name, except for first model
+    return `${i > 0 ? '\n' : ''}${modelName}\n${formatLines}`
+  }).join('\n')
+}
+
+/**
+ * Generate summary comparison between TOON and JSON formats
+ */
+function generateSummaryComparison(
+  toon: FormatResult | undefined,
+  json: FormatResult | undefined,
+): string {
+  if (!toon || !json)
+    return ''
+
+  return `**Key tradeoff:** TOON achieves **${(toon.accuracy * 100).toFixed(1)}% accuracy** (vs JSON's ${(json.accuracy * 100).toFixed(1)}%) while using **${((1 - toon.totalTokens / json.totalTokens) * 100).toFixed(1)}% fewer tokens** on these datasets.`
+}
+
+/**
+ * Generate per-dataset performance breakdown tables
+ */
+function generateDatasetBreakdown(
+  formatResults: FormatResult[],
+  results: EvaluationResult[],
   questions: Question[],
   tokenCounts: Record<string, number>,
-): Promise<string> {
-  const resultsDir = path.join(BENCHMARKS_DIR, 'results')
-  await ensureDir(resultsDir)
+): string {
+  return datasets.map((dataset) => {
+    const datasetResults = formatResults.map((fr) => {
+      const datasetFormatResults = results.filter(r => r.questionId.includes(dataset.name) || questions.find(q => q.id === r.questionId)?.dataset === dataset.name)
+      if (datasetFormatResults.length === 0)
+        return undefined
 
-  // Generate markdown report from all available model results
-  const report = generateMarkdownReport(formatResults, results, questions, tokenCounts)
-  await fsp.writeFile(path.join(resultsDir, 'retrieval-accuracy.md'), report)
+      const formatDatasetResults = datasetFormatResults.filter(r => r.format === fr.format)
+      if (formatDatasetResults.length === 0)
+        return undefined
 
-  return resultsDir
+      const correctCount = formatDatasetResults.filter(r => r.isCorrect).length
+      const totalCount = formatDatasetResults.length
+      const accuracy = totalCount > 0 ? correctCount / totalCount : 0
+
+      // Get token count for this dataset+format
+      const tokenKey = `${fr.format}-${dataset.name}`
+      const tokens = tokenCounts[tokenKey] || fr.totalTokens
+
+      return {
+        format: fr.format,
+        accuracy,
+        tokens,
+        correctCount,
+        totalCount,
+      }
+    }).filter(Boolean) as { format: string, accuracy: number, tokens: number, correctCount: number, totalCount: number }[]
+
+    if (datasetResults.length === 0)
+      return ''
+
+    // Sort by efficiency
+    datasetResults.sort((a, b) => {
+      const effA = (a.accuracy ** 2) / (a.tokens / 1000)
+      const effB = (b.accuracy ** 2) / (b.tokens / 1000)
+      return effB - effA
+    })
+
+    const tableRows = datasetResults.slice(0, 6).map(result =>
+      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.tokens.toLocaleString('en-US')} | ${result.correctCount}/${result.totalCount} |`,
+    ).join('\n')
+
+    return `
+##### ${dataset.description}
+
+| Format | Accuracy | Tokens | Correct/Total |
+| ------ | -------- | ------ | ------------- |
+${tableRows}
+`.trimStart()
+  }).filter(Boolean).join('\n').trim()
+}
+
+/**
+ * Generate per-model performance comparison tables
+ */
+function generateModelPerformanceTable(
+  formatResults: FormatResult[],
+  results: EvaluationResult[],
+  modelNames: string[],
+): string {
+  return modelNames.map((modelName) => {
+    const modelResults = formatResults.map((fr) => {
+      const modelFormatResults = results.filter(r => r.model === modelName && r.format === fr.format)
+      const correctCount = modelFormatResults.filter(r => r.isCorrect).length
+      const totalCount = modelFormatResults.length
+      const accuracy = correctCount / totalCount
+
+      return {
+        format: fr.format,
+        accuracy,
+        correctCount,
+        totalCount,
+      }
+    }).sort((a, b) => b.accuracy - a.accuracy)
+
+    const tableRows = modelResults.map(result =>
+      `| \`${result.format}\` | ${(result.accuracy * 100).toFixed(1)}% | ${result.correctCount}/${result.totalCount} |`,
+    ).join('\n')
+
+    return `
+##### ${modelName}
+
+| Format | Accuracy | Correct/Total |
+| ------ | -------- | ------------- |
+${tableRows}
+`.trimStart()
+  }).join('\n').trim()
+}
+
+/**
+ * Generate horizontal bar chart for efficiency ranking
+ */
+function generateHorizontalEfficiencyChart(
+  ranking: EfficiencyRanking[],
+): string {
+  const barWidth = 20
+  const maxEfficiency = Math.max(...ranking.map(r => r.efficiency))
+  const maxFormatWidth = Math.max(...ranking.map(r => r.format.length))
+
+  return ranking
+    .map((r) => {
+      const normalizedValue = r.efficiency / maxEfficiency
+      const bar = createProgressBar(normalizedValue, 1, barWidth, { filled: '▓', empty: '░' })
+      const formatName = r.format.padEnd(maxFormatWidth)
+      const efficiency = r.efficiency.toFixed(1).padStart(4)
+      const accuracy = `${(r.accuracy * 100).toFixed(1)}%`.padStart(5)
+      const tokens = r.tokens.toLocaleString('en-US').padStart(5)
+
+      return `${formatName}   ${bar}   ${efficiency}  │  ${accuracy} acc  │  ${tokens} tokens`
+    })
+    .join('\n')
+}
+
+/**
+ * Generate vertical bar chart for efficiency ranking
+ */
+function generateVerticalEfficiencyChart(
+  ranking: EfficiencyRanking[],
+): string {
+  const maxEfficiency = Math.max(...ranking.map(r => r.efficiency))
+  const chartHeight = 8
+
+  // Generate rows from top to bottom
+  const rows: string[] = []
+
+  // Y-axis and bars
+  for (let i = chartHeight; i >= 0; i--) {
+    const threshold = (i / chartHeight) * maxEfficiency
+    const yLabel = i === chartHeight || i === Math.floor(chartHeight / 2) || i === 0
+      ? Math.round(threshold).toString().padStart(4)
+      : '    '
+
+    const bars = ranking
+      .map((r) => {
+        const barHeight = (r.efficiency / maxEfficiency) * chartHeight
+        let char = ' '
+        if (barHeight >= i) {
+          // Use different characters for visual distinction
+          if (ranking.indexOf(r) === 0)
+            char = '▓' // Top format
+          else if (ranking.indexOf(r) <= 2)
+            char = '▒' // Top 3
+          else
+            char = '░' // Rest
+        }
+        return char
+      })
+      .join('    ')
+
+    rows.push(`${yLabel}│  ${bars}`)
+  }
+
+  // X-axis
+  const axis = `    └──${ranking.map(() => '┴').join('────')}──`
+  rows.push(axis)
+
+  // Format labels (split long names into multiple rows)
+  const formatRow1 = ranking
+    .map((r) => {
+      const parts = r.format.split('-')
+      return (parts[0] || '').padEnd(5).substring(0, 5)
+    })
+    .join('')
+  rows.push(`      ${formatRow1}`)
+
+  const formatRow2 = ranking
+    .map((r) => {
+      const parts = r.format.split('-')
+      return (parts[1] || '').padEnd(5).substring(0, 5)
+    })
+    .join('')
+  if (formatRow2.trim())
+    rows.push(`      ${formatRow2}`)
+
+  return rows.join('\n')
 }

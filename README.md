@@ -62,11 +62,13 @@ For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when
 
 ## Key Features
 
-- 💸 **Token-efficient:** typically 30–60% fewer tokens than JSON
+- 💸 **Token-efficient:** typically 30–60% fewer tokens than JSON[^1]
 - 🤿 **LLM-friendly guardrails:** explicit lengths and fields enable validation
 - 🍱 **Minimal syntax:** removes redundant punctuation (braces, brackets, most quotes)
 - 📐 **Indentation-based structure:** like YAML, uses whitespace instead of braces
 - 🧺 **Tabular arrays:** declare keys once, stream data as rows
+
+[^1]: For flat tabular data, CSV is more compact. TOON adds minimal overhead to provide explicit structure and validation that improves LLM reliability.
 
 ## Benchmarks
 
@@ -80,11 +82,9 @@ Token counts are measured using the GPT-5 `o200k_base` tokenizer via [`gpt-token
 The benchmarks use datasets optimized for TOON's strengths (uniform tabular data). Real-world performance depends on your data structure.
 
 > [!NOTE]
-> CSV/TSV isn't shown in the token-efficiency chart because it doesn't encode nesting without flattening. For flat datasets, see CSV token counts in the [Retrieval Accuracy](#retrieval-accuracy) tables.
+> CSV/TSV doesn't support nested structures, so it's not included in this comparison. For flat datasets where CSV applies, see token counts and accuracy metrics in the [Retrieval Accuracy](#retrieval-accuracy) section.
 
 <!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
-
-### Token Efficiency
 
 ```
 ⭐ GitHub Repositories       ██████████████░░░░░░░░░░░    8,745 tokens
@@ -251,9 +251,28 @@ metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
 
 <!-- /automd -->
 
+### Retrieval Accuracy
+
 <!-- automd:file src="./benchmarks/results/retrieval-accuracy.md" -->
 
-### Retrieval Accuracy
+Benchmarks test LLM comprehension across different input formats using 154 data retrieval questions on 4 models.
+
+#### Efficiency Ranking (Accuracy per 1K Tokens)
+
+Each format's overall performance, balancing accuracy against token cost:
+
+```
+toon           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   15.0  │  70.1% acc  │  4,678 tokens
+csv            ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░   14.3  │  67.7% acc  │  4,745 tokens
+json-compact   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░   11.0  │  65.3% acc  │  5,925 tokens
+yaml           ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░    9.4  │  66.7% acc  │  7,091 tokens
+json-pretty    ▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░    7.5  │  65.4% acc  │  8,713 tokens
+xml            ▓▓▓▓▓▓▓▓▓░░░░░░░░░░░    6.8  │  67.2% acc  │  9,944 tokens
+```
+
+TOON achieves **70.1%** accuracy (vs JSON's 65.4%) while using **46.3% fewer tokens**.
+
+#### Per-Model Accuracy
 
 Accuracy across **4 LLMs** on 154 data retrieval questions:
 
@@ -915,7 +934,7 @@ By default, the decoder validates input strictly:
 - Format familiarity and structure matter as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only. When this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be more efficient at scale.
   - **TOON excels at:** Uniform arrays of objects (same fields, primitive values), especially large datasets with consistent structure.
   - **JSON is better for:** Non-uniform data, deeply nested structures, and objects with varying field sets.
-  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds minimal overhead (`[N]` length markers, delimiter scoping, deterministic quoting) to improve LLM reliability while staying close to CSV's token efficiency.
+  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds structure (`[N]` length markers, delimiter scoping, deterministic quoting) that improves LLM reliability with minimal token overhead.
 - **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
 - **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
 

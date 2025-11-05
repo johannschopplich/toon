@@ -1,4 +1,21 @@
-### Retrieval Accuracy
+Benchmarks test LLM comprehension across different input formats using 154 data retrieval questions on 4 models.
+
+#### Efficiency Ranking (Accuracy per 1K Tokens)
+
+Each format's overall performance, balancing accuracy against token cost:
+
+```
+toon           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   15.0  │  70.1% acc  │  4,678 tokens
+csv            ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░   14.3  │  67.7% acc  │  4,745 tokens
+json-compact   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░   11.0  │  65.3% acc  │  5,925 tokens
+yaml           ▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░    9.4  │  66.7% acc  │  7,091 tokens
+json-pretty    ▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░    7.5  │  65.4% acc  │  8,713 tokens
+xml            ▓▓▓▓▓▓▓▓▓░░░░░░░░░░░    6.8  │  67.2% acc  │  9,944 tokens
+```
+
+TOON achieves **70.1%** accuracy (vs JSON's 65.4%) while using **46.3% fewer tokens**.
+
+#### Per-Model Accuracy
 
 Accuracy across **4 LLMs** on 154 data retrieval questions:
 

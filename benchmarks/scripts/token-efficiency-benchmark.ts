@@ -217,4 +217,4 @@ await ensureDir(resultsDir)
 const outputFilePath = path.join(resultsDir, 'token-efficiency.md')
 await fsp.writeFile(outputFilePath, markdown, 'utf-8')
 
-prompts.log.success(`Result saved to \`${path.relative(ROOT_DIR, outputFilePath)}\``)
+prompts.log.success(`Report saved to \`${path.relative(ROOT_DIR, outputFilePath)}\``)
