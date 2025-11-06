@@ -1,0 +1,1416 @@
+[
+  {
+    "id": "q1",
+    "prompt": "What is the salary of Constance Mante?",
+    "groundTruth": "56176",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q2",
+    "prompt": "What department does Alfonso Leffler work in?",
+    "groundTruth": "Marketing",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q3",
+    "prompt": "What is the email address of Mr. Corey Pfeffer?",
+    "groundTruth": "lorenza.kunze@yahoo.com",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q4",
+    "prompt": "How many years of experience does Mr. Brendan Harvey have?",
+    "groundTruth": "22",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q5",
+    "prompt": "Is Tracy Gleason an active employee?",
+    "groundTruth": "no",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q6",
+    "prompt": "What is the salary of Terri Wilkinson?",
+    "groundTruth": "133081",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q7",
+    "prompt": "What department does Aubrey Koss work in?",
+    "groundTruth": "Engineering",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q8",
+    "prompt": "What is the email address of Darren Homenick?",
+    "groundTruth": "delpha.russel@gmail.com",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q9",
+    "prompt": "How many years of experience does Dr. Ken Heller have?",
+    "groundTruth": "5",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q10",
+    "prompt": "Is Mr. Wade Collier an active employee?",
+    "groundTruth": "yes",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q11",
+    "prompt": "What is the salary of Hannah Waelchi?",
+    "groundTruth": "109064",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q12",
+    "prompt": "What department does Emily Harvey work in?",
+    "groundTruth": "Operations",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q13",
+    "prompt": "What is the email address of Chester Crist?",
+    "groundTruth": "henderson70@yahoo.com",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q14",
+    "prompt": "How many years of experience does Barbara Emard have?",
+    "groundTruth": "23",
+    "type": "field-retrieval",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q15",
+    "prompt": "How many employees work in Engineering?",
+    "groundTruth": "17",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q16",
+    "prompt": "How many employees work in Sales?",
+    "groundTruth": "17",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q17",
+    "prompt": "How many employees work in Marketing?",
+    "groundTruth": "17",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q18",
+    "prompt": "How many employees work in HR?",
+    "groundTruth": "17",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q19",
+    "prompt": "How many employees have a salary greater than 60000?",
+    "groundTruth": "91",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q20",
+    "prompt": "How many employees have a salary greater than 80000?",
+    "groundTruth": "67",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q21",
+    "prompt": "How many employees have a salary greater than 100000?",
+    "groundTruth": "41",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q22",
+    "prompt": "How many employees have a salary greater than 120000?",
+    "groundTruth": "26",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q23",
+    "prompt": "How many employees are in the dataset?",
+    "groundTruth": "100",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q24",
+    "prompt": "What is the average salary across all employees?",
+    "groundTruth": "96503",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q25",
+    "prompt": "How many employees are active?",
+    "groundTruth": "78",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q26",
+    "prompt": "How many employees are inactive?",
+    "groundTruth": "22",
+    "type": "aggregation",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q27",
+    "prompt": "How many employees in Engineering have a salary greater than 80000?",
+    "groundTruth": "12",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q28",
+    "prompt": "How many employees in Sales have a salary greater than 80000?",
+    "groundTruth": "11",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q29",
+    "prompt": "How many employees in Marketing have a salary greater than 80000?",
+    "groundTruth": "11",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q30",
+    "prompt": "How many employees in HR have a salary greater than 80000?",
+    "groundTruth": "12",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q31",
+    "prompt": "How many employees in Operations have a salary greater than 80000?",
+    "groundTruth": "11",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q32",
+    "prompt": "How many active employees have more than 5 years of experience?",
+    "groundTruth": "63",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q33",
+    "prompt": "How many active employees have more than 10 years of experience?",
+    "groundTruth": "53",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q34",
+    "prompt": "How many active employees have more than 15 years of experience?",
+    "groundTruth": "39",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q35",
+    "prompt": "How many employees in Engineering have more than 10 years of experience?",
+    "groundTruth": "11",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q36",
+    "prompt": "How many employees in Sales have more than 10 years of experience?",
+    "groundTruth": "8",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q37",
+    "prompt": "How many employees in Marketing have more than 10 years of experience?",
+    "groundTruth": "15",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q38",
+    "prompt": "How many active employees work in Engineering?",
+    "groundTruth": "12",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q39",
+    "prompt": "How many active employees work in Sales?",
+    "groundTruth": "11",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q40",
+    "prompt": "How many active employees work in Marketing?",
+    "groundTruth": "14",
+    "type": "filtering",
+    "dataset": "tabular"
+  },
+  {
+    "id": "q41",
+    "prompt": "What is the total for order ORD-0001?",
+    "groundTruth": "103.86",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q42",
+    "prompt": "What is the status of order ORD-0003?",
+    "groundTruth": "shipped",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q43",
+    "prompt": "What is the total for order ORD-0005?",
+    "groundTruth": "422.5",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q44",
+    "prompt": "What is the status of order ORD-0007?",
+    "groundTruth": "processing",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q45",
+    "prompt": "What is the total for order ORD-0009?",
+    "groundTruth": "1822.85",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q46",
+    "prompt": "What is the status of order ORD-0011?",
+    "groundTruth": "pending",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q47",
+    "prompt": "What is the total for order ORD-0013?",
+    "groundTruth": "1311.35",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q48",
+    "prompt": "What is the status of order ORD-0015?",
+    "groundTruth": "cancelled",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q49",
+    "prompt": "What is the customer name for order ORD-0002?",
+    "groundTruth": "Debbie O'Kon I",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q50",
+    "prompt": "What is the customer email for order ORD-0004?",
+    "groundTruth": "demetris.hoeger-pollich@yahoo.com",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q51",
+    "prompt": "What is the order date for order ORD-0006?",
+    "groundTruth": "2025-09-15",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q52",
+    "prompt": "How many items are in order ORD-0008?",
+    "groundTruth": "3",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q53",
+    "prompt": "What is the customer name for order ORD-0010?",
+    "groundTruth": "Patty Senger",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q54",
+    "prompt": "What is the customer email for order ORD-0012?",
+    "groundTruth": "viva.paucek@gmail.com",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q55",
+    "prompt": "What is the order date for order ORD-0014?",
+    "groundTruth": "2025-09-20",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q56",
+    "prompt": "How many items are in order ORD-0016?",
+    "groundTruth": "2",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q57",
+    "prompt": "What is the customer name for order ORD-0018?",
+    "groundTruth": "Dennis Wunsch",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q58",
+    "prompt": "What is the customer email for order ORD-0020?",
+    "groundTruth": "wilton.oconnell@yahoo.com",
+    "type": "field-retrieval",
+    "dataset": "nested"
+  },
+  {
+    "id": "q59",
+    "prompt": "How many orders have status \"pending\"?",
+    "groundTruth": "10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q60",
+    "prompt": "How many orders have status \"processing\"?",
+    "groundTruth": "10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q61",
+    "prompt": "How many orders have status \"shipped\"?",
+    "groundTruth": "10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q62",
+    "prompt": "How many orders have status \"delivered\"?",
+    "groundTruth": "10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q63",
+    "prompt": "How many orders have status \"cancelled\"?",
+    "groundTruth": "10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q64",
+    "prompt": "What is the total revenue across all orders?",
+    "groundTruth": "34904.81",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q65",
+    "prompt": "What is the average order value?",
+    "groundTruth": "698.10",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q66",
+    "prompt": "How many orders are in the dataset?",
+    "groundTruth": "50",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q67",
+    "prompt": "What is the highest order total?",
+    "groundTruth": "2152.82",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q68",
+    "prompt": "How many orders have a total greater than 200?",
+    "groundTruth": "43",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q69",
+    "prompt": "How many orders have a total greater than 400?",
+    "groundTruth": "37",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q70",
+    "prompt": "How many orders have a total greater than 600?",
+    "groundTruth": "28",
+    "type": "aggregation",
+    "dataset": "nested"
+  },
+  {
+    "id": "q71",
+    "prompt": "How many orders have status \"pending\" and total greater than 300?",
+    "groundTruth": "8",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q72",
+    "prompt": "How many orders have status \"processing\" and total greater than 300?",
+    "groundTruth": "6",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q73",
+    "prompt": "How many orders have status \"shipped\" and total greater than 300?",
+    "groundTruth": "10",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q74",
+    "prompt": "How many orders have status \"delivered\" and total greater than 300?",
+    "groundTruth": "9",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q75",
+    "prompt": "How many orders have status \"cancelled\" and total greater than 300?",
+    "groundTruth": "8",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q76",
+    "prompt": "How many orders have status \"pending\" and at least 3 items?",
+    "groundTruth": "3",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q77",
+    "prompt": "How many orders have status \"processing\" and at least 3 items?",
+    "groundTruth": "3",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q78",
+    "prompt": "How many orders have status \"shipped\" and at least 3 items?",
+    "groundTruth": "5",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q79",
+    "prompt": "How many orders have a total greater than 300 and at least 3 items?",
+    "groundTruth": "20",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q80",
+    "prompt": "How many orders have a total greater than 500 and at least 3 items?",
+    "groundTruth": "19",
+    "type": "filtering",
+    "dataset": "nested"
+  },
+  {
+    "id": "q81",
+    "prompt": "What are the views for 2025-01-01?",
+    "groundTruth": "4322",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q82",
+    "prompt": "What is the revenue for 2025-01-04?",
+    "groundTruth": "10432.04",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q83",
+    "prompt": "What is the bounce rate for 2025-01-07?",
+    "groundTruth": "0.53",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q84",
+    "prompt": "How many conversions were there on 2025-01-10?",
+    "groundTruth": "32",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q85",
+    "prompt": "What are the views for 2025-01-13?",
+    "groundTruth": "4096",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q86",
+    "prompt": "What is the revenue for 2025-01-16?",
+    "groundTruth": "4533.1",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q87",
+    "prompt": "What is the bounce rate for 2025-01-19?",
+    "groundTruth": "0.63",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q88",
+    "prompt": "How many conversions were there on 2025-01-22?",
+    "groundTruth": "25",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q89",
+    "prompt": "What are the views for 2025-01-25?",
+    "groundTruth": "4076",
+    "type": "field-retrieval",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q90",
+    "prompt": "How many days of data are in the dataset?",
+    "groundTruth": "60",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q91",
+    "prompt": "What is the total number of views across all dates?",
+    "groundTruth": "328320",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q92",
+    "prompt": "What is the total number of conversions across all dates?",
+    "groundTruth": "1791",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q93",
+    "prompt": "What is the total revenue across all dates?",
+    "groundTruth": "311695.88",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q94",
+    "prompt": "What is the average bounce rate?",
+    "groundTruth": "0.53",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q95",
+    "prompt": "How many days had more than 5000 views?",
+    "groundTruth": "33",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q96",
+    "prompt": "How many days had more than 7000 views?",
+    "groundTruth": "14",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q97",
+    "prompt": "How many days had more than 10 conversions?",
+    "groundTruth": "57",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q98",
+    "prompt": "How many days had more than 30 conversions?",
+    "groundTruth": "26",
+    "type": "aggregation",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q99",
+    "prompt": "How many days had more than 6000 views and more than 15 conversions?",
+    "groundTruth": "20",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q100",
+    "prompt": "How many days had more than 7000 views and more than 15 conversions?",
+    "groundTruth": "14",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q101",
+    "prompt": "How many days had revenue greater than 500 with views above 6000?",
+    "groundTruth": "22",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q102",
+    "prompt": "How many days had revenue greater than 1000 with views above 6000?",
+    "groundTruth": "22",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q103",
+    "prompt": "How many days had revenue greater than 1500 with views above 6000?",
+    "groundTruth": "22",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q104",
+    "prompt": "How many days had revenue greater than 2000 with views above 6000?",
+    "groundTruth": "20",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q105",
+    "prompt": "How many days had revenue greater than 2500 with views above 6000?",
+    "groundTruth": "18",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q106",
+    "prompt": "How many days had more than 250 clicks and more than 15 conversions?",
+    "groundTruth": "32",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q107",
+    "prompt": "How many days had more than 400 clicks and more than 15 conversions?",
+    "groundTruth": "9",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q108",
+    "prompt": "How many days had revenue greater than 1000 with bounce rate below 0.5?",
+    "groundTruth": "22",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q109",
+    "prompt": "How many days had revenue greater than 1500 with bounce rate below 0.5?",
+    "groundTruth": "22",
+    "type": "filtering",
+    "dataset": "analytics"
+  },
+  {
+    "id": "q110",
+    "prompt": "How many stars does undefined/freeCodeCamp have?",
+    "groundTruth": "430886",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q111",
+    "prompt": "How many forks does undefined/system-design-primer have?",
+    "groundTruth": "52904",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q112",
+    "prompt": "How many watchers does undefined/vue have?",
+    "groundTruth": "5786",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q113",
+    "prompt": "What is the main branch of undefined/CS-Notes?",
+    "groundTruth": "master",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q114",
+    "prompt": "How many stars does undefined/gitignore have?",
+    "groundTruth": "170327",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q115",
+    "prompt": "How many forks does undefined/n8n have?",
+    "groundTruth": "48578",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q116",
+    "prompt": "How many watchers does undefined/yt-dlp have?",
+    "groundTruth": "678",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q117",
+    "prompt": "What is the main branch of undefined/PowerToys?",
+    "groundTruth": "main",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q118",
+    "prompt": "How many stars does undefined/free-programming-books-zh_CN have?",
+    "groundTruth": "115543",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q119",
+    "prompt": "How many forks does undefined/three.js have?",
+    "groundTruth": "36054",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q120",
+    "prompt": "How many watchers does undefined/GitHub-Chinese-Top-Charts have?",
+    "groundTruth": "2607",
+    "type": "field-retrieval",
+    "dataset": "github"
+  },
+  {
+    "id": "q121",
+    "prompt": "How many repositories are in the dataset?",
+    "groundTruth": "100",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q122",
+    "prompt": "What is the total number of stars across all repositories?",
+    "groundTruth": "15413563",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q123",
+    "prompt": "What is the total number of forks across all repositories?",
+    "groundTruth": "2528243",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q124",
+    "prompt": "What is the average number of stars per repository?",
+    "groundTruth": "154136",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q125",
+    "prompt": "How many repositories use \"main\" as their default branch?",
+    "groundTruth": "41",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q126",
+    "prompt": "How many repositories use \"master\" as their default branch?",
+    "groundTruth": "53",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q127",
+    "prompt": "How many repositories have more than 100000 stars?",
+    "groundTruth": "77",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q128",
+    "prompt": "How many repositories have more than 150000 stars?",
+    "groundTruth": "37",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q129",
+    "prompt": "How many repositories have more than 200000 stars?",
+    "groundTruth": "16",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q130",
+    "prompt": "How many repositories have more than 20000 forks?",
+    "groundTruth": "49",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q131",
+    "prompt": "How many repositories have more than 35000 forks?",
+    "groundTruth": "23",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q132",
+    "prompt": "How many repositories have more than 50000 forks?",
+    "groundTruth": "11",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q133",
+    "prompt": "How many repositories have more than 5000 watchers?",
+    "groundTruth": "19",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q134",
+    "prompt": "How many repositories have more than 8000 watchers?",
+    "groundTruth": "4",
+    "type": "aggregation",
+    "dataset": "github"
+  },
+  {
+    "id": "q135",
+    "prompt": "How many repositories have more than 75000 stars and more than 15000 forks?",
+    "groundTruth": "57",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q136",
+    "prompt": "How many repositories have more than 100000 stars and more than 20000 forks?",
+    "groundTruth": "43",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q137",
+    "prompt": "How many repositories have more than 150000 stars and more than 30000 forks?",
+    "groundTruth": "25",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q138",
+    "prompt": "How many repositories have more than 200000 stars and more than 45000 forks?",
+    "groundTruth": "6",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q139",
+    "prompt": "How many repositories have more than 100000 stars and more than 7000 watchers?",
+    "groundTruth": "6",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q140",
+    "prompt": "How many repositories have more than 150000 stars and more than 9000 watchers?",
+    "groundTruth": "1",
+    "type": "filtering",
+    "dataset": "github"
+  },
+  {
+    "id": "q141",
+    "prompt": "What is the level of the log at 2025-11-02T16:55:04.316Z?",
+    "groundTruth": "error",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q142",
+    "prompt": "What is the endpoint for the log at 2025-10-31T02:31:28.977Z?",
+    "groundTruth": "/api/users",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q143",
+    "prompt": "What is the status code for the log at 2025-11-01T23:56:56.929Z?",
+    "groundTruth": "424",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q144",
+    "prompt": "What is the response time for the log at 2025-11-03T12:14:31.017Z?",
+    "groundTruth": "2849",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q145",
+    "prompt": "What is the level of the log at 2025-11-01T22:06:30.814Z?",
+    "groundTruth": "info",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q146",
+    "prompt": "What is the endpoint for the log at 2025-11-06T05:48:07.260Z?",
+    "groundTruth": "/api/orders",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q147",
+    "prompt": "What is the status code for the log at 2025-11-05T23:46:00.144Z?",
+    "groundTruth": "435",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q148",
+    "prompt": "What is the response time for the log at 2025-10-31T23:56:23.022Z?",
+    "groundTruth": "408",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q149",
+    "prompt": "What is the level of the log at 2025-11-06T01:23:44.734Z?",
+    "groundTruth": "error",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q150",
+    "prompt": "What is the endpoint for the log at 2025-11-03T21:54:27.889Z?",
+    "groundTruth": "/api/users",
+    "type": "field-retrieval",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q151",
+    "prompt": "How many log entries are in the dataset?",
+    "groundTruth": "75",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q152",
+    "prompt": "What is the average response time across all logs?",
+    "groundTruth": "2453.41",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q153",
+    "prompt": "How many log entries have level \"error\"?",
+    "groundTruth": "29",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q154",
+    "prompt": "How many log entries have level \"warn\"?",
+    "groundTruth": "17",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q155",
+    "prompt": "How many log entries have level \"info\"?",
+    "groundTruth": "29",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q156",
+    "prompt": "How many log entries are for endpoint \"/api/products\"?",
+    "groundTruth": "11",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q157",
+    "prompt": "How many log entries are for endpoint \"/api/users\"?",
+    "groundTruth": "18",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q158",
+    "prompt": "How many log entries are for endpoint \"/api/auth\"?",
+    "groundTruth": "21",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q159",
+    "prompt": "How many log entries are for endpoint \"/api/orders\"?",
+    "groundTruth": "11",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q160",
+    "prompt": "How many log entries have a status code indicating an error (>= 400)?",
+    "groundTruth": "33",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q161",
+    "prompt": "How many log entries have a successful status code (200-299)?",
+    "groundTruth": "42",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q162",
+    "prompt": "How many log entries have a retryable error?",
+    "groundTruth": "25",
+    "type": "aggregation",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q163",
+    "prompt": "How many log entries have level \"error\" and status code >= 400?",
+    "groundTruth": "29",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q164",
+    "prompt": "How many log entries have level \"warn\" and status code >= 400?",
+    "groundTruth": "4",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q165",
+    "prompt": "How many log entries have level \"info\" and status code >= 400?",
+    "groundTruth": "0",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q166",
+    "prompt": "How many log entries are for endpoint \"/api/products\" with status code >= 500?",
+    "groundTruth": "5",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q167",
+    "prompt": "How many log entries are for endpoint \"/api/users\" with status code >= 500?",
+    "groundTruth": "2",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q168",
+    "prompt": "How many log entries are for endpoint \"/api/auth\" with status code >= 500?",
+    "groundTruth": "3",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q169",
+    "prompt": "How many log entries for endpoint \"/api/products\" have a retryable error?",
+    "groundTruth": "4",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q170",
+    "prompt": "How many log entries for endpoint \"/api/users\" have a retryable error?",
+    "groundTruth": "5",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q171",
+    "prompt": "How many log entries for endpoint \"/api/auth\" have a retryable error?",
+    "groundTruth": "7",
+    "type": "filtering",
+    "dataset": "event-logs"
+  },
+  {
+    "id": "q172",
+    "prompt": "What is the environment in the configuration?",
+    "groundTruth": "development",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q173",
+    "prompt": "What is the database host?",
+    "groundTruth": "guilty-cake.org",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q174",
+    "prompt": "What is the database port?",
+    "groundTruth": "5432",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q175",
+    "prompt": "What is the maximum connection pool size?",
+    "groundTruth": "37",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q176",
+    "prompt": "What is the session duration?",
+    "groundTruth": "86400",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q177",
+    "prompt": "What is the minimum connection pool size?",
+    "groundTruth": "2",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q178",
+    "prompt": "What is the connection pool idle timeout?",
+    "groundTruth": "30000",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q179",
+    "prompt": "What is the database name?",
+    "groundTruth": "real",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q180",
+    "prompt": "What is the session refresh threshold?",
+    "groundTruth": "3600",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q181",
+    "prompt": "What is the version in the configuration?",
+    "groundTruth": "6.8.3",
+    "type": "field-retrieval",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q182",
+    "prompt": "How many roles are defined in permissions?",
+    "groundTruth": "3",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q183",
+    "prompt": "How many groups are defined in permissions?",
+    "groundTruth": "2",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q184",
+    "prompt": "How many authentication providers are configured?",
+    "groundTruth": "2",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q185",
+    "prompt": "How many feature flags are defined?",
+    "groundTruth": "2",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q186",
+    "prompt": "How many database replicas are configured?",
+    "groundTruth": "3",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q187",
+    "prompt": "How many authentication providers include the \"admin\" scope?",
+    "groundTruth": "1",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q188",
+    "prompt": "How many feature flags are enabled?",
+    "groundTruth": "0",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q189",
+    "prompt": "How many permissions does the admin role have?",
+    "groundTruth": "5",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q190",
+    "prompt": "What is the total number of permissions across all roles?",
+    "groundTruth": "8",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q191",
+    "prompt": "How many distinct permissions are defined across all roles?",
+    "groundTruth": "5",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q192",
+    "prompt": "How many distinct scopes are defined across all authentication providers?",
+    "groundTruth": "3",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q193",
+    "prompt": "What is the total number of variants across all feature flags?",
+    "groundTruth": "3",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q194",
+    "prompt": "How many database replicas have a priority greater than 2?",
+    "groundTruth": "1",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q195",
+    "prompt": "How many feature flags have a rollout percentage greater than 50?",
+    "groundTruth": "0",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q196",
+    "prompt": "How many groups have more than one role assigned?",
+    "groundTruth": "1",
+    "type": "aggregation",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q197",
+    "prompt": "How many feature flags are enabled with rollout greater than 50%?",
+    "groundTruth": "0",
+    "type": "filtering",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q198",
+    "prompt": "How many groups have the admin role?",
+    "groundTruth": "1",
+    "type": "filtering",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q199",
+    "prompt": "How many database replicas have priority greater than 2 and port 5432?",
+    "groundTruth": "1",
+    "type": "filtering",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q200",
+    "prompt": "How many authentication providers have more than 2 scopes?",
+    "groundTruth": "1",
+    "type": "filtering",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q201",
+    "prompt": "How many roles have at least 5 permissions?",
+    "groundTruth": "1",
+    "type": "filtering",
+    "dataset": "nested-config"
+  },
+  {
+    "id": "q202",
+    "prompt": "How many feature flags are disabled with rollout less than 25%?",
+    "groundTruth": "2",
+    "type": "filtering",
+    "dataset": "nested-config"
+  }
+]

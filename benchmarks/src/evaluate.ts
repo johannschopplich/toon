@@ -4,7 +4,6 @@ import { anthropic } from '@ai-sdk/anthropic'
 import { google } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
 import { xai } from '@ai-sdk/xai'
-import * as prompts from '@clack/prompts'
 import { generateText } from 'ai'
 
 /**
@@ -102,17 +101,10 @@ Is the actual answer correct? Consider:
 Respond with only "YES" or "NO".
 `.trim()
 
-  try {
-    const { text } = await generateText({
-      model: models.find(m => m.modelId === 'gpt-5-nano')!,
-      prompt,
-    })
+  const { text } = await generateText({
+    model: models.find(m => m.modelId === 'gpt-5-nano')!,
+    prompt,
+  })
 
-    return text.trim().toUpperCase() === 'YES'
-  }
-  catch (error) {
-    prompts.log.error(`Validation error: ${error}`)
-    // Fallback to simple string comparison
-    return actual.toLowerCase().trim() === expected.toLowerCase().trim()
-  }
+  return text.trim().toUpperCase() === 'YES'
 }

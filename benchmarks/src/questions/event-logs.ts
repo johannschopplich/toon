@@ -1,16 +1,13 @@
 import type { EventLog } from '../datasets'
 import type { Question } from '../types'
 import { QUESTION_LIMITS } from '../constants'
-import { countByPredicate, QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
+import { QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
 
 /**
  * Generate event log questions
  */
 export function generateEventLogsQuestions(logs: EventLog[], getId: () => string): Question[] {
   const questions: Question[] = []
-
-  if (logs.length === 0)
-    return questions
 
   // Field retrieval: log metadata
   const logFieldGenerators: Array<(log: EventLog, getId: () => string) => Question> = [
@@ -76,7 +73,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
   // Aggregation: by level
   const levels = [...new Set(logs.map(l => l.level))]
   for (const level of levels) {
-    const count = countByPredicate(logs, l => l.level === level)
+    const count = logs.filter(l => l.level === level).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -91,7 +88,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
   // Aggregation: by endpoint
   const endpoints = [...new Set(logs.map(l => l.endpoint))]
   for (const endpoint of endpoints.slice(0, QUESTION_LIMITS.eventLogs.aggregationEndpoints)) {
-    const count = countByPredicate(logs, l => l.endpoint === endpoint)
+    const count = logs.filter(l => l.endpoint === endpoint).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -104,8 +101,8 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
   }
 
   // Aggregation: by status code range
-  const errorCount = countByPredicate(logs, l => l.statusCode >= 400)
-  const successCount = countByPredicate(logs, l => l.statusCode >= 200 && l.statusCode < 300)
+  const errorCount = logs.filter(l => l.statusCode >= 400).length
+  const successCount = logs.filter(l => l.statusCode >= 200 && l.statusCode < 300).length
 
   questions.push(
     new QuestionBuilder()
@@ -124,12 +121,21 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .build(),
   )
 
+  // Aggregation: retryable errors
+  const retryableErrorCount = logs.filter(l => l.error?.retryable === true).length
+  questions.push(
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many log entries have a retryable error?')
+      .groundTruth(String(retryableErrorCount))
+      .type('aggregation')
+      .dataset('event-logs')
+      .build(),
+  )
+
   // Filtering: multi-condition (level AND status)
   for (const level of levels.slice(0, QUESTION_LIMITS.eventLogs.filteringLevelAndStatus)) {
-    const count = countByPredicate(
-      logs,
-      l => l.level === level && l.statusCode >= 400,
-    )
+    const count = logs.filter(l => l.level === level && l.statusCode >= 400).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -143,14 +149,25 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
 
   // Filtering: endpoint AND status
   for (const endpoint of endpoints.slice(0, QUESTION_LIMITS.eventLogs.filteringEndpointAndStatus)) {
-    const count = countByPredicate(
-      logs,
-      l => l.endpoint === endpoint && l.statusCode >= 500,
-    )
+    const count = logs.filter(l => l.endpoint === endpoint && l.statusCode >= 500).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
         .prompt(`How many log entries are for endpoint "${endpoint}" with status code >= 500?`)
+        .groundTruth(String(count))
+        .type('filtering')
+        .dataset('event-logs')
+        .build(),
+    )
+  }
+
+  // Filtering: endpoint AND retryable error
+  for (const endpoint of endpoints.slice(0, QUESTION_LIMITS.eventLogs.filteringEndpointAndStatus)) {
+    const count = logs.filter(l => l.endpoint === endpoint && l.error?.retryable === true).length
+    questions.push(
+      new QuestionBuilder()
+        .id(getId())
+        .prompt(`How many log entries for endpoint "${endpoint}" have a retryable error?`)
         .groundTruth(String(count))
         .type('filtering')
         .dataset('event-logs')

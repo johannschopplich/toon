@@ -61,14 +61,7 @@ export class QuestionBuilder {
 }
 
 /**
- * Helper: Count items matching a predicate
- */
-export function countByPredicate<T>(items: T[], predicate: (item: T) => boolean): number {
-  return items.filter(predicate).length
-}
-
-/**
- * Helper: Rotate through question generators
+ * Rotate through question generators
  */
 export function rotateQuestions<T>(
   items: T[],

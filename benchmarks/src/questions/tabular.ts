@@ -1,16 +1,13 @@
 import type { Employee } from '../datasets'
 import type { Question } from '../types'
 import { QUESTION_LIMITS, QUESTION_THRESHOLDS } from '../constants'
-import { countByPredicate, QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
+import { QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
 
 /**
  * Generate tabular (employee) questions
  */
 export function generateTabularQuestions(employees: Employee[], getId: () => string): Question[] {
   const questions: Question[] = []
-
-  if (employees.length === 0)
-    return questions
 
   // Field retrieval: specific employees
   const fieldGenerators: Array<(emp: Employee, getId: () => string) => Question> = [
@@ -62,7 +59,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
   // Aggregation: count by department
   const departments = [...new Set(employees.map(e => e.department))]
   for (const dept of departments.slice(0, QUESTION_LIMITS.tabular.aggregationDepartments)) {
-    const count = countByPredicate(employees, e => e.department === dept)
+    const count = employees.filter(e => e.department === dept).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -76,7 +73,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
 
   // Aggregation: salary ranges (single-condition filters)
   for (const threshold of QUESTION_THRESHOLDS.tabular.salaryRanges) {
-    const count = countByPredicate(employees, e => e.salary > threshold)
+    const count = employees.filter(e => e.salary > threshold).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -91,8 +88,8 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
   // Aggregation: totals and averages
   const totalEmployees = employees.length
   const avgSalary = Math.round(employees.reduce((sum, e) => sum + e.salary, 0) / totalEmployees)
-  const activeCount = countByPredicate(employees, e => e.active)
-  const inactiveCount = countByPredicate(employees, e => !e.active)
+  const activeCount = employees.filter(e => e.active).length
+  const inactiveCount = employees.filter(e => !e.active).length
 
   questions.push(
     new QuestionBuilder()
@@ -127,10 +124,9 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
 
   // Filtering: count by department with salary filter (multi-condition)
   for (const dept of departments.slice(0, QUESTION_LIMITS.tabular.filteringMultiConditionDepartments)) {
-    const count = countByPredicate(
-      employees,
+    const count = employees.filter(
       e => e.department === dept && e.salary > QUESTION_THRESHOLDS.tabular.departmentSalaryThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -144,7 +140,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
 
   // Filtering: active employees by experience (multi-condition)
   for (const exp of QUESTION_THRESHOLDS.tabular.experienceYears.slice(0, QUESTION_LIMITS.tabular.filteringExperience)) {
-    const count = countByPredicate(employees, e => e.yearsExperience > exp && e.active)
+    const count = employees.filter(e => e.yearsExperience > exp && e.active).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -158,10 +154,9 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
 
   // Filtering: department by experience (multi-condition)
   for (const dept of departments.slice(0, QUESTION_LIMITS.tabular.filteringDepartmentExp)) {
-    const count = countByPredicate(
-      employees,
+    const count = employees.filter(
       e => e.department === dept && e.yearsExperience > QUESTION_THRESHOLDS.tabular.departmentExperienceThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -175,7 +170,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
 
   // Filtering: department by active status (multi-condition)
   for (const dept of departments.slice(0, QUESTION_LIMITS.tabular.filteringDepartmentActive)) {
-    const count = countByPredicate(employees, e => e.department === dept && e.active)
+    const count = employees.filter(e => e.department === dept && e.active).length
     questions.push(
       new QuestionBuilder()
         .id(getId())

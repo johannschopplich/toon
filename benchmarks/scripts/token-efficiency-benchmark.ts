@@ -100,7 +100,7 @@ function generateTotalLines(
     const csvStr = baselineFormat.tokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
     lines.push(`csv                   ${csvBar}   ${csvStr} tokens`)
 
-    const overheadPercent = ((totalToonTokens - baselineFormat.tokens) / totalToonTokens) * 100
+    const overheadPercent = ((totalToonTokens - baselineFormat.tokens) / baselineFormat.tokens) * 100
     const toonBar = createProgressBar(100, 100, PROGRESS_BAR_WIDTH, PROGRESS_BAR_CONFIG)
     const toonStr = totalToonTokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
     lines.push(`toon                  ${toonBar}   ${toonStr} tokens   (+${overheadPercent.toFixed(1)}% vs CSV)`)
@@ -223,7 +223,7 @@ const flatCharts = flatOnlyDatasets
 
     // TOON line with overhead vs CSV
     const toonOverhead = toon.tokens - csv.tokens
-    const toonOverheadPercent = (toonOverhead / toon.tokens) * 100
+    const toonOverheadPercent = (toonOverhead / csv.tokens) * 100
     const toonBar = createProgressBar(100, 100, PROGRESS_BAR_WIDTH, PROGRESS_BAR_CONFIG)
     const toonStr = toon.tokens.toLocaleString('en-US')
     const toonVsCSV = toonOverheadPercent >= 0

@@ -34,6 +34,26 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       prompt: 'What is the session duration?',
       groundTruth: String(config.authentication.session.duration),
     },
+    {
+      prompt: 'What is the minimum connection pool size?',
+      groundTruth: String(config.database.pool.min),
+    },
+    {
+      prompt: 'What is the connection pool idle timeout?',
+      groundTruth: String(config.database.pool.idleTimeout),
+    },
+    {
+      prompt: 'What is the database name?',
+      groundTruth: config.database.name,
+    },
+    {
+      prompt: 'What is the session refresh threshold?',
+      groundTruth: String(config.authentication.session.refreshThreshold),
+    },
+    {
+      prompt: 'What is the version in the configuration?',
+      groundTruth: config.version,
+    },
   ]
 
   for (const q of fieldRetrievalQuestions.slice(0, QUESTION_LIMITS.nestedConfig.fieldRetrieval)) {
@@ -93,6 +113,18 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .build(),
   )
 
+  // Aggregation: providers with admin scope
+  const adminScopeProviderCount = config.authentication.providers.filter(p => p.scopes.includes('admin')).length
+  questions.push(
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many authentication providers include the "admin" scope?')
+      .groundTruth(String(adminScopeProviderCount))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+  )
+
   // Aggregation: feature flag details
   const enabledFeatures = Object.entries(config.features).filter(([_, f]) => f.enabled).length
   questions.push(
@@ -117,6 +149,67 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .build(),
   )
 
+  // Aggregation: additional nested counts
+  const totalPermissions = Object.values(config.permissions.roles).reduce((sum, role) => sum + role.permissions.length, 0)
+  const distinctPermissions = new Set(Object.values(config.permissions.roles).flatMap(r => r.permissions)).size
+  const distinctScopes = new Set(config.authentication.providers.flatMap(p => p.scopes)).size
+  const totalVariants = Object.values(config.features).reduce((sum, f) => sum + f.variants.length, 0)
+  const highPriorityReplicas = config.database.replicas.filter(r => r.priority > 2).length
+  const featuresWithHighRollout = Object.values(config.features).filter(f => f.rollout > 50).length
+  const groupsWithMultipleRoles = Object.values(config.permissions.groups).filter(g => g.roles.length > 1).length
+
+  questions.push(
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('What is the total number of permissions across all roles?')
+      .groundTruth(String(totalPermissions))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many distinct permissions are defined across all roles?')
+      .groundTruth(String(distinctPermissions))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many distinct scopes are defined across all authentication providers?')
+      .groundTruth(String(distinctScopes))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('What is the total number of variants across all feature flags?')
+      .groundTruth(String(totalVariants))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many database replicas have a priority greater than 2?')
+      .groundTruth(String(highPriorityReplicas))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many feature flags have a rollout percentage greater than 50?')
+      .groundTruth(String(featuresWithHighRollout))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+    new QuestionBuilder()
+      .id(getId())
+      .prompt('How many groups have more than one role assigned?')
+      .groundTruth(String(groupsWithMultipleRoles))
+      .type('aggregation')
+      .dataset('nested-config')
+      .build(),
+  )
+
   // Filtering: complex multi-condition queries
   const filteringQuestions = [
     {
@@ -128,6 +221,31 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       prompt: 'How many groups have the admin role?',
       groundTruth: String(Object.entries(config.permissions.groups)
         .filter(([_, g]) => g.roles.includes('admin')).length),
+    },
+    {
+      prompt: 'How many database replicas have priority greater than 2 and port 5432?',
+      groundTruth: String(config.database.replicas
+        .filter(r => r.priority > 2 && r.port === 5432).length),
+    },
+    {
+      prompt: 'How many authentication providers have more than 2 scopes?',
+      groundTruth: String(config.authentication.providers
+        .filter(p => p.scopes.length > 2).length),
+    },
+    {
+      prompt: 'How many roles have at least 5 permissions?',
+      groundTruth: String(Object.values(config.permissions.roles)
+        .filter(r => r.permissions.length >= 5).length),
+    },
+    {
+      prompt: 'How many feature flags are disabled with rollout less than 25%?',
+      groundTruth: String(Object.values(config.features)
+        .filter(f => !f.enabled && f.rollout < 25).length),
+    },
+    {
+      prompt: 'How many enabled features have at least 2 variants?',
+      groundTruth: String(Object.values(config.features)
+        .filter(f => f.enabled && f.variants.length >= 2).length),
     },
   ]
 

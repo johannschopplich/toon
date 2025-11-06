@@ -1,16 +1,13 @@
 import type { AnalyticsMetric } from '../datasets'
 import type { Question } from '../types'
 import { QUESTION_LIMITS, QUESTION_THRESHOLDS } from '../constants'
-import { countByPredicate, QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
+import { QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
 
 /**
  * Generate analytics (website metrics) questions
  */
 export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: () => string): Question[] {
   const questions: Question[] = []
-
-  if (metrics.length === 0)
-    return questions
 
   // Field retrieval: date-based metrics
   const metricFieldGenerators: Array<(metric: AnalyticsMetric, getId: () => string) => Question> = [
@@ -99,7 +96,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
 
   // Aggregation: high views/conversions
   for (const threshold of QUESTION_THRESHOLDS.analytics.views) {
-    const count = countByPredicate(metrics, m => m.views > threshold)
+    const count = metrics.filter(m => m.views > threshold).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -112,7 +109,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
   }
 
   for (const threshold of QUESTION_THRESHOLDS.analytics.conversions) {
-    const count = countByPredicate(metrics, m => m.conversions > threshold)
+    const count = metrics.filter(m => m.conversions > threshold).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -126,10 +123,9 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
 
   // Filtering: multi-condition (views AND revenue)
   for (const threshold of QUESTION_THRESHOLDS.analytics.viewsForFiltering) {
-    const count = countByPredicate(
-      metrics,
+    const count = metrics.filter(
       m => m.views > threshold && m.conversions > QUESTION_THRESHOLDS.analytics.conversionsForFiltering,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -143,10 +139,9 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
 
   // Filtering: revenue thresholds
   for (const threshold of QUESTION_THRESHOLDS.analytics.revenueThresholds) {
-    const count = countByPredicate(
-      metrics,
+    const count = metrics.filter(
       m => m.revenue > threshold && m.views > QUESTION_THRESHOLDS.analytics.viewsThresholdForRevenue,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -160,10 +155,9 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
 
   // Filtering: clicks and conversions
   for (const threshold of QUESTION_THRESHOLDS.analytics.clicksForFiltering) {
-    const count = countByPredicate(
-      metrics,
+    const count = metrics.filter(
       m => m.clicks > threshold && m.conversions > QUESTION_THRESHOLDS.analytics.conversionsForClickFiltering,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -177,10 +171,9 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
 
   // Filtering: revenue and bounce rate
   for (const threshold of QUESTION_THRESHOLDS.analytics.revenueForBounceRate) {
-    const count = countByPredicate(
-      metrics,
+    const count = metrics.filter(
       m => m.revenue > threshold && m.bounceRate < QUESTION_THRESHOLDS.analytics.bounceRateThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())

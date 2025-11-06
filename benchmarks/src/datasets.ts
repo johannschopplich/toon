@@ -6,67 +6,6 @@ import githubRepos from '../data/github-repos.json' with { type: 'json' }
 faker.seed(12345)
 
 /**
- * Calculate the tabular eligibility percentage of a data structure
- *
- * @remarks
- * Recursively analyzes data to determine what percentage of arrays qualify
- * for TOON's tabular format (uniform objects with primitive values only).
- */
-export function calculateTabularEligibility(data: unknown): number {
-  let totalArrays = 0
-  let tabularArrays = 0
-
-  function isTabularArray(arr: unknown[]): boolean {
-    if (arr.length === 0)
-      return false
-
-    // Check if all elements are objects
-    if (!arr.every(item => typeof item === 'object' && item !== null && !Array.isArray(item)))
-      return false
-
-    // Get keys from first object
-    const firstKeys = Object.keys(arr[0] as Record<string, unknown>)
-    if (firstKeys.length === 0)
-      return false
-
-    // Check if all objects have the same keys and only primitive values
-    return arr.every((item) => {
-      const itemObj = item as Record<string, unknown>
-      const itemKeys = Object.keys(itemObj)
-      if (itemKeys.length !== firstKeys.length)
-        return false
-      if (!firstKeys.every(key => itemKeys.includes(key)))
-        return false
-
-      // Check if all values are primitives (no nested objects or arrays)
-      return firstKeys.every((key) => {
-        const value = itemObj[key]
-        return value === null || ['string', 'number', 'boolean'].includes(typeof value)
-      })
-    })
-  }
-
-  function traverse(obj: unknown): void {
-    if (Array.isArray(obj)) {
-      totalArrays++
-      if (isTabularArray(obj))
-        tabularArrays++
-
-      // Continue traversing array elements
-      obj.forEach(item => traverse(item))
-    }
-    else if (typeof obj === 'object' && obj !== null) {
-      // Traverse object properties
-      Object.values(obj).forEach(value => traverse(value))
-    }
-  }
-
-  traverse(data)
-
-  return totalArrays === 0 ? 0 : Math.round((tabularArrays / totalArrays) * 100)
-}
-
-/**
  * Employee record structure for tabular dataset
  */
 export interface Employee {
@@ -275,7 +214,7 @@ const tabularDataset: Dataset = {
   metadata: {
     supportsCSV: true,
     structureClass: 'uniform',
-    tabularEligibility: 100,
+    tabularEligibility: 100, // All arrays contain uniform objects with primitive values only
   },
 }
 
@@ -285,38 +224,21 @@ const tabularDataset: Dataset = {
 const PRODUCT_NAMES = ['Wireless Mouse', 'USB Cable', 'Laptop Stand', 'Keyboard', 'Webcam', 'Headphones', 'Monitor', 'Desk Lamp'] as const
 const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
-const ORDER_CONSTANTS = {
-  CUSTOMER_ID_MOD: 20,
-  MIN_ITEMS: 1,
-  MAX_ITEMS: 4,
-  MIN_ITEM_PRICE: 9.99,
-  MAX_ITEM_PRICE: 199.99,
-  MIN_ITEM_QUANTITY: 1,
-  MAX_ITEM_QUANTITY: 5,
-  SKU_LENGTH: 6,
-  ORDER_ID_PADDING: 4,
-  RECENT_DAYS: 90,
-  TAX_RATE: 0.08,
-} as const
-
 function generateOrders(count: number): { orders: Order[] } {
   return {
     orders: Array.from({ length: count }, (_, i) => {
-      const customerId = (i % ORDER_CONSTANTS.CUSTOMER_ID_MOD) + 1
-      const itemCount = faker.number.int({ min: ORDER_CONSTANTS.MIN_ITEMS, max: ORDER_CONSTANTS.MAX_ITEMS })
+      const customerId = (i % 20) + 1 // Rotate through 20 customers
+      const itemCount = faker.number.int({ min: 1, max: 4 }) // 1-4 items per order
 
       const items = Array.from({ length: itemCount }, (_, j) => {
         const price = faker.number.float({
-          min: ORDER_CONSTANTS.MIN_ITEM_PRICE,
-          max: ORDER_CONSTANTS.MAX_ITEM_PRICE,
+          min: 9.99,
+          max: 199.99,
           fractionDigits: 2,
         })
-        const quantity = faker.number.int({
-          min: ORDER_CONSTANTS.MIN_ITEM_QUANTITY,
-          max: ORDER_CONSTANTS.MAX_ITEM_QUANTITY,
-        })
+        const quantity = faker.number.int({ min: 1, max: 5 })
         return {
-          sku: `SKU-${faker.string.alphanumeric({ length: ORDER_CONSTANTS.SKU_LENGTH }).toUpperCase()}`,
+          sku: `SKU-${faker.string.alphanumeric({ length: 6 }).toUpperCase()}`,
           name: PRODUCT_NAMES[j % PRODUCT_NAMES.length]!,
           quantity,
           price,
@@ -324,11 +246,11 @@ function generateOrders(count: number): { orders: Order[] } {
       })
 
       const subtotal = Number(items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2))
-      const tax = Number((subtotal * ORDER_CONSTANTS.TAX_RATE).toFixed(2))
+      const tax = Number((subtotal * 0.08).toFixed(2)) // 8% tax rate
       const total = Number((subtotal + tax).toFixed(2))
 
       return {
-        orderId: `ORD-${String(i + 1).padStart(ORDER_CONSTANTS.ORDER_ID_PADDING, '0')}`,
+        orderId: `ORD-${String(i + 1).padStart(4, '0')}`,
         customer: {
           id: customerId,
           name: faker.person.fullName(),
@@ -340,7 +262,7 @@ function generateOrders(count: number): { orders: Order[] } {
         tax,
         total,
         status: ORDER_STATUSES[i % ORDER_STATUSES.length]!,
-        orderDate: faker.date.recent({ days: ORDER_CONSTANTS.RECENT_DAYS }).toISOString().split('T')[0],
+        orderDate: faker.date.recent({ days: 90 }).toISOString().split('T')[0],
       }
     }),
   }
@@ -359,7 +281,7 @@ const nestedDataset: Dataset = {
   metadata: {
     supportsCSV: false,
     structureClass: 'nested',
-    tabularEligibility: 33, // orders array is not tabular, but items arrays within are
+    tabularEligibility: 33, // Top-level orders array has nested objects (not tabular), but nested items arrays are tabular
   },
 }
 
@@ -376,7 +298,7 @@ const analyticsDataset: Dataset = {
   metadata: {
     supportsCSV: true,
     structureClass: 'uniform',
-    tabularEligibility: 100,
+    tabularEligibility: 100, // Uniform time-series records with consistent primitive fields
   },
 }
 
@@ -395,7 +317,7 @@ const githubDataset: Dataset = {
   metadata: {
     supportsCSV: true,
     structureClass: 'uniform',
-    tabularEligibility: 100,
+    tabularEligibility: 100, // Repository array contains uniform objects with primitive values
   },
 }
 
@@ -597,7 +519,7 @@ const eventLogsDataset: Dataset = {
   metadata: {
     supportsCSV: false,
     structureClass: 'semi-uniform',
-    tabularEligibility: 50, // ~50% of logs have nested error objects
+    tabularEligibility: 50, // Top-level logs array is tabular, but ~50% have nested optional error objects
   },
 }
 
@@ -614,7 +536,7 @@ const nestedConfigDataset: Dataset = {
   metadata: {
     supportsCSV: false,
     structureClass: 'deep',
-    tabularEligibility: 0, // Highly nested, minimal tabular arrays
+    tabularEligibility: 0, // Deeply nested configuration with no tabular arrays
   },
 }
 
@@ -642,7 +564,7 @@ export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
     metadata: {
       supportsCSV: true,
       structureClass: 'uniform',
-      tabularEligibility: 100,
+      tabularEligibility: 100, // All arrays contain uniform objects with primitive values only
     },
   },
   // Nested: 500 orders
@@ -653,7 +575,7 @@ export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
     metadata: {
       supportsCSV: false,
       structureClass: 'nested',
-      tabularEligibility: 33,
+      tabularEligibility: 33, // Top-level orders array has nested objects (not tabular), but nested items arrays are tabular
     },
   },
   // Analytics: 365 days
@@ -664,7 +586,7 @@ export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
     metadata: {
       supportsCSV: true,
       structureClass: 'uniform',
-      tabularEligibility: 100,
+      tabularEligibility: 100, // Uniform time-series records with consistent primitive fields
     },
   },
   // GitHub: 100 repos (same as accuracy)
@@ -677,7 +599,7 @@ export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
     metadata: {
       supportsCSV: false,
       structureClass: 'semi-uniform',
-      tabularEligibility: 50,
+      tabularEligibility: 50, // Top-level logs array is tabular, but ~50% have nested optional error objects
     },
   },
   // Nested config: 1 config (same as accuracy)

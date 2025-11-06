@@ -1,16 +1,13 @@
 import type { Order } from '../datasets'
 import type { Question } from '../types'
 import { QUESTION_LIMITS, QUESTION_THRESHOLDS } from '../constants'
-import { countByPredicate, QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
+import { QuestionBuilder, rotateQuestions, SAMPLE_STRIDES } from './utils'
 
 /**
  * Generate nested (orders) questions
  */
 export function generateNestedQuestions(orders: Order[], getId: () => string): Question[] {
   const questions: Question[] = []
-
-  if (orders.length === 0)
-    return questions
 
   // Field retrieval: order totals and statuses
   const orderFieldGenerators: Array<(order: Order, getId: () => string) => Question> = [
@@ -89,7 +86,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
   // Count by status
   const statuses = [...new Set(orders.map(o => o.status))]
   for (const status of statuses.slice(0, QUESTION_LIMITS.nested.aggregationStatuses)) {
-    const count = countByPredicate(orders, o => o.status === status)
+    const count = orders.filter(o => o.status === status).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -134,7 +131,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
 
   // Aggregation: high-value orders (single-condition filter)
   for (const threshold of QUESTION_THRESHOLDS.nested.highValueOrders) {
-    const count = countByPredicate(orders, o => o.total > threshold)
+    const count = orders.filter(o => o.total > threshold).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -149,10 +146,9 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
   // Filtering: multi-condition queries (status AND value)
   const orderStatuses = [...new Set(orders.map(o => o.status))]
   for (const status of orderStatuses.slice(0, QUESTION_LIMITS.nested.filteringStatusAndValue)) {
-    const count = countByPredicate(
-      orders,
+    const count = orders.filter(
       o => o.status === status && o.total > QUESTION_THRESHOLDS.nested.statusValueThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -166,10 +162,9 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
 
   // Filtering: status AND items count (multi-condition)
   for (const status of orderStatuses.slice(0, QUESTION_LIMITS.nested.filteringStatusAndItems)) {
-    const count = countByPredicate(
-      orders,
+    const count = orders.filter(
       o => o.status === status && o.items.length >= QUESTION_THRESHOLDS.nested.itemCountThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())
@@ -183,10 +178,9 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
 
   // Filtering: total AND items count (multi-condition)
   for (const threshold of QUESTION_THRESHOLDS.nested.totalThresholdsForItems) {
-    const count = countByPredicate(
-      orders,
+    const count = orders.filter(
       o => o.total > threshold && o.items.length >= QUESTION_THRESHOLDS.nested.itemCountThreshold,
-    )
+    ).length
     questions.push(
       new QuestionBuilder()
         .id(getId())

@@ -10,10 +10,9 @@ import { generateTabularQuestions } from './tabular'
 import { createIdGenerator } from './utils'
 
 /**
- * Generate all questions from datasets
+ * Generate ~200 questions from all datasets
  *
  * @remarks
- * Generates ~150-160 questions across different question types and datasets:
  * - Field Retrieval: Direct field access with no computation
  *   Examples: "What is X's salary?", "What is the status of order Y?"
  * - Aggregation: Counts, sums, averages, min/max operations (including single-condition filters)

@@ -15,7 +15,7 @@ export interface Question {
   id: string
   prompt: string
   groundTruth: string
-  type: 'field-retrieval' | 'aggregation' | 'filtering' | 'comparison'
+  type: 'field-retrieval' | 'aggregation' | 'filtering'
   dataset: string
 }
 
