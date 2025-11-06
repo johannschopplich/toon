@@ -1,7 +1,14 @@
+export interface DatasetMetadata {
+  supportsCSV: boolean
+  structureClass: 'uniform' | 'semi-uniform' | 'nested' | 'deep'
+  tabularEligibility: number
+}
+
 export interface Dataset {
   name: string
   description: string
   data: Record<string, any>
+  metadata: DatasetMetadata
 }
 
 export interface Question {

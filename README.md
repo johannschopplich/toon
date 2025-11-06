@@ -60,6 +60,19 @@ For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when
 
 </details>
 
+<details>
+<summary><strong>When NOT to use TOON</strong></summary>
+
+TOON excels with uniform arrays of objects, but there are cases where other formats are better:
+
+- **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
+- **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
+- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (length markers, field headers, delimiter scoping) that improves LLM reliability.
+
+See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
+
+</details>
+
 ## Key Features
 
 - 💸 **Token-efficient:** typically 30–60% fewer tokens than JSON[^1]
@@ -75,14 +88,16 @@ For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when
 > [!TIP]
 > Try the interactive [Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration) to compare token usage across CSV, JSON, YAML, and TOON with your own data.
 
+Benchmarks are organized into two tracks to ensure fair comparisons:
+
+- **Mixed-Structure Track**: Datasets with nested or semi-uniform structures (TOON vs JSON, YAML, XML). CSV excluded as it cannot properly represent these structures.
+- **Flat-Only Track**: Datasets with flat tabular structures where CSV is applicable (CSV vs TOON vs JSON, YAML, XML).
+
 ### Token Efficiency
 
 Token counts are measured using the GPT-5 `o200k_base` tokenizer via [`gpt-tokenizer`](https://github.com/niieani/gpt-tokenizer). Savings are calculated against formatted JSON (2-space indentation) as the primary baseline, with additional comparisons to compact JSON (minified), YAML, and XML. Actual savings vary by model and tokenizer.
 
-The benchmarks use datasets optimized for TOON's strengths (uniform tabular data). Real-world performance depends on your data structure.
-
-> [!NOTE]
-> CSV/TSV doesn't support nested structures, so it's not included in this comparison. For flat datasets where CSV applies, see token counts and accuracy metrics in the [Retrieval Accuracy](#retrieval-accuracy) section.
+The benchmarks test datasets across different structural patterns (uniform, semi-uniform, nested, deeply nested) to show where TOON excels and where other formats may be better.
 
 <!-- automd:file src="./benchmarks/results/token-efficiency.md" -->
 

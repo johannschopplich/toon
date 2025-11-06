@@ -34,8 +34,8 @@ Results are saved to `results/token-efficiency.md`.
 
 Tests how well LLMs can answer questions about data in different formats (TOON, JSON, JSON compact, XML, YAML, CSV):
 
-1. Generate ~150-160 questions across 4 datasets
-2. Convert each dataset to all 6 formats
+1. Generate ~150-160 questions across 6 datasets (CSV only included for datasets with flat/tabular structure)
+2. Convert each dataset to all supported formats
 3. Query each LLM with formatted data + question
 4. Validate answers using `gpt-5-nano` as judge
 5. Aggregate metrics and generate report

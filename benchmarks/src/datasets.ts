@@ -6,6 +6,67 @@ import githubRepos from '../data/github-repos.json' with { type: 'json' }
 faker.seed(12345)
 
 /**
+ * Calculate the tabular eligibility percentage of a data structure
+ *
+ * @remarks
+ * Recursively analyzes data to determine what percentage of arrays qualify
+ * for TOON's tabular format (uniform objects with primitive values only).
+ */
+export function calculateTabularEligibility(data: unknown): number {
+  let totalArrays = 0
+  let tabularArrays = 0
+
+  function isTabularArray(arr: unknown[]): boolean {
+    if (arr.length === 0)
+      return false
+
+    // Check if all elements are objects
+    if (!arr.every(item => typeof item === 'object' && item !== null && !Array.isArray(item)))
+      return false
+
+    // Get keys from first object
+    const firstKeys = Object.keys(arr[0] as Record<string, unknown>)
+    if (firstKeys.length === 0)
+      return false
+
+    // Check if all objects have the same keys and only primitive values
+    return arr.every((item) => {
+      const itemObj = item as Record<string, unknown>
+      const itemKeys = Object.keys(itemObj)
+      if (itemKeys.length !== firstKeys.length)
+        return false
+      if (!firstKeys.every(key => itemKeys.includes(key)))
+        return false
+
+      // Check if all values are primitives (no nested objects or arrays)
+      return firstKeys.every((key) => {
+        const value = itemObj[key]
+        return value === null || ['string', 'number', 'boolean'].includes(typeof value)
+      })
+    })
+  }
+
+  function traverse(obj: unknown): void {
+    if (Array.isArray(obj)) {
+      totalArrays++
+      if (isTabularArray(obj))
+        tabularArrays++
+
+      // Continue traversing array elements
+      obj.forEach(item => traverse(item))
+    }
+    else if (typeof obj === 'object' && obj !== null) {
+      // Traverse object properties
+      Object.values(obj).forEach(value => traverse(value))
+    }
+  }
+
+  traverse(data)
+
+  return totalArrays === 0 ? 0 : Math.round((tabularArrays / totalArrays) * 100)
+}
+
+/**
  * Employee record structure for tabular dataset
  */
 export interface Employee {
@@ -74,6 +135,78 @@ export interface Repository {
 }
 
 /**
+ * Event log structure for semi-uniform dataset
+ */
+export interface EventLog {
+  timestamp: string
+  level: 'info' | 'warn' | 'error'
+  endpoint: string
+  statusCode: number
+  responseTime: number
+  userId: number
+  error?: {
+    message: string
+    stack: string
+    retryable: boolean
+  }
+}
+
+/**
+ * Nested configuration structure for deeply nested dataset
+ */
+export interface NestedConfig {
+  environment: string
+  version: string
+  database: {
+    host: string
+    port: number
+    name: string
+    pool: {
+      min: number
+      max: number
+      idleTimeout: number
+    }
+    replicas: {
+      host: string
+      port: number
+      priority: number
+    }[]
+  }
+  features: Record<string, {
+    enabled: boolean
+    rollout: number
+    variants: {
+      name: string
+      weight: number
+      config: Record<string, any>
+    }[]
+  }>
+  authentication: {
+    providers: {
+      name: string
+      clientId: string
+      scopes: string[]
+      config: Record<string, any>
+    }[]
+    session: {
+      secret: string
+      duration: number
+      refreshThreshold: number
+    }
+  }
+  permissions: {
+    roles: Record<string, {
+      permissions: string[]
+      inherits: string[]
+    }>
+    groups: Record<string, {
+      members: string[]
+      roles: string[]
+    }>
+  }
+}
+
+/**
  * Generate analytics time-series data
  */
 export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
@@ -108,17 +241,13 @@ export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
 }
 
 /**
- * Tabular dataset: 100 uniform employee records
- *
- * @remarks
- * Tests TOON's tabular array format
+ * Generate employee data (uniform tabular structure)
  */
 const departments: readonly string[] = ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations', 'Finance'] as const
-const tabularDataset: Dataset = {
-  name: 'tabular',
-  description: 'Uniform employee records (TOON optimal format)',
-  data: {
-    employees: Array.from({ length: 100 }, (_, i): Employee => {
+
+function generateEmployees(count: number): { employees: Employee[] } {
+  return {
+    employees: Array.from({ length: count }, (_, i): Employee => {
       const yearsExp = faker.number.int({ min: 1, max: 25 })
       return {
         id: i + 1,
@@ -130,72 +259,132 @@ const tabularDataset: Dataset = {
         active: faker.datatype.boolean(0.8), // 80% active
       }
     }),
+  }
+}
+
+/**
+ * Tabular dataset: Uniform employee records
+ *
+ * @remarks
+ * Tests TOON's tabular array format.
+ */
+const tabularDataset: Dataset = {
+  name: 'tabular',
+  description: 'Uniform employee records (TOON optimal format)',
+  data: generateEmployees(100),
+  metadata: {
+    supportsCSV: true,
+    structureClass: 'uniform',
+    tabularEligibility: 100,
   },
 }
 
 /**
- * Nested dataset: 50 e-commerce orders with nested structures
- *
- * @remarks
- * Tests TOON's handling of complex nested objects
+ * Generate e-commerce orders (nested structure)
  */
-const productNames: readonly string[] = ['Wireless Mouse', 'USB Cable', 'Laptop Stand', 'Keyboard', 'Webcam', 'Headphones', 'Monitor', 'Desk Lamp'] as const
-const statuses: readonly string[] = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
+const PRODUCT_NAMES = ['Wireless Mouse', 'USB Cable', 'Laptop Stand', 'Keyboard', 'Webcam', 'Headphones', 'Monitor', 'Desk Lamp'] as const
+const ORDER_STATUSES = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'] as const
 
-const nestedDataset: Dataset = {
-  name: 'nested',
-  description: 'E-commerce orders with nested structures',
-  data: {
-    orders: Array.from({ length: 50 }, (_, i) => {
-      const customerId = (i % 20) + 1
-      const itemCount = faker.number.int({ min: 1, max: 4 })
+const ORDER_CONSTANTS = {
+  CUSTOMER_ID_MOD: 20,
+  MIN_ITEMS: 1,
+  MAX_ITEMS: 4,
+  MIN_ITEM_PRICE: 9.99,
+  MAX_ITEM_PRICE: 199.99,
+  MIN_ITEM_QUANTITY: 1,
+  MAX_ITEM_QUANTITY: 5,
+  SKU_LENGTH: 6,
+  ORDER_ID_PADDING: 4,
+  RECENT_DAYS: 90,
+  TAX_RATE: 0.08,
+} as const
+
+function generateOrders(count: number): { orders: Order[] } {
+  return {
+    orders: Array.from({ length: count }, (_, i) => {
+      const customerId = (i % ORDER_CONSTANTS.CUSTOMER_ID_MOD) + 1
+      const itemCount = faker.number.int({ min: ORDER_CONSTANTS.MIN_ITEMS, max: ORDER_CONSTANTS.MAX_ITEMS })
 
       const items = Array.from({ length: itemCount }, (_, j) => {
-        const price = faker.number.float({ min: 9.99, max: 199.99, fractionDigits: 2 })
-        const quantity = faker.number.int({ min: 1, max: 5 })
+        const price = faker.number.float({
+          min: ORDER_CONSTANTS.MIN_ITEM_PRICE,
+          max: ORDER_CONSTANTS.MAX_ITEM_PRICE,
+          fractionDigits: 2,
+        })
+        const quantity = faker.number.int({
+          min: ORDER_CONSTANTS.MIN_ITEM_QUANTITY,
+          max: ORDER_CONSTANTS.MAX_ITEM_QUANTITY,
+        })
         return {
-          sku: `SKU-${faker.string.alphanumeric({ length: 6 }).toUpperCase()}`,
-          name: productNames[j % productNames.length]!,
+          sku: `SKU-${faker.string.alphanumeric({ length: ORDER_CONSTANTS.SKU_LENGTH }).toUpperCase()}`,
+          name: PRODUCT_NAMES[j % PRODUCT_NAMES.length]!,
           quantity,
           price,
         }
       })
 
-      const total = Number(items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2))
+      const subtotal = Number(items.reduce((sum, item) => sum + (item.price * item.quantity), 0).toFixed(2))
+      const tax = Number((subtotal * ORDER_CONSTANTS.TAX_RATE).toFixed(2))
+      const total = Number((subtotal + tax).toFixed(2))
 
       return {
-        orderId: `ORD-${String(i + 1).padStart(4, '0')}`,
+        orderId: `ORD-${String(i + 1).padStart(ORDER_CONSTANTS.ORDER_ID_PADDING, '0')}`,
         customer: {
           id: customerId,
           name: faker.person.fullName(),
           email: faker.internet.email().toLowerCase(),
+          phone: faker.phone.number(),
         },
         items,
+        subtotal,
+        tax,
         total,
-        status: statuses[i % statuses.length]!,
-        orderDate: faker.date.recent({ days: 90 }).toISOString().split('T')[0],
+        status: ORDER_STATUSES[i % ORDER_STATUSES.length]!,
+        orderDate: faker.date.recent({ days: ORDER_CONSTANTS.RECENT_DAYS }).toISOString().split('T')[0],
       }
     }),
+  }
+}
+
+/**
+ * Nested dataset: E-commerce orders with nested structures
+ *
+ * @remarks
+ * Tests TOON's handling of complex nested objects.
+ */
+const nestedDataset: Dataset = {
+  name: 'nested',
+  description: 'E-commerce orders with nested structures',
+  data: generateOrders(50),
+  metadata: {
+    supportsCSV: false,
+    structureClass: 'nested',
+    tabularEligibility: 33, // orders array is not tabular, but items arrays within are
   },
 }
 
 /**
- * Analytics dataset: 60 days of time-series metrics
+ * Analytics dataset: Time-series metrics
  *
  * @remarks
- * Tests TOON's handling of numeric data and date fields
+ * Tests TOON's handling of numeric data and date fields.
  */
 const analyticsDataset: Dataset = {
   name: 'analytics',
   description: 'Time-series analytics data',
   data: generateAnalyticsData(60),
+  metadata: {
+    supportsCSV: true,
+    structureClass: 'uniform',
+    tabularEligibility: 100,
+  },
 }
 
 /**
  * Real-world dataset: Top 100 starred GitHub repositories
  *
  * @remarks
- * Tests TOON's tabular format
+ * Tests TOON's tabular format with real data.
  */
 const githubDataset: Dataset = {
   name: 'github',
@@ -203,13 +392,18 @@ const githubDataset: Dataset = {
   data: {
     repositories: githubRepos,
   },
+  metadata: {
+    supportsCSV: true,
+    structureClass: 'uniform',
+    tabularEligibility: 100,
+  },
 }
 
 /**
  * Generate a single e-commerce order with nested structure
  *
  * @remarks
- * Used for token efficiency benchmarks
+ * Used for token efficiency benchmarks.
  */
 export function generateOrderData(): Order {
   return {
@@ -235,11 +429,257 @@ export function generateOrderData(): Order {
 }
 
 /**
- * All datasets used in the benchmark
+ * Generate event logs (semi-uniform structure)
+ *
+ * @remarks
+ * Approximately 50% of logs include nested error objects, 50% are flat.
+ * This creates ~45% tabular eligibility.
  */
-export const datasets: Dataset[] = [
-  tabularDataset,
-  nestedDataset,
-  analyticsDataset,
+export function generateEventLogs(count: number): { logs: EventLog[] } {
+  const endpoints = ['/api/users', '/api/orders', '/api/products', '/api/auth', '/api/payments']
+  const levels = ['info', 'warn', 'error'] as const
+
+  return {
+    logs: Array.from({ length: count }, () => {
+      const level = faker.helpers.arrayElement(levels)
+      const hasError = level === 'error' || (level === 'warn' && faker.datatype.boolean(0.3))
+
+      const log: EventLog = {
+        timestamp: faker.date.recent({ days: 7 }).toISOString(),
+        level,
+        endpoint: faker.helpers.arrayElement(endpoints),
+        statusCode: hasError
+          ? faker.number.int({ min: 400, max: 599 })
+          : faker.number.int({ min: 200, max: 299 }),
+        responseTime: faker.number.int({ min: 10, max: 5000 }),
+        userId: faker.number.int({ min: 1000, max: 9999 }),
+      }
+
+      if (hasError) {
+        log.error = {
+          message: faker.helpers.arrayElement([
+            'Database connection timeout',
+            'Invalid authentication token',
+            'Resource not found',
+            'Internal server error',
+            'Rate limit exceeded',
+          ]),
+          stack: `Error: ${faker.lorem.sentence()}\n  at ${faker.lorem.word()}\n  at ${faker.lorem.word()}`,
+          retryable: faker.datatype.boolean(0.6),
+        }
+      }
+
+      return log
+    }),
+  }
+}
+
+/**
+ * Generate deeply nested configuration
+ *
+ * @remarks
+ * Creates a complex nested structure with minimal tabular eligibility (~0%).
+ */
+export function generateNestedConfig(): NestedConfig {
+  return {
+    environment: faker.helpers.arrayElement(['production', 'staging', 'development']),
+    version: faker.system.semver(),
+    database: {
+      host: faker.internet.domainName(),
+      port: 5432,
+      name: faker.database.type(),
+      pool: {
+        min: 2,
+        max: faker.number.int({ min: 10, max: 50 }),
+        idleTimeout: 30000,
+      },
+      replicas: Array.from({ length: 3 }, (_, i) => ({
+        host: `replica-${i + 1}.${faker.internet.domainName()}`,
+        port: 5432,
+        priority: i + 1,
+      })),
+    },
+    features: {
+      darkMode: {
+        enabled: faker.datatype.boolean(),
+        rollout: faker.number.int({ min: 0, max: 100 }),
+        variants: [
+          {
+            name: 'default',
+            weight: 70,
+            config: { theme: 'dark', animations: true },
+          },
+          {
+            name: 'minimal',
+            weight: 30,
+            config: { theme: 'dark', animations: false },
+          },
+        ],
+      },
+      analytics: {
+        enabled: faker.datatype.boolean(),
+        rollout: faker.number.int({ min: 0, max: 100 }),
+        variants: [
+          {
+            name: 'full',
+            weight: 100,
+            config: { tracking: 'all', sampling: 1.0 },
+          },
+        ],
+      },
+    },
+    authentication: {
+      providers: [
+        {
+          name: 'oauth2',
+          clientId: faker.string.uuid(),
+          scopes: ['read', 'write', 'admin'],
+          config: {
+            authUrl: faker.internet.url(),
+            tokenUrl: faker.internet.url(),
+          },
+        },
+        {
+          name: 'saml',
+          clientId: faker.string.uuid(),
+          scopes: ['read'],
+          config: {
+            entryPoint: faker.internet.url(),
+            cert: faker.string.alphanumeric({ length: 64 }),
+          },
+        },
+      ],
+      session: {
+        secret: faker.string.alphanumeric({ length: 32 }),
+        duration: 86400,
+        refreshThreshold: 3600,
+      },
+    },
+    permissions: {
+      roles: {
+        admin: {
+          permissions: ['read', 'write', 'delete', 'manage_users', 'manage_roles'],
+          inherits: [],
+        },
+        editor: {
+          permissions: ['read', 'write'],
+          inherits: ['viewer'],
+        },
+        viewer: {
+          permissions: ['read'],
+          inherits: [],
+        },
+      },
+      groups: {
+        engineering: {
+          members: Array.from({ length: 5 }, () => faker.internet.email()),
+          roles: ['admin', 'editor'],
+        },
+        support: {
+          members: Array.from({ length: 3 }, () => faker.internet.email()),
+          roles: ['viewer'],
+        },
+      },
+    },
+  }
+}
+
+/**
+ * Event logs dataset: Semi-uniform structure
+ *
+ * @remarks
+ * Tests TOON with semi-uniform data (~50% flat, ~50% with nested errors).
+ */
+const eventLogsDataset: Dataset = {
+  name: 'event-logs',
+  description: 'Semi-uniform event logs',
+  data: generateEventLogs(75),
+  metadata: {
+    supportsCSV: false,
+    structureClass: 'semi-uniform',
+    tabularEligibility: 50, // ~50% of logs have nested error objects
+  },
+}
+
+/**
+ * Nested config dataset: Deeply nested structure
+ *
+ * @remarks
+ * Tests TOON's worst-case scenario with deeply nested configuration.
+ */
+const nestedConfigDataset: Dataset = {
+  name: 'nested-config',
+  description: 'Deeply nested configuration',
+  data: generateNestedConfig(),
+  metadata: {
+    supportsCSV: false,
+    structureClass: 'deep',
+    tabularEligibility: 0, // Highly nested, minimal tabular arrays
+  },
+}
+
+/**
+ * Datasets for accuracy benchmarks (smaller sizes for faster evaluation)
+ */
+export const ACCURACY_DATASETS: Dataset[] = [
+  tabularDataset, // 100 employees
+  nestedDataset, // 50 orders
+  analyticsDataset, // 60 days
+  githubDataset, // 100 repos
+  eventLogsDataset, // 75 logs
+  nestedConfigDataset, // 1 config
+]
+
+/**
+ * Datasets for token efficiency benchmarks (larger sizes to amplify token differences)
+ */
+export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
+  // Tabular: 2000 employees
+  {
+    name: 'tabular',
+    description: 'Uniform employee records (TOON optimal format)',
+    data: generateEmployees(2000),
+    metadata: {
+      supportsCSV: true,
+      structureClass: 'uniform',
+      tabularEligibility: 100,
+    },
+  },
+  // Nested: 500 orders
+  {
+    name: 'nested',
+    description: 'E-commerce orders with nested structures',
+    data: generateOrders(500),
+    metadata: {
+      supportsCSV: false,
+      structureClass: 'nested',
+      tabularEligibility: 33,
+    },
+  },
+  // Analytics: 365 days
+  {
+    name: 'analytics',
+    description: 'Time-series analytics data',
+    data: generateAnalyticsData(365),
+    metadata: {
+      supportsCSV: true,
+      structureClass: 'uniform',
+      tabularEligibility: 100,
+    },
+  },
+  // GitHub: 100 repos (same as accuracy)
   githubDataset,
+  // Event logs: 2000 logs
+  {
+    name: 'event-logs',
+    description: 'Semi-uniform event logs',
+    data: generateEventLogs(2000),
+    metadata: {
+      supportsCSV: false,
+      structureClass: 'semi-uniform',
+      tabularEligibility: 50,
+    },
+  },
+  // Nested config: 1 config (same as accuracy)
+  nestedConfigDataset,
 ]

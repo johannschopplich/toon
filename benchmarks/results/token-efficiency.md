@@ -1,36 +1,149 @@
+
+## Mixed-Structure Track
+
+Datasets with nested or semi-uniform structures. CSV excluded as it cannot properly represent these structures.
+
 ```
-⭐ GitHub Repositories       ██████████████░░░░░░░░░░░    8,745 tokens
-                             vs JSON (−42.3%)           15,145
-                             vs JSON compact (−23.7%)   11,455
-                             vs YAML (−33.4%)           13,129
-                             vs XML (−48.8%)            17,095
+🛒 E-commerce orders with nested structures [eligibility: 33%] 
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░    58,528 tokens
+  vs JSON (−37.9%)               94,207
+  vs JSON compact (+0.9%)        57,979
+  vs YAML (−17.8%)               71,223
+  vs XML (−45.2%)               106,720
 
-📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░    4,507 tokens
-                             vs JSON (−58.9%)           10,977
-                             vs JSON compact (−35.7%)    7,013
-                             vs YAML (−48.8%)            8,810
-                             vs XML (−65.7%)            13,128
+🧾 Semi-uniform event logs [eligibility: 50%]                  
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░   154,419 tokens
+  vs JSON (−15.0%)              181,592
+  vs JSON compact (+19.9%)      128,836
+  vs YAML (−0.9%)               155,749
+  vs XML (−25.1%)               206,271
 
-🛒 E-Commerce Order          ████████████████░░░░░░░░░      166 tokens
-                             vs JSON (−35.4%)              257
-                             vs JSON compact (−2.9%)       171
-                             vs YAML (−15.7%)              197
-                             vs XML (−38.7%)               271
+🧩 Deeply nested configuration [eligibility: 0%]               
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░       630 tokens
+  vs JSON (−31.4%)                  918
+  vs JSON compact (+11.9%)          563
+  vs YAML (−6.4%)                   673
+  vs XML (−37.4%)                 1,007
 
-─────────────────────────────────────────────────────────────────────
-Total                        ██████████████░░░░░░░░░░░   13,418 tokens
-                             vs JSON (−49.1%)           26,379
-                             vs JSON compact (−28.0%)   18,639
-                             vs YAML (−39.4%)           22,136
-                             vs XML (−56.0%)            30,494
+─────────────────────────────────────────────────────────────────────────────────
+Total                                                               
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░   213,577 tokens
+  vs JSON (−22.8%)              276,717
+  vs JSON compact (+14.0%)      187,378
+  vs YAML (−6.2%)               227,645
+  vs XML (−32.0%)               313,998
 ```
+
+## Flat-Only Track
+
+Datasets with flat tabular structures where CSV is applicable.
+
+```
+👥 Uniform employee records (TOON optimal format) [eligibility: 100%]
+csv                   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░    46,968 tokens
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    49,841 tokens   (+5.8% vs CSV)
+  vs JSON (−60.7%)              126,886
+  vs JSON compact (−36.8%)       78,882
+  vs YAML (−50.0%)               99,743
+  vs XML (−66.0%)               146,465
+
+📈 Time-series analytics data [eligibility: 100%]              
+csv                   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░     8,382 tokens
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓     9,114 tokens   (+8.0% vs CSV)
+  vs JSON (−59.0%)               22,244
+  vs JSON compact (−35.9%)       14,210
+  vs YAML (−49.0%)               17,857
+  vs XML (−65.8%)                26,615
+
+⭐ Top 100 GitHub repositories [eligibility: 100%]             
+csv                   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░     8,513 tokens
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓     8,745 tokens   (+2.7% vs CSV)
+  vs JSON (−42.3%)               15,145
+  vs JSON compact (−23.7%)       11,455
+  vs YAML (−33.4%)               13,129
+  vs XML (−48.8%)                17,095
+
+─────────────────────────────────────────────────────────────────────────────────
+Total                                                               
+csv                   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░    63,863 tokens
+toon                  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓    67,700 tokens   (+5.7% vs CSV)
+  vs JSON (−58.8%)              164,275
+  vs JSON compact (−35.2%)      104,547
+  vs YAML (−48.2%)              130,729
+  vs XML (−64.4%)               190,175
+```
+
 
 <details>
 <summary><strong>View detailed examples</strong></summary>
 
-#### ⭐ GitHub Repositories
+#### 📈 Time-series analytics data
 
-**Configuration:** Top 100 GitHub repositories with stars, forks, and metadata
+**Savings:** 13,130 tokens (59.0% reduction vs JSON)
+
+**JSON** (22,244 tokens):
+
+```json
+{
+  "metrics": [
+    {
+      "date": "2025-01-01",
+      "views": 4324,
+      "clicks": 146,
+      "conversions": 21,
+      "revenue": 3834.57,
+      "bounceRate": 0.4
+    },
+    {
+      "date": "2025-01-02",
+      "views": 6248,
+      "clicks": 407,
+      "conversions": 22,
+      "revenue": 2936.12,
+      "bounceRate": 0.62
+    },
+    {
+      "date": "2025-01-03",
+      "views": 7382,
+      "clicks": 270,
+      "conversions": 24,
+      "revenue": 6825.19,
+      "bounceRate": 0.7
+    },
+    {
+      "date": "2025-01-04",
+      "views": 4586,
+      "clicks": 267,
+      "conversions": 24,
+      "revenue": 2391.11,
+      "bounceRate": 0.64
+    },
+    {
+      "date": "2025-01-05",
+      "views": 6171,
+      "clicks": 227,
+      "conversions": 12,
+      "revenue": 3430.1,
+      "bounceRate": 0.39
+    }
+  ]
+}
+```
+
+**TOON** (9,114 tokens):
+
+```
+metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
+  2025-01-01,4324,146,21,3834.57,0.4
+  2025-01-02,6248,407,22,2936.12,0.62
+  2025-01-03,7382,270,24,6825.19,0.7
+  2025-01-04,4586,267,24,2391.11,0.64
+  2025-01-05,6171,227,12,3430.1,0.39
+```
+
+---
+
+#### ⭐ Top 100 GitHub repositories
 
 **Savings:** 6,400 tokens (42.3% reduction vs JSON)
 
@@ -89,74 +202,6 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
   28457823,freeCodeCamp,freeCodeCamp/freeCodeCamp,"freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,…","2014-12-24T17:49:19Z","2025-10-28T11:58:08Z","2025-10-28T10:17:16Z",430886,8583,42146,main
   132750724,build-your-own-x,codecrafters-io/build-your-own-x,Master programming by recreating your favorite technologies from scratch.,"2018-05-09T12:03:18Z","2025-10-28T12:37:11Z","2025-10-10T18:45:01Z",430877,6332,40453,master
   21737465,awesome,sindresorhus/awesome,😎 Awesome lists about all kinds of interesting topics,"2014-07-11T13:42:37Z","2025-10-28T12:40:21Z","2025-10-27T17:57:31Z",410052,8017,32029,main
-```
-
----
-
-#### 📈 Daily Analytics
-
-**Configuration:** 180 days of web metrics (views, clicks, conversions, revenue)
-
-**Savings:** 6,470 tokens (58.9% reduction vs JSON)
-
-**JSON** (10,977 tokens):
-
-```json
-{
-  "metrics": [
-    {
-      "date": "2025-01-01",
-      "views": 6890,
-      "clicks": 401,
-      "conversions": 23,
-      "revenue": 6015.59,
-      "bounceRate": 0.63
-    },
-    {
-      "date": "2025-01-02",
-      "views": 6940,
-      "clicks": 323,
-      "conversions": 37,
-      "revenue": 9086.44,
-      "bounceRate": 0.36
-    },
-    {
-      "date": "2025-01-03",
-      "views": 4390,
-      "clicks": 346,
-      "conversions": 26,
-      "revenue": 6360.75,
-      "bounceRate": 0.48
-    },
-    {
-      "date": "2025-01-04",
-      "views": 3429,
-      "clicks": 231,
-      "conversions": 13,
-      "revenue": 2360.96,
-      "bounceRate": 0.65
-    },
-    {
-      "date": "2025-01-05",
-      "views": 5804,
-      "clicks": 186,
-      "conversions": 22,
-      "revenue": 2535.96,
-      "bounceRate": 0.37
-    }
-  ]
-}
-```
-
-**TOON** (4,507 tokens):
-
-```
-metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
-  2025-01-01,6890,401,23,6015.59,0.63
-  2025-01-02,6940,323,37,9086.44,0.36
-  2025-01-03,4390,346,26,6360.75,0.48
-  2025-01-04,3429,231,13,2360.96,0.65
-  2025-01-05,5804,186,22,2535.96,0.37
 ```
 
 </details>

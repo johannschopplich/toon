@@ -8,7 +8,7 @@ export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.me
  * Model-specific RPM (requests per minute) limits to handle API quotas
  *
  * @remarks
- * Set `undefined` for models without specific limits
+ * Set `undefined` for models without specific limits.
  */
 /// keep-sorted
 export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
@@ -39,7 +39,7 @@ export const FORMATTER_DISPLAY_NAMES: Record<string, string> = {
  * Enable dry run mode for quick testing with limited AI requests
  *
  * @remarks
- * Set via environment variable: `DRY_RUN=true`
+ * Set via environment variable: `DRY_RUN=true`.
  */
 export const DRY_RUN: boolean = process.env.DRY_RUN === 'true'
 
@@ -122,5 +122,15 @@ export const QUESTION_LIMITS = {
     fieldRetrievalRepos: 11,
     aggregationBranches: 2,
     filteringStarsAndForks: 8,
+  },
+  eventLogs: {
+    fieldRetrieval: 10,
+    aggregationEndpoints: 3,
+    filteringLevelAndStatus: 2,
+    filteringEndpointAndStatus: 2,
+  },
+  nestedConfig: {
+    fieldRetrieval: 5,
+    filteringComplex: 2,
   },
 } as const
