@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "benchmark:token-efficiency": "tsx scripts/token-efficiency-benchmark.ts",
+    "benchmark:tokens": "tsx scripts/token-efficiency-benchmark.ts",
     "benchmark:accuracy": "tsx --env-file=.env scripts/accuracy-benchmark.ts",
     "fetch:github-repos": "tsx scripts/fetch-github-repos.ts"
   },

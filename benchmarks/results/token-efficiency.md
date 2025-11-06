@@ -1,36 +1,151 @@
+#### Mixed-Structure Track
+
+Datasets with nested or semi-uniform structures. CSV excluded as it cannot properly represent these structures.
+
 ```
-⭐ GitHub Repositories       ██████████████░░░░░░░░░░░    8,745 tokens
-                             vs JSON (−42.3%)           15,145
-                             vs JSON compact (−23.7%)   11,455
-                             vs YAML (−33.4%)           13,129
-                             vs XML (−48.8%)            17,095
+🛒 E-commerce orders with nested structures  ┊  Tabular: 33%
+   │
+   TOON                █████████████░░░░░░░    72,743 tokens
+   ├─ vs JSON          (−33.1%)               108,731 tokens
+   ├─ vs JSON compact  (+5.5%)                 68,936 tokens
+   ├─ vs YAML          (−14.1%)                84,724 tokens
+   └─ vs XML           (−40.5%)               122,313 tokens
 
-📈 Daily Analytics           ██████████░░░░░░░░░░░░░░░    4,507 tokens
-                             vs JSON (−58.9%)           10,977
-                             vs JSON compact (−35.7%)    7,013
-                             vs YAML (−48.8%)            8,810
-                             vs XML (−65.7%)            13,128
+🧾 Semi-uniform event logs  ┊  Tabular: 50%
+   │
+   TOON                █████████████████░░░   153,223 tokens
+   ├─ vs JSON          (−15.0%)               180,196 tokens
+   ├─ vs JSON compact  (+19.9%)               127,740 tokens
+   ├─ vs YAML          (−0.8%)                154,514 tokens
+   └─ vs XML           (−25.2%)               204,800 tokens
 
-🛒 E-Commerce Order          ████████████████░░░░░░░░░      166 tokens
-                             vs JSON (−35.4%)              257
-                             vs JSON compact (−2.9%)       171
-                             vs YAML (−15.7%)              197
-                             vs XML (−38.7%)               271
+🧩 Deeply nested configuration  ┊  Tabular: 0%
+   │
+   TOON                ██████████████░░░░░░       631 tokens
+   ├─ vs JSON          (−31.3%)                   919 tokens
+   ├─ vs JSON compact  (+11.9%)                   564 tokens
+   ├─ vs YAML          (−6.2%)                    673 tokens
+   └─ vs XML           (−37.4%)                 1,008 tokens
 
-─────────────────────────────────────────────────────────────────────
-Total                        ██████████████░░░░░░░░░░░   13,418 tokens
-                             vs JSON (−49.1%)           26,379
-                             vs JSON compact (−28.0%)   18,639
-                             vs YAML (−39.4%)           22,136
-                             vs XML (−56.0%)            30,494
+──────────────────────────────────── Total ────────────────────────────────────
+   TOON                ████████████████░░░░   226,597 tokens
+   ├─ vs JSON          (−21.8%)               289,846 tokens
+   ├─ vs JSON compact  (+14.9%)               197,240 tokens
+   ├─ vs YAML          (−5.5%)                239,911 tokens
+   └─ vs XML           (−30.9%)               328,121 tokens
+```
+
+#### Flat-Only Track
+
+Datasets with flat tabular structures where CSV is applicable.
+
+```
+👥 Uniform employee records  ┊  Tabular: 100%
+   │
+   CSV                 ███████████████████░    46,956 tokens
+   TOON                ████████████████████    49,827 tokens   (+6.1% vs CSV)
+   ├─ vs JSON          (−60.7%)               126,854 tokens
+   ├─ vs JSON compact  (−36.8%)                78,850 tokens
+   ├─ vs YAML          (−50.0%)                99,701 tokens
+   └─ vs XML           (−66.0%)               146,440 tokens
+
+📈 Time-series analytics data  ┊  Tabular: 100%
+   │
+   CSV                 ██████████████████░░     8,396 tokens
+   TOON                ████████████████████     9,128 tokens   (+8.7% vs CSV)
+   ├─ vs JSON          (−59.0%)                22,258 tokens
+   ├─ vs JSON compact  (−35.8%)                14,224 tokens
+   ├─ vs YAML          (−48.9%)                17,871 tokens
+   └─ vs XML           (−65.7%)                26,629 tokens
+
+⭐ Top 100 GitHub repositories  ┊  Tabular: 100%
+   │
+   CSV                 ███████████████████░     8,513 tokens
+   TOON                ████████████████████     8,745 tokens   (+2.7% vs CSV)
+   ├─ vs JSON          (−42.3%)                15,145 tokens
+   ├─ vs JSON compact  (−23.7%)                11,455 tokens
+   ├─ vs YAML          (−33.4%)                13,129 tokens
+   └─ vs XML           (−48.8%)                17,095 tokens
+
+──────────────────────────────────── Total ────────────────────────────────────
+   CSV                 ███████████████████░    63,865 tokens
+   TOON                ████████████████████    67,700 tokens   (+6.0% vs CSV)
+   ├─ vs JSON          (−58.8%)               164,257 tokens
+   ├─ vs JSON compact  (−35.2%)               104,529 tokens
+   ├─ vs YAML          (−48.2%)               130,701 tokens
+   └─ vs XML           (−64.4%)               190,164 tokens
 ```
 
 <details>
 <summary><strong>View detailed examples</strong></summary>
 
-#### ⭐ GitHub Repositories
+#### 📈 Time-series analytics data
 
-**Configuration:** Top 100 GitHub repositories with stars, forks, and metadata
+**Savings:** 13,130 tokens (59.0% reduction vs JSON)
+
+**JSON** (22,258 tokens):
+
+```json
+{
+  "metrics": [
+    {
+      "date": "2025-01-01",
+      "views": 7708,
+      "clicks": 595,
+      "conversions": 69,
+      "revenue": 15369.93,
+      "bounceRate": 0.35
+    },
+    {
+      "date": "2025-01-02",
+      "views": 5894,
+      "clicks": 381,
+      "conversions": 21,
+      "revenue": 2112.12,
+      "bounceRate": 0.3
+    },
+    {
+      "date": "2025-01-03",
+      "views": 6835,
+      "clicks": 422,
+      "conversions": 35,
+      "revenue": 4525.73,
+      "bounceRate": 0.5
+    },
+    {
+      "date": "2025-01-04",
+      "views": 5325,
+      "clicks": 305,
+      "conversions": 22,
+      "revenue": 2445.3,
+      "bounceRate": 0.44
+    },
+    {
+      "date": "2025-01-05",
+      "views": 2974,
+      "clicks": 61,
+      "conversions": 6,
+      "revenue": 956.57,
+      "bounceRate": 0.47
+    }
+  ]
+}
+```
+
+**TOON** (9,128 tokens):
+
+```
+metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
+  2025-01-01,7708,595,69,15369.93,0.35
+  2025-01-02,5894,381,21,2112.12,0.3
+  2025-01-03,6835,422,35,4525.73,0.5
+  2025-01-04,5325,305,22,2445.3,0.44
+  2025-01-05,2974,61,6,956.57,0.47
+```
+
+---
+
+#### ⭐ Top 100 GitHub repositories
 
 **Savings:** 6,400 tokens (42.3% reduction vs JSON)
 
@@ -89,74 +204,6 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
   28457823,freeCodeCamp,freeCodeCamp/freeCodeCamp,"freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming,…","2014-12-24T17:49:19Z","2025-10-28T11:58:08Z","2025-10-28T10:17:16Z",430886,8583,42146,main
   132750724,build-your-own-x,codecrafters-io/build-your-own-x,Master programming by recreating your favorite technologies from scratch.,"2018-05-09T12:03:18Z","2025-10-28T12:37:11Z","2025-10-10T18:45:01Z",430877,6332,40453,master
   21737465,awesome,sindresorhus/awesome,😎 Awesome lists about all kinds of interesting topics,"2014-07-11T13:42:37Z","2025-10-28T12:40:21Z","2025-10-27T17:57:31Z",410052,8017,32029,main
-```
-
----
-
-#### 📈 Daily Analytics
-
-**Configuration:** 180 days of web metrics (views, clicks, conversions, revenue)
-
-**Savings:** 6,470 tokens (58.9% reduction vs JSON)
-
-**JSON** (10,977 tokens):
-
-```json
-{
-  "metrics": [
-    {
-      "date": "2025-01-01",
-      "views": 6890,
-      "clicks": 401,
-      "conversions": 23,
-      "revenue": 6015.59,
-      "bounceRate": 0.63
-    },
-    {
-      "date": "2025-01-02",
-      "views": 6940,
-      "clicks": 323,
-      "conversions": 37,
-      "revenue": 9086.44,
-      "bounceRate": 0.36
-    },
-    {
-      "date": "2025-01-03",
-      "views": 4390,
-      "clicks": 346,
-      "conversions": 26,
-      "revenue": 6360.75,
-      "bounceRate": 0.48
-    },
-    {
-      "date": "2025-01-04",
-      "views": 3429,
-      "clicks": 231,
-      "conversions": 13,
-      "revenue": 2360.96,
-      "bounceRate": 0.65
-    },
-    {
-      "date": "2025-01-05",
-      "views": 5804,
-      "clicks": 186,
-      "conversions": 22,
-      "revenue": 2535.96,
-      "bounceRate": 0.37
-    }
-  ]
-}
-```
-
-**TOON** (4,507 tokens):
-
-```
-metrics[5]{date,views,clicks,conversions,revenue,bounceRate}:
-  2025-01-01,6890,401,23,6015.59,0.63
-  2025-01-02,6940,323,37,9086.44,0.36
-  2025-01-03,4390,346,26,6360.75,0.48
-  2025-01-04,3429,231,13,2360.96,0.65
-  2025-01-05,5804,186,22,2535.96,0.37
 ```
 
 </details>

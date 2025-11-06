@@ -1,11 +1,11 @@
+import type { Dataset } from '../src/types'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
 import * as prompts from '@clack/prompts'
 import { encode } from '../../packages/toon/src'
-import githubRepos from '../data/github-repos.json' with { type: 'json' }
 import { BENCHMARKS_DIR, FORMATTER_DISPLAY_NAMES, ROOT_DIR } from '../src/constants'
-import { generateAnalyticsData, generateOrderData } from '../src/datasets'
-import { formatters } from '../src/formatters'
+import { TOKEN_EFFICIENCY_DATASETS } from '../src/datasets'
+import { formatters, supportsCSV } from '../src/formatters'
 import { createProgressBar, ensureDir, tokenize } from '../src/utils'
 
 interface FormatMetrics {
@@ -16,55 +16,162 @@ interface FormatMetrics {
 }
 
 interface BenchmarkResult {
-  name: string
-  emoji: string
-  description: string
-  data: Record<string, any>
+  dataset: Dataset
   formats: FormatMetrics[]
-  showDetailed: boolean
 }
 
-const BENCHMARK_EXAMPLES = [
-  {
-    name: 'GitHub Repositories',
-    emoji: '⭐',
-    description: 'Top 100 GitHub repositories with stars, forks, and metadata',
-    getData: () => ({ repositories: githubRepos }),
-    showDetailed: true,
-  },
-  {
-    name: 'Daily Analytics',
-    emoji: '📈',
-    description: '180 days of web metrics (views, clicks, conversions, revenue)',
-    getData: () => generateAnalyticsData(180),
-    showDetailed: true,
-  },
-  {
-    name: 'E-Commerce Order',
-    emoji: '🛒',
-    description: 'Single nested order with customer and items',
-    getData: generateOrderData,
-    showDetailed: false,
-  },
-] as const
+// Constants
+const DATASET_ICONS: Record<string, string> = {
+  'tabular': '👥',
+  'nested': '🛒',
+  'analytics': '📈',
+  'github': '⭐',
+  'event-logs': '🧾',
+  'nested-config': '🧩',
+}
+
+const COMPARISON_FORMAT_ORDER = ['json-pretty', 'json-compact', 'yaml', 'xml'] as const
+
+const PROGRESS_BAR_WIDTH = 20
+const TOKEN_PADDING = 7
+
+const DEFAULT_DATASET_ICON = '📊'
+
+const DETAILED_EXAMPLE_DATASETS = ['github', 'analytics'] as const
+const GITHUB_REPO_LIMIT = 3
+const GITHUB_DESC_LIMIT = 80
+const ANALYTICS_METRICS_LIMIT = 5
 
 prompts.intro('Token Efficiency Benchmark')
 
+/**
+ * Format a comparison line showing savings vs TOON
+ */
+function formatComparisonLine(format: FormatMetrics, isLast: boolean = false): string {
+  const label = FORMATTER_DISPLAY_NAMES[format.name] || format.name.toUpperCase()
+  const signedPercent = format.savingsPercent >= 0
+    ? `−${format.savingsPercent.toFixed(1)}%`
+    : `+${Math.abs(format.savingsPercent).toFixed(1)}%`
+  const connector = isLast ? '└─' : '├─'
+  const tokenStr = format.tokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
+  return `${connector} vs ${label.padEnd(13)} ${`(${signedPercent})`.padEnd(20)}   ${tokenStr} tokens`
+}
+
+/**
+ * Calculate total tokens and savings for a set of datasets
+ */
+function calculateTotalMetrics(datasets: BenchmarkResult[], formatNames: readonly string[]) {
+  const totalToonTokens = datasets.reduce((sum, r) => {
+    const toon = r.formats.find(f => f.name === 'toon')!
+    return sum + toon.tokens
+  }, 0)
+
+  const totals = formatNames.map((formatName) => {
+    const totalTokens = datasets.reduce((sum, r) => {
+      const format = r.formats.find(f => f.name === formatName)
+      return sum + (format?.tokens || 0)
+    }, 0)
+    const savings = totalTokens - totalToonTokens
+    const savingsPercent = (savings / totalTokens) * 100
+    return { name: formatName, tokens: totalTokens, savingsPercent }
+  })
+
+  return { totalToonTokens, totals }
+}
+
+/**
+ * Generate total lines for a track
+ */
+function generateTotalLines(
+  totalToonTokens: number,
+  totals: { name: string, tokens: number, savingsPercent: number }[],
+  baselineFormat?: { name: string, tokens: number },
+) {
+  const separatorHalf = '─'.repeat(36)
+  const lines: string[] = [`${separatorHalf} Total ${separatorHalf}`]
+
+  if (baselineFormat) {
+    // Flat-only track with CSV baseline
+    const csvPercentage = Math.min(100, (baselineFormat.tokens / totalToonTokens) * 100)
+    const csvBar = createProgressBar(csvPercentage, 100, PROGRESS_BAR_WIDTH)
+    const csvStr = baselineFormat.tokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
+    lines.push(`   CSV                 ${csvBar}   ${csvStr} tokens`)
+
+    const overheadPercent = ((totalToonTokens - baselineFormat.tokens) / baselineFormat.tokens) * 100
+    const toonBar = createProgressBar(100, 100, PROGRESS_BAR_WIDTH)
+    const toonStr = totalToonTokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
+    lines.push(`   TOON                ${toonBar}   ${toonStr} tokens   (+${overheadPercent.toFixed(1)}% vs CSV)`)
+  }
+  else {
+    // Mixed-structure track
+    const totalPercentage = Math.min(100, (totalToonTokens / totals[0]!.tokens) * 100)
+    const totalBar = createProgressBar(totalPercentage, 100, PROGRESS_BAR_WIDTH)
+    const toonStr = totalToonTokens.toLocaleString('en-US').padStart(TOKEN_PADDING)
+    lines.push(`   TOON                ${totalBar}   ${toonStr} tokens`)
+  }
+
+  // Add comparison lines
+  for (let i = 0; i < totals.length; i++) {
+    const format = totals[i]!
+    const isLast = i === totals.length - 1
+    lines.push(`   ${formatComparisonLine({
+      name: format.name,
+      tokens: format.tokens,
+      savings: 0, // Not used in this context
+      savingsPercent: format.savingsPercent,
+    }, isLast)}`)
+  }
+
+  return lines.join('\n')
+}
+
+/**
+ * Generate bar chart for a dataset
+ */
+function generateDatasetChart(result: BenchmarkResult): string {
+  const { dataset, formats } = result
+  const toon = formats.find(f => f.name === 'toon')!
+  const jsonPretty = formats.find(f => f.name === 'json-pretty')!
+
+  const emoji = DATASET_ICONS[dataset.name] || DEFAULT_DATASET_ICON
+  const eligibility = dataset.metadata.tabularEligibility
+  const name = dataset.description
+
+  const percentage = Math.min(100, 100 - jsonPretty.savingsPercent)
+  const bar = createProgressBar(percentage, 100, PROGRESS_BAR_WIDTH)
+  const toonStr = toon.tokens.toLocaleString('en-US')
+
+  const line1 = `${emoji} ${name}  ┊  Tabular: ${eligibility}%`
+  const line2 = `   │`
+  const line3 = `   TOON                ${bar}   ${toonStr.padStart(TOKEN_PADDING)} tokens`
+
+  const comparisonLines = COMPARISON_FORMAT_ORDER.map((formatName, index, array) => {
+    const format = formats.find(f => f.name === formatName)
+    if (!format)
+      return undefined
+
+    return `   ${formatComparisonLine(format, index === array.length - 1)}`
+  }).filter(Boolean)
+
+  return [line1, line2, line3, ...comparisonLines].join('\n')
+}
+
 const results: BenchmarkResult[] = []
-const totalTokensByFormat: Record<string, number> = {}
 
-for (const example of BENCHMARK_EXAMPLES) {
-  const data = example.getData()
-
-  // Calculate tokens for each format
+// Calculate token counts for all datasets
+for (const dataset of TOKEN_EFFICIENCY_DATASETS) {
   const formatMetrics: FormatMetrics[] = []
   const tokensByFormat: Record<string, number> = {}
 
+  // Calculate tokens for each format
   for (const [formatName, formatter] of Object.entries(formatters)) {
-    const formattedString = formatter(data)
-    const tokens = tokenize(formattedString)
+    // Skip CSV for datasets that don't support it
+    if (formatName === 'csv' && !supportsCSV(dataset))
+      continue
+
+    const formattedData = formatter(dataset.data)
+    const tokens = tokenize(formattedData)
     tokensByFormat[formatName] = tokens
-    totalTokensByFormat[formatName] = (totalTokensByFormat[formatName] || 0) + tokens
   }
 
   // Calculate savings vs TOON
@@ -80,105 +187,125 @@ for (const example of BENCHMARK_EXAMPLES) {
   }
 
   results.push({
-    name: example.name,
-    emoji: example.emoji,
-    description: example.description,
-    data,
+    dataset,
     formats: formatMetrics,
-    showDetailed: example.showDetailed,
   })
 }
 
-// Calculate total savings percentages
-const totalToonTokens = totalTokensByFormat.toon!
-const totalSavingsPercent: Record<string, number> = {}
-for (const [formatName, totalTokens] of Object.entries(totalTokensByFormat)) {
-  if (formatName === 'toon') {
-    totalSavingsPercent[formatName] = 0
-  }
-  else {
-    const savings = totalTokens - totalToonTokens
-    totalSavingsPercent[formatName] = (savings / totalTokens) * 100
-  }
-}
+// Separate datasets by CSV support
+const mixedStructureDatasets = results.filter(r => !supportsCSV(r.dataset))
+const flatOnlyDatasets = results.filter(r => supportsCSV(r.dataset))
 
-// Generate ASCII bar chart visualization (stacked compact format)
-const formatOrder = ['json-pretty', 'json-compact', 'yaml', 'xml']
-const datasetRows = results
+// Mixed-Structure Track (no CSV)
+const mixedCharts = mixedStructureDatasets
+  .map(result => generateDatasetChart(result))
+  .join('\n\n')
+
+// Flat-Only Track (with CSV)
+const flatCharts = flatOnlyDatasets
   .map((result) => {
+    const csv = result.formats.find(f => f.name === 'csv')
     const toon = result.formats.find(f => f.name === 'toon')!
-    const percentage = result.formats.find(f => f.name === 'json-pretty')!.savingsPercent
-    const bar = createProgressBar(100 - percentage, 100) // Invert to show TOON tokens
+
+    if (!csv)
+      return generateDatasetChart(result)
+
+    // Special handling to show CSV first with TOON overhead
+    const { dataset } = result
+    const emoji = DATASET_ICONS[dataset.name] || DEFAULT_DATASET_ICON
+    const eligibility = dataset.metadata.tabularEligibility
+    const name = dataset.description
+
+    // CSV line
+    const csvPercentage = Math.min(100, (csv.tokens / toon.tokens) * 100)
+    const csvBar = createProgressBar(csvPercentage, 100, PROGRESS_BAR_WIDTH)
+    const csvStr = csv.tokens.toLocaleString('en-US')
+
+    const line1 = `${emoji} ${name}  ┊  Tabular: ${eligibility}%`
+    const line2 = `   │`
+    const line3 = `   CSV                 ${csvBar}   ${csvStr.padStart(TOKEN_PADDING)} tokens`
+
+    const toonOverhead = toon.tokens - csv.tokens
+    const toonOverheadPercent = (toonOverhead / csv.tokens) * 100
+    const toonBar = createProgressBar(100, 100, PROGRESS_BAR_WIDTH)
     const toonStr = toon.tokens.toLocaleString('en-US')
+    const toonVsCSV = toonOverheadPercent >= 0
+      ? `(+${toonOverheadPercent.toFixed(1)}% vs CSV)`
+      : `(${toonOverheadPercent.toFixed(1)}% vs CSV)`
+    const toonLine = `   TOON                ${toonBar}   ${toonStr.padStart(TOKEN_PADDING)} tokens   ${toonVsCSV}`
 
-    const line1 = `${result.emoji} ${result.name.padEnd(25)} ${bar}   ${toonStr.padStart(6)} tokens`
+    // Other format comparisons (vs TOON)
+    const comparisonLines = COMPARISON_FORMAT_ORDER.map((formatName, index, array) => {
+      const format = result.formats.find(f => f.name === formatName)
+      if (!format)
+        return undefined
 
-    const comparisonLines = formatOrder.map((formatName) => {
-      const format = result.formats.find(f => f.name === formatName)!
-      const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
-      const signedPercent = format.savingsPercent >= 0
-        ? `−${format.savingsPercent.toFixed(1)}%`
-        : `+${Math.abs(format.savingsPercent).toFixed(1)}%`
-      const labelWithSavings = `vs ${label} (${signedPercent})`.padEnd(27)
-      const tokenStr = format.tokens.toLocaleString('en-US').padStart(6)
-      return `                             ${labelWithSavings}${tokenStr}`
-    })
+      return `   ${formatComparisonLine(format, index === array.length - 1)}`
+    }).filter(Boolean)
 
-    return [line1, ...comparisonLines].join('\n')
+    return [line1, line2, line3, toonLine, ...comparisonLines].join('\n')
   })
   .join('\n\n')
 
-// Add separator and totals row
-const separator = '─────────────────────────────────────────────────────────────────────'
+// Calculate totals for mixed structure
+const { totalToonTokens: totalToonTokensMixed, totals: mixedTotals } = calculateTotalMetrics(mixedStructureDatasets, COMPARISON_FORMAT_ORDER)
+const mixedTotalLines = generateTotalLines(totalToonTokensMixed, mixedTotals)
 
-// Calculate bar for totals (TOON vs average of comparison formats)
-const comparisonTokens = formatOrder.map(name => totalTokensByFormat[name]!)
-const averageComparisonTokens = comparisonTokens.reduce((a, b) => a + b, 0) / comparisonTokens.length
-const totalPercentage = (totalToonTokens / averageComparisonTokens) * 100
-const totalBar = createProgressBar(totalPercentage, 100)
+// Calculate totals for flat-only
+const { totalToonTokens: totalToonTokensFlat, totals: flatTotals } = calculateTotalMetrics(flatOnlyDatasets, COMPARISON_FORMAT_ORDER)
+const totalCSVTokensFlat = flatOnlyDatasets.reduce((sum, r) => {
+  const csv = r.formats.find(f => f.name === 'csv')
+  return sum + (csv?.tokens || 0)
+}, 0)
+const flatTotalLines = generateTotalLines(totalToonTokensFlat, flatTotals, { name: 'csv', tokens: totalCSVTokensFlat })
 
-const totalLine1 = `Total                        ${totalBar}   ${totalToonTokens.toLocaleString('en-US').padStart(6)} tokens`
+const barChartSection = `
+#### Mixed-Structure Track
 
-const totalComparisonLines = formatOrder.map((formatName) => {
-  const label = FORMATTER_DISPLAY_NAMES[formatName] || formatName.toUpperCase()
-  const tokens = totalTokensByFormat[formatName]!
-  const percent = totalSavingsPercent[formatName]!
-  const signedPercent = percent >= 0 ? `−${percent.toFixed(1)}%` : `+${Math.abs(percent).toFixed(1)}%`
-  const labelWithSavings = `vs ${label} (${signedPercent})`.padEnd(27)
-  const tokenStr = tokens.toLocaleString('en-US').padStart(6)
-  return `                             ${labelWithSavings}${tokenStr}`
-})
+Datasets with nested or semi-uniform structures. CSV excluded as it cannot properly represent these structures.
 
-const barChartSection = `${datasetRows}\n\n${separator}\n${totalLine1}\n${totalComparisonLines.join('\n')}`
+\`\`\`
+${mixedCharts}
 
-// Generate detailed examples (only for selected examples)
-// Note: Large datasets are truncated for display readability in the report.
-// Token counts are calculated from the full datasets, not the truncated versions.
+${mixedTotalLines}
+\`\`\`
+
+#### Flat-Only Track
+
+Datasets with flat tabular structures where CSV is applicable.
+
+\`\`\`
+${flatCharts}
+
+${flatTotalLines}
+\`\`\`
+`.trim()
+
+// Generate detailed examples (optional: show a few examples)
 const detailedExamples = results
-  .filter(result => result.showDetailed)
+  .filter(r => DETAILED_EXAMPLE_DATASETS.includes(r.dataset.name as any))
   .map((result, i, filtered) => {
-    // Truncate large datasets for display
-    let displayData = result.data
-    if (result.name === 'GitHub Repositories') {
+    let displayData = result.dataset.data
+
+    // Truncate for display
+    if (result.dataset.name === 'github') {
       displayData = {
-        repositories: result.data.repositories.slice(0, 3).map((repo: Record<string, any>) => ({
+        repositories: displayData.repositories.slice(0, GITHUB_REPO_LIMIT).map((repo: Record<string, any>) => ({
           ...repo,
-          description: repo.description?.slice(0, 80) + (repo.description?.length > 80 ? '…' : ''),
+          description: repo.description?.slice(0, GITHUB_DESC_LIMIT) + (repo.description?.length > GITHUB_DESC_LIMIT ? '…' : ''),
         })),
       }
     }
-    else if (result.name === 'Daily Analytics') {
-      displayData = { metrics: result.data.metrics.slice(0, 5) }
+    else if (result.dataset.name === 'analytics') {
+      displayData = { metrics: displayData.metrics.slice(0, ANALYTICS_METRICS_LIMIT) }
     }
 
     const separator = i < filtered.length - 1 ? '\n\n---' : ''
-
+    const emoji = DATASET_ICONS[result.dataset.name] || DEFAULT_DATASET_ICON
     const json = result.formats.find(f => f.name === 'json-pretty')!
     const toon = result.formats.find(f => f.name === 'toon')!
 
-    return `#### ${result.emoji} ${result.name}
-
-**Configuration:** ${result.description}
+    return `#### ${emoji} ${result.dataset.description}
 
 **Savings:** ${json.savings.toLocaleString('en-US')} tokens (${json.savingsPercent.toFixed(1)}% reduction vs JSON)
 
@@ -197,9 +324,7 @@ ${encode(displayData)}
   .join('\n\n')
 
 const markdown = `
-\`\`\`
 ${barChartSection}
-\`\`\`
 
 <details>
 <summary><strong>View detailed examples</strong></summary>
@@ -209,7 +334,7 @@ ${detailedExamples}
 </details>
 `.trimStart()
 
-prompts.log.message(`${barChartSection}\n`)
+prompts.log.message(barChartSection)
 
 const resultsDir = path.join(BENCHMARKS_DIR, 'results')
 await ensureDir(resultsDir)

@@ -8,7 +8,7 @@ export const BENCHMARKS_DIR: string = url.fileURLToPath(new URL('../', import.me
  * Model-specific RPM (requests per minute) limits to handle API quotas
  *
  * @remarks
- * Set `undefined` for models without specific limits
+ * Set `undefined` for models without specific limits.
  */
 /// keep-sorted
 export const MODEL_RPM_LIMITS: Record<string, number | undefined> = {
@@ -39,7 +39,7 @@ export const FORMATTER_DISPLAY_NAMES: Record<string, string> = {
  * Enable dry run mode for quick testing with limited AI requests
  *
  * @remarks
- * Set via environment variable: `DRY_RUN=true`
+ * Set via environment variable: `DRY_RUN=true`.
  */
 export const DRY_RUN: boolean = process.env.DRY_RUN === 'true'
 
@@ -101,10 +101,10 @@ export const QUESTION_THRESHOLDS = {
  */
 export const QUESTION_LIMITS = {
   tabular: {
-    fieldRetrieval: 20,
-    aggregationDepartments: 6,
-    filteringMultiConditionDepartments: 6,
-    filteringExperience: 4,
+    fieldRetrieval: 14,
+    aggregationDepartments: 4,
+    filteringMultiConditionDepartments: 5,
+    filteringExperience: 3,
     filteringDepartmentExp: 3,
     filteringDepartmentActive: 3,
   },
@@ -116,11 +116,21 @@ export const QUESTION_LIMITS = {
     filteringStatusAndItems: 3,
   },
   analytics: {
-    fieldRetrievalDates: 13,
+    fieldRetrievalDates: 9,
   },
   github: {
     fieldRetrievalRepos: 11,
     aggregationBranches: 2,
     filteringStarsAndForks: 8,
+  },
+  eventLogs: {
+    fieldRetrieval: 10,
+    aggregationEndpoints: 4,
+    filteringLevelAndStatus: 3,
+    filteringEndpointAndStatus: 3,
+  },
+  nestedConfig: {
+    fieldRetrieval: 10,
+    filteringComplex: 6,
   },
 } as const

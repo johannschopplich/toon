@@ -9,7 +9,7 @@ Benchmarks measuring TOON's **token efficiency** and **retrieval accuracy** comp
 
 ```bash
 # Run token efficiency benchmark
-pnpm benchmark:token-efficiency
+pnpm benchmark:tokens
 
 # Run retrieval accuracy benchmark (requires API keys)
 pnpm benchmark:accuracy
@@ -25,7 +25,7 @@ Measures token count reduction across JSON, XML, YAML, CSV, and TOON:
 4. Calculate savings and generate report
 
 ```bash
-pnpm benchmark:token-efficiency
+pnpm benchmark:tokens
 ```
 
 Results are saved to `results/token-efficiency.md`.
@@ -34,8 +34,8 @@ Results are saved to `results/token-efficiency.md`.
 
 Tests how well LLMs can answer questions about data in different formats (TOON, JSON, JSON compact, XML, YAML, CSV):
 
-1. Generate ~150-160 questions across 4 datasets
-2. Convert each dataset to all 6 formats
+1. Generate ~200 questions across 6 datasets (CSV only included for datasets with flat/tabular structure)
+2. Convert each dataset to all supported formats
 3. Query each LLM with formatted data + question
 4. Validate answers using `gpt-5-nano` as judge
 5. Aggregate metrics and generate report

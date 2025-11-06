@@ -1,14 +1,21 @@
+export interface DatasetMetadata {
+  supportsCSV: boolean
+  structureClass: 'uniform' | 'semi-uniform' | 'nested' | 'deep'
+  tabularEligibility: number
+}
+
 export interface Dataset {
   name: string
   description: string
   data: Record<string, any>
+  metadata: DatasetMetadata
 }
 
 export interface Question {
   id: string
   prompt: string
   groundTruth: string
-  type: 'field-retrieval' | 'aggregation' | 'filtering' | 'comparison'
+  type: 'field-retrieval' | 'aggregation' | 'filtering'
   dataset: string
 }
 

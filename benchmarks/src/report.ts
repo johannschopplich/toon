@@ -1,7 +1,8 @@
-import type { EfficiencyRanking, EvaluationResult, FormatResult, Question } from './types'
+import type { Dataset, EfficiencyRanking, EvaluationResult, FormatResult, Question } from './types'
 import { FORMATTER_DISPLAY_NAMES } from './constants'
-import { datasets } from './datasets'
+import { ACCURACY_DATASETS } from './datasets'
 import { models } from './evaluate'
+import { supportsCSV } from './formatters'
 import { generateQuestions } from './questions'
 import { createProgressBar, tokenize } from './utils'
 
@@ -16,7 +17,11 @@ export function calculateTokenCounts(
   const tokenCounts: Record<string, number> = {}
 
   for (const [formatName, formatter] of Object.entries(formatters)) {
-    for (const dataset of datasets) {
+    for (const dataset of ACCURACY_DATASETS) {
+      // Skip CSV for datasets that don't support it
+      if (formatName === 'csv' && !supportsCSV(dataset))
+        continue
+
       const formatted = formatter(dataset.data)
       const key = `${formatName}-${dataset.name}`
       tokenCounts[key] = tokenize(formatted)
@@ -42,9 +47,9 @@ export function calculateFormatResults(
     const accuracy = correctCount / totalCount
 
     // Calculate average tokens across all datasets for this format
-    const avgTokens = Object.entries(tokenCounts)
+    const formatTokenEntries = Object.entries(tokenCounts)
       .filter(([key]) => key.startsWith(`${formatName}-`))
-      .reduce((sum, [, tokens]) => sum + tokens, 0) / datasets.length
+    const avgTokens = formatTokenEntries.reduce((sum, [, tokens]) => sum + tokens, 0) / formatTokenEntries.length
 
     const averageLatency = formatResults.reduce((sum, r) => sum + r.latencyMs, 0) / totalCount
 
@@ -75,6 +80,13 @@ export function generateAccuracyReport(
   return `
 Benchmarks test LLM comprehension across different input formats using ${totalQuestions} data retrieval questions on ${modelNames.length} ${modelNames.length === 1 ? 'model' : 'models'}.
 
+<details>
+<summary><strong>View Dataset Catalog</strong></summary>
+
+${generateDatasetCatalog(ACCURACY_DATASETS)}
+
+</details>
+
 #### Efficiency Ranking (Accuracy per 1K Tokens)
 
 ${generateEfficiencyRankingReport(formatResults)}
@@ -83,6 +95,38 @@ ${generateEfficiencyRankingReport(formatResults)}
 
 ${generateDetailedAccuracyReport(formatResults, results, questions, tokenCounts)}
 `.trimStart()
+}
+
+/**
+ * Generate dataset catalog section
+ */
+function generateDatasetCatalog(datasets: Dataset[]): string {
+  const rows = datasets.map((dataset) => {
+    const csvSupport = supportsCSV(dataset) ? '✓' : '✗'
+    const rowCount = Object.values(dataset.data)[0]?.length ?? 1
+    const structure = dataset.metadata.structureClass
+    const eligibility = `${dataset.metadata.tabularEligibility}%`
+
+    return `| ${dataset.description} | ${rowCount} | ${structure} | ${csvSupport} | ${eligibility} |`
+  }).join('\n')
+
+  return `
+#### Dataset Catalog
+
+| Dataset | Rows | Structure | CSV Support | Eligibility |
+| ------- | ---- | --------- | ----------- | ----------- |
+${rows}
+
+**Structure classes:**
+- **uniform**: All objects have identical fields with primitive values
+- **semi-uniform**: Mix of uniform and non-uniform structures
+- **nested**: Objects with nested structures (nested objects or arrays)
+- **deep**: Highly nested with minimal tabular eligibility
+
+**CSV Support:** ✓ (supported), ✗ (not supported – would require lossy flattening)
+
+**Eligibility:** Percentage of arrays that qualify for TOON's tabular format (uniform objects with primitive values)
+`.trim()
 }
 
 /**
@@ -168,17 +212,19 @@ function generateDetailedAccuracyReport(
   const filteringPercent = ((filteringCount / totalQuestions) * 100).toFixed(0)
 
   // Calculate dataset sizes
-  const tabularSize = datasets.find(d => d.name === 'tabular')?.data.employees?.length || 0
-  const nestedSize = datasets.find(d => d.name === 'nested')?.data.orders?.length || 0
-  const analyticsSize = datasets.find(d => d.name === 'analytics')?.data.metrics?.length || 0
-  const githubSize = datasets.find(d => d.name === 'github')?.data.repositories?.length || 0
+  const tabularSize = ACCURACY_DATASETS.find(d => d.name === 'tabular')?.data.employees?.length || 0
+  const nestedSize = ACCURACY_DATASETS.find(d => d.name === 'nested')?.data.orders?.length || 0
+  const analyticsSize = ACCURACY_DATASETS.find(d => d.name === 'analytics')?.data.metrics?.length || 0
+  const githubSize = ACCURACY_DATASETS.find(d => d.name === 'github')?.data.repositories?.length || 0
+  const eventLogsSize = ACCURACY_DATASETS.find(d => d.name === 'event-logs')?.data.logs?.length || 0
+  const nestedConfigSize = 1 // Single config object
 
   // Calculate number of formats and evaluations
   const formatCount = formatResults.length
   const totalEvaluations = totalQuestions * formatCount * modelNames.length
 
   return `
-Accuracy across **${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'}** on ${totalQuestions} data retrieval questions:
+Accuracy across ${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'} on ${totalQuestions} data retrieval questions:
 
 \`\`\`
 ${modelBreakdown}
@@ -208,12 +254,14 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 #### Datasets Tested
 
-Four datasets designed to test different structural patterns (all contain arrays of uniform objects, TOON's optimal format):
+Six datasets designed to test different structural patterns:
 
 1. **Tabular** (${tabularSize} employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
 2. **Nested** (${nestedSize} e-commerce orders): Complex structures with nested customer objects and item arrays.
 3. **Analytics** (${analyticsSize} days of metrics): Time-series data with dates and numeric values.
 4. **GitHub** (${githubSize} repositories): Real-world data from top GitHub repos by stars.
+5. **Event Logs** (${eventLogsSize} logs): Semi-uniform data with ~50% flat logs and ~50% with nested error objects.
+6. **Nested Config** (${nestedConfigSize} configuration): Deeply nested configuration with minimal tabular eligibility.
 
 #### Question Types
 
@@ -314,7 +362,7 @@ function generateDatasetBreakdown(
   questions: Question[],
   tokenCounts: Record<string, number>,
 ): string {
-  return datasets.map((dataset) => {
+  return ACCURACY_DATASETS.map((dataset) => {
     const datasetResults = formatResults.map((fr) => {
       const datasetFormatResults = results.filter(r => r.questionId.includes(dataset.name) || questions.find(q => q.id === r.questionId)?.dataset === dataset.name)
       if (datasetFormatResults.length === 0)
@@ -410,13 +458,17 @@ function generateHorizontalEfficiencyChart(
 ): string {
   const barWidth = 20
   const maxEfficiency = Math.max(...ranking.map(r => r.efficiency))
-  const maxFormatWidth = Math.max(...ranking.map(r => r.format.length))
+  const maxFormatWidth = Math.max(...ranking.map((r) => {
+    const displayName = FORMATTER_DISPLAY_NAMES[r.format] || r.format
+    return displayName.length
+  }))
 
   return ranking
     .map((r) => {
       const normalizedValue = r.efficiency / maxEfficiency
       const bar = createProgressBar(normalizedValue, 1, barWidth, { filled: '▓', empty: '░' })
-      const formatName = r.format.padEnd(maxFormatWidth)
+      const displayName = FORMATTER_DISPLAY_NAMES[r.format] || r.format
+      const formatName = displayName.padEnd(maxFormatWidth)
       const efficiency = r.efficiency.toFixed(1).padStart(4)
       const accuracy = `${(r.accuracy * 100).toFixed(1)}%`.padStart(5)
       const tokens = r.tokens.toLocaleString('en-US').padStart(5)

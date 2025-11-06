@@ -1,3 +1,4 @@
+import type { Dataset } from './types'
 import { stringify as stringifyCSV } from 'csv-stringify/sync'
 import { XMLBuilder } from 'fast-xml-parser'
 import { stringify as stringifyYAML } from 'yaml'
@@ -74,4 +75,15 @@ function toXML(data: unknown): string {
   })
 
   return builder.build(data)
+}
+
+/**
+ * Check if a dataset supports CSV format
+ *
+ * @remarks
+ * CSV is only suitable for flat tabular data. Datasets with nested structures
+ * should not be compared using CSV as it cannot properly represent the data.
+ */
+export function supportsCSV(dataset: Dataset): boolean {
+  return dataset.metadata.supportsCSV
 }
