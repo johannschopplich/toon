@@ -61,7 +61,6 @@ export interface AnalyticsMetric {
 export interface Repository {
   id: number
   name: string
-  owner: string
   repo: string
   description: string
   stars: number

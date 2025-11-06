@@ -135,6 +135,10 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
 
   // Filtering: multi-condition (level AND status)
   for (const level of levels.slice(0, QUESTION_LIMITS.eventLogs.filteringLevelAndStatus)) {
+    // Skip `info` level as it never has status >= 400 by design
+    if (level === 'info')
+      continue
+
     const count = logs.filter(l => l.level === level && l.statusCode >= 400).length
     questions.push(
       new QuestionBuilder()
