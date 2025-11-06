@@ -18,7 +18,7 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "default": "./dist/index.mjs"
     }
   },
   "types": "./dist/index.d.ts",
@@ -30,13 +30,14 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsx ./src/index.ts",
+    "dev": "tsx ./src/cli-entry.ts",
     "build": "tsdown",
     "test": "vitest"
   },
   "dependencies": {
     "citty": "^0.1.6",
     "consola": "^3.4.2",
-    "tokenx": "^1.2.0"
+    "tokenx": "^1.2.0",
+    "tsdown": "^0.16.0"
   }
 }
