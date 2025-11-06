@@ -537,6 +537,7 @@ cat data.toon | npx @toon-format/cli --decode
 | `--indent <number>` | Indentation size (default: `2`) |
 | `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
+| `--time` | Show total encode/decode duration (in seconds) |
 | `--no-strict` | Disable strict validation when decoding |
 
 ### Examples
