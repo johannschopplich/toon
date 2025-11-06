@@ -15,7 +15,9 @@ export async function encodeToToon(config: {
   indent: number
   lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
   printStats: boolean
+  printTime: boolean
 }): Promise<void> {
+  const start = process.hrtime.bigint()
   const jsonContent = await readInput(config.input)
 
   let data: unknown
@@ -54,6 +56,14 @@ export async function encodeToToon(config: {
     consola.info(`Token estimates: ~${jsonTokens} (JSON) → ~${toonTokens} (TOON)`)
     consola.success(`Saved ~${diff} tokens (-${percent}%)`)
   }
+
+  if (config.printTime) {
+    const end = process.hrtime.bigint()
+    const durationMs = Number(end - start) / 1_000_000
+    const seconds = (durationMs / 1000).toFixed(3)
+
+    consola.box(`Encode time: ${seconds}'s`)
+  }
 }
 
 export async function decodeToJson(config: {
@@ -61,7 +71,9 @@ export async function decodeToJson(config: {
   output?: string
   indent: number
   strict: boolean
+  printTime: boolean
 }): Promise<void> {
+  const start = process.hrtime.bigint()
   const toonContent = await readInput(config.input)
 
   let data: unknown
@@ -84,6 +96,15 @@ export async function decodeToJson(config: {
     const relativeOutputPath = path.relative(process.cwd(), config.output)
     consola.success(`Decoded \`${relativeInputPath}\` → \`${relativeOutputPath}\``)
   }
+
+  if (config.printTime) {
+    const end = process.hrtime.bigint()
+    const durationMs = Number(end - start) / 1_000_000
+    const seconds = (durationMs / 1000).toFixed(3)
+
+    consola.box(`Encode time: ${seconds}'s`)
+  }
+
   else {
     console.log(jsonOutput)
   }

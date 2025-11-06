@@ -108,6 +108,11 @@ export const mainCommand: CommandDef<{
       description: 'Show token statistics',
       default: false,
     },
+    time: {
+      type: 'boolean',
+      description: "Show total encode/decode duration",
+      default: false
+    }
   },
   async run({ args }) {
     const input = args.input
@@ -140,6 +145,7 @@ export const mainCommand: CommandDef<{
           indent,
           lengthMarker: args.lengthMarker === true ? '#' : false,
           printStats: args.stats === true,
+          printTime: args.time === true
         })
       }
       else {
