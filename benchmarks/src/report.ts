@@ -80,7 +80,12 @@ export function generateAccuracyReport(
   return `
 Benchmarks test LLM comprehension across different input formats using ${totalQuestions} data retrieval questions on ${modelNames.length} ${modelNames.length === 1 ? 'model' : 'models'}.
 
+<details>
+<summary><strong>View Dataset Catalog</strong></summary>
+
 ${generateDatasetCatalog(ACCURACY_DATASETS)}
+
+</details>
 
 #### Efficiency Ranking (Accuracy per 1K Tokens)
 
@@ -118,7 +123,7 @@ ${rows}
 - **nested**: Objects with nested structures (nested objects or arrays)
 - **deep**: Highly nested with minimal tabular eligibility
 
-**CSV Support:** ✓ (supported), ✗ (not supported - would require lossy flattening)
+**CSV Support:** ✓ (supported), ✗ (not supported – would require lossy flattening)
 
 **Eligibility:** Percentage of arrays that qualify for TOON's tabular format (uniform objects with primitive values)
 `.trim()
@@ -219,7 +224,7 @@ function generateDetailedAccuracyReport(
   const totalEvaluations = totalQuestions * formatCount * modelNames.length
 
   return `
-Accuracy across **${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'}** on ${totalQuestions} data retrieval questions:
+Accuracy across ${modelNames.length} ${modelNames.length === 1 ? 'LLM' : 'LLMs'} on ${totalQuestions} data retrieval questions:
 
 \`\`\`
 ${modelBreakdown}
@@ -453,13 +458,17 @@ function generateHorizontalEfficiencyChart(
 ): string {
   const barWidth = 20
   const maxEfficiency = Math.max(...ranking.map(r => r.efficiency))
-  const maxFormatWidth = Math.max(...ranking.map(r => r.format.length))
+  const maxFormatWidth = Math.max(...ranking.map((r) => {
+    const displayName = FORMATTER_DISPLAY_NAMES[r.format] || r.format
+    return displayName.length
+  }))
 
   return ranking
     .map((r) => {
       const normalizedValue = r.efficiency / maxEfficiency
       const bar = createProgressBar(normalizedValue, 1, barWidth, { filled: '▓', empty: '░' })
-      const formatName = r.format.padEnd(maxFormatWidth)
+      const displayName = FORMATTER_DISPLAY_NAMES[r.format] || r.format
+      const formatName = displayName.padEnd(maxFormatWidth)
       const efficiency = r.efficiency.toFixed(1).padStart(4)
       const accuracy = `${(r.accuracy * 100).toFixed(1)}%`.padStart(5)
       const tokens = r.tokens.toLocaleString('en-US').padStart(5)

@@ -9,7 +9,7 @@ Benchmarks measuring TOON's **token efficiency** and **retrieval accuracy** comp
 
 ```bash
 # Run token efficiency benchmark
-pnpm benchmark:token-efficiency
+pnpm benchmark:tokens
 
 # Run retrieval accuracy benchmark (requires API keys)
 pnpm benchmark:accuracy
@@ -25,7 +25,7 @@ Measures token count reduction across JSON, XML, YAML, CSV, and TOON:
 4. Calculate savings and generate report
 
 ```bash
-pnpm benchmark:token-efficiency
+pnpm benchmark:tokens
 ```
 
 Results are saved to `results/token-efficiency.md`.

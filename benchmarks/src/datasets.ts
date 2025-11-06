@@ -208,7 +208,7 @@ function generateEmployees(count: number): { employees: Employee[] } {
  */
 const tabularDataset: Dataset = {
   name: 'tabular',
-  description: 'Uniform employee records (TOON optimal format)',
+  description: 'Uniform employee records',
   data: generateEmployees(100),
   metadata: {
     supportsCSV: true,
@@ -558,7 +558,7 @@ export const TOKEN_EFFICIENCY_DATASETS: Dataset[] = [
   // Tabular: 2000 employees
   {
     name: 'tabular',
-    description: 'Uniform employee records (TOON optimal format)',
+    description: 'Uniform employee records',
     data: generateEmployees(2000),
     metadata: {
       supportsCSV: true,
