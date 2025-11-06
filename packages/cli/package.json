@@ -30,7 +30,7 @@
     "dist"
   ],
   "scripts": {
-    "dev": "tsx ./src/index.ts",
+    "dev": "tsx ./src/cli-entry.ts --help",
     "build": "tsdown",
     "test": "vitest"
   },
