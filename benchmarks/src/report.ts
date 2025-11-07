@@ -1,5 +1,5 @@
 import type { Dataset, EfficiencyRanking, EvaluationResult, FormatResult, Question } from './types'
-import { FORMATTER_DISPLAY_NAMES } from './constants'
+import { FORMATTER_DISPLAY_NAMES, QUESTION_TYPE_LABELS, QUESTION_TYPES } from './constants'
 import { ACCURACY_DATASETS } from './datasets'
 import { models } from './evaluate'
 import { supportsCSV } from './formatters'
@@ -22,9 +22,9 @@ export function calculateTokenCounts(
       if (formatName === 'csv' && !supportsCSV(dataset))
         continue
 
-      const formatted = formatter(dataset.data)
+      const formattedData = formatter(dataset.data)
       const key = `${formatName}-${dataset.name}`
-      tokenCounts[key] = tokenize(formatted)
+      tokenCounts[key] = tokenize(formattedData)
     }
   }
 
@@ -200,16 +200,21 @@ function generateDetailedAccuracyReport(
 
   // Generate performance by model
   const modelPerformance = generateModelPerformanceTable(formatResults, results, modelNames)
+
+  // Generate question type breakdown
+  const questionTypeBreakdown = generateQuestionTypeBreakdown(formatResults, results, questions)
   const totalQuestions = [...new Set(results.map(r => r.questionId))].length
 
   // Calculate question type distribution
   const fieldRetrievalCount = questions.filter(q => q.type === 'field-retrieval').length
   const aggregationCount = questions.filter(q => q.type === 'aggregation').length
   const filteringCount = questions.filter(q => q.type === 'filtering').length
+  const structureAwarenessCount = questions.filter(q => q.type === 'structure-awareness').length
 
   const fieldRetrievalPercent = ((fieldRetrievalCount / totalQuestions) * 100).toFixed(0)
   const aggregationPercent = ((aggregationCount / totalQuestions) * 100).toFixed(0)
   const filteringPercent = ((filteringCount / totalQuestions) * 100).toFixed(0)
+  const structureAwarenessPercent = ((structureAwarenessCount / totalQuestions) * 100).toFixed(0)
 
   // Calculate dataset sizes
   const tabularSize = ACCURACY_DATASETS.find(d => d.name === 'tabular')?.data.employees?.length || 0
@@ -233,7 +238,11 @@ ${modelBreakdown}
 ${summaryComparison}
 
 <details>
-<summary><strong>Performance by dataset and model</strong></summary>
+<summary><strong>Performance by dataset, model, and question type</strong></summary>
+
+#### Performance by Question Type
+
+${questionTypeBreakdown}
 
 #### Performance by Dataset
 
@@ -265,9 +274,9 @@ Six datasets designed to test different structural patterns:
 
 #### Question Types
 
-${totalQuestions} questions are generated dynamically across three categories:
+${totalQuestions} questions are generated dynamically across four categories:
 
-\- **Field retrieval (${fieldRetrievalPercent}%)**: Direct value lookups or values that can be read straight off a record (including booleans and simple counts such as array lengths)
+- **Field retrieval (${fieldRetrievalPercent}%)**: Direct value lookups or values that can be read straight off a record (including booleans and simple counts such as array lengths)
   - Example: "What is Alice's salary?" → \`75000\`
   - Example: "How many items are in order ORD-0042?" → \`3\`
   - Example: "What is the customer name for order ORD-0042?" → \`John Doe\`
@@ -280,6 +289,11 @@ ${totalQuestions} questions are generated dynamically across three categories:
 - **Filtering (${filteringPercent}%)**: Multi-condition queries requiring compound logic (AND constraints across fields)
   - Example: "How many employees in Sales have salary > 80000?" → \`5\`
   - Example: "How many active employees have more than 10 years of experience?" → \`8\`
+
+- **Structure awareness (${structureAwarenessPercent}%)**: Tests format-native structural affordances (TOON's [N] count and {fields}, CSV's header row)
+  - Example: "How many employees are in the dataset?" → \`100\`
+  - Example: "List the field names for employees" → \`id, name, email, department, salary, yearsExperience, active\`
+  - Example: "What is the department of the last employee?" → \`Sales\`
 
 #### Evaluation Process
 
@@ -411,6 +425,48 @@ function generateDatasetBreakdown(
 ${tableRows}
 `.trimStart()
   }).filter(Boolean).join('\n').trim()
+}
+
+/**
+ * Generate question type breakdown table
+ */
+function generateQuestionTypeBreakdown(
+  formatResults: FormatResult[],
+  results: EvaluationResult[],
+  questions: Question[],
+): string {
+  // Build header
+  const formatNames = formatResults.map(fr => FORMATTER_DISPLAY_NAMES[fr.format] || fr.format)
+  const header = `| Question Type | ${formatNames.join(' | ')} |`
+  const separator = `| ------------- | ${formatNames.map(() => '----').join(' | ')} |`
+
+  // Build rows
+  const rows = QUESTION_TYPES.map((type) => {
+    const questionIds = questions.filter(q => q.type === type).map(q => q.id)
+    const typeResults = results.filter(r => questionIds.includes(r.questionId))
+
+    if (typeResults.length === 0)
+      return undefined
+
+    const accuracies = formatResults.map((fr) => {
+      const formatTypeResults = typeResults.filter(r => r.format === fr.format)
+      if (formatTypeResults.length === 0)
+        return 'N/A'
+
+      const correctCount = formatTypeResults.filter(r => r.isCorrect).length
+      const totalCount = formatTypeResults.length
+      const accuracy = totalCount > 0 ? correctCount / totalCount : 0
+      return `${(accuracy * 100).toFixed(1)}%`
+    })
+
+    return `| ${QUESTION_TYPE_LABELS[type]} | ${accuracies.join(' | ')} |`
+  }).filter(Boolean)
+
+  return `
+${header}
+${separator}
+${rows.join('\n')}
+`.trim()
 }
 
 /**

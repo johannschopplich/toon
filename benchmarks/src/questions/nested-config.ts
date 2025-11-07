@@ -152,7 +152,6 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
   // Aggregation: additional nested counts
   const totalPermissions = Object.values(config.permissions.roles).reduce((sum, role) => sum + role.permissions.length, 0)
   const distinctPermissions = new Set(Object.values(config.permissions.roles).flatMap(r => r.permissions)).size
-  const distinctScopes = new Set(config.authentication.providers.flatMap(p => p.scopes)).size
   const totalVariants = Object.values(config.features).reduce((sum, f) => sum + f.variants.length, 0)
   const highPriorityReplicas = config.database.replicas.filter(r => r.priority > 2).length
   const featuresWithHighRollout = Object.values(config.features).filter(f => f.rollout > 50).length
@@ -170,13 +169,6 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .id(getId())
       .prompt('How many distinct permissions are defined across all roles?')
       .groundTruth(String(distinctPermissions))
-      .type('aggregation')
-      .dataset('nested-config')
-      .build(),
-    new QuestionBuilder()
-      .id(getId())
-      .prompt('How many distinct scopes are defined across all authentication providers?')
-      .groundTruth(String(distinctScopes))
       .type('aggregation')
       .dataset('nested-config')
       .build(),

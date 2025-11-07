@@ -6,11 +6,12 @@ import { generateEventLogsQuestions } from './event-logs'
 import { generateGithubQuestions } from './github'
 import { generateNestedQuestions } from './nested'
 import { generateNestedConfigQuestions } from './nested-config'
+import { generateStructureQuestions } from './structure'
 import { generateTabularQuestions } from './tabular'
 import { createIdGenerator } from './utils'
 
 /**
- * Generate ~200 questions from all datasets
+ * Generate questions from all datasets
  *
  * @remarks
  * - Field Retrieval: Direct field access with no computation
@@ -19,6 +20,8 @@ import { createIdGenerator } from './utils'
  *   Examples: "How many X?", "What is the total/average?", "How many X > threshold?"
  * - Filtering: Multi-condition queries requiring complex logical operations
  *   Examples: "How many X WHERE condition1 AND condition2?"
+ * - Structure Awareness: Tests format-native structural affordances (TOON's [N] and {fields}, CSV's header)
+ *   Examples: "How many records?", "List the field names", "What is the last record's field?"
  */
 export function generateQuestions(): Question[] {
   const questions: Question[] = []
@@ -40,6 +43,9 @@ export function generateQuestions(): Question[] {
   questions.push(...generateGithubQuestions(github, getId))
   questions.push(...generateEventLogsQuestions(eventLogs, getId))
   questions.push(...generateNestedConfigQuestions(nestedConfig, getId))
+
+  // Generate structure-awareness questions (tests format-native affordances)
+  questions.push(...generateStructureQuestions(tabular, nested, analytics, github, eventLogs, getId))
 
   return questions
 }

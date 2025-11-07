@@ -181,7 +181,7 @@ export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
 /**
  * Generate employee data (uniform tabular structure)
  */
-const departments: readonly string[] = ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations', 'Finance'] as const
+const departments = ['Engineering', 'Sales', 'Marketing', 'HR', 'Operations', 'Finance'] as const
 
 function generateEmployees(count: number): { employees: Employee[] } {
   return {

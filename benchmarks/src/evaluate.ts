@@ -17,6 +17,33 @@ export const models: LanguageModelV2[] = [
 ]
 
 /**
+ * Format primers
+ *
+ * @remarks
+ * Neutral descriptions to help models parse each format.
+ */
+export const PRIMERS: Record<string, string> = {
+  'toon': 'TOON: Indentation-based. Arrays declare length and fields (e.g., items[N]{f1,f2}:). Rows use single delimiter. Values may be quoted.',
+  'json-pretty': 'JSON: Strict JSON objects/arrays with repeated keys per row.',
+  'json-compact': 'JSON (compact): Strict JSON without extra whitespace.',
+  'yaml': 'YAML: Indentation-based key/value and lists (- items).',
+  'xml': 'XML: Tag-based tree structure with nested elements.',
+  'csv': 'CSV: Header row, comma-separated values. First row contains field names.',
+}
+
+/**
+ * Code fence language tags for proper syntax highlighting
+ */
+export const FENCE: Record<string, string> = {
+  'toon': 'toon',
+  'json-pretty': 'json',
+  'json-compact': 'json',
+  'yaml': 'yaml',
+  'xml': 'xml',
+  'csv': 'csv',
+}
+
+/**
  * Evaluate a single question with a specific format and model
  */
 export async function evaluateQuestion(
@@ -33,10 +60,15 @@ export async function evaluateQuestion(
     model: LanguageModelV2
   },
 ): Promise<EvaluationResult> {
+  const primer = PRIMERS[formatName] ?? ''
+  const fence = FENCE[formatName] ?? ''
+
   const prompt = `
+${primer}
+
 Given the following data in ${formatName} format:
 
-\`\`\`
+\`\`\`${fence}
 ${formattedData}
 \`\`\`
 

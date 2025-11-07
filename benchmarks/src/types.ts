@@ -1,11 +1,17 @@
+import type { DATASET_NAMES, QUESTION_TYPES, STRUCTURE_CLASSES } from './constants'
+
+export type QuestionType = typeof QUESTION_TYPES[number]
+export type DatasetName = typeof DATASET_NAMES[number]
+export type StructureClass = typeof STRUCTURE_CLASSES[number]
+
 export interface DatasetMetadata {
   supportsCSV: boolean
-  structureClass: 'uniform' | 'semi-uniform' | 'nested' | 'deep'
+  structureClass: StructureClass
   tabularEligibility: number
 }
 
 export interface Dataset {
-  name: string
+  name: DatasetName
   description: string
   data: Record<string, any>
   metadata: DatasetMetadata
@@ -15,8 +21,8 @@ export interface Question {
   id: string
   prompt: string
   groundTruth: string
-  type: 'field-retrieval' | 'aggregation' | 'filtering'
-  dataset: string
+  type: QuestionType
+  dataset: DatasetName
 }
 
 export interface EvaluationResult {

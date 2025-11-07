@@ -166,7 +166,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
   }
 
   // Filtering: endpoint AND retryable error
-  for (const endpoint of endpoints.slice(0, QUESTION_LIMITS.eventLogs.filteringEndpointAndStatus)) {
+  for (const endpoint of endpoints.slice(0, QUESTION_LIMITS.eventLogs.filteringEndpointRetryable)) {
     const count = logs.filter(l => l.endpoint === endpoint && l.error?.retryable === true).length
     questions.push(
       new QuestionBuilder()
