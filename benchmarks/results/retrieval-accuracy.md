@@ -45,7 +45,7 @@ XML            ▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░   13
 
 TOON achieves **73.9%** accuracy (vs JSON's 69.7%) while using **39.6% fewer tokens**.
 
-**Note on CSV:** Excluded from ranking as it only supports 436/209 questions (flat tabular data only). While CSV is highly token-efficient for simple tabular data, it cannot represent nested structures that other formats handle.
+**Note on CSV:** Excluded from ranking as it only supports 109 of 209 questions (flat tabular data only). While CSV is highly token-efficient for simple tabular data, it cannot represent nested structures that other formats handle.
 
 #### Per-Model Accuracy
 

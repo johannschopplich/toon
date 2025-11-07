@@ -95,7 +95,7 @@ ${generateDatasetCatalog(ACCURACY_DATASETS)}
 
 #### Efficiency Ranking (Accuracy per 1K Tokens)
 
-${generateEfficiencyRankingReport(formatResults)}
+${generateEfficiencyRankingReport(formatResults, totalQuestions, modelNames.length)}
 
 #### Per-Model Accuracy
 
@@ -140,6 +140,8 @@ ${rows}
  */
 function generateEfficiencyRankingReport(
   formatResults: FormatResult[],
+  totalQuestions: number,
+  modelCount: number,
 ): string {
   const toon = formatResults.find(r => r.format === 'toon')
   const json = formatResults.find(r => r.format === 'json-pretty')
@@ -175,7 +177,9 @@ function generateEfficiencyRankingReport(
   // Add CSV note if available
   let csvNote = ''
   if (csv) {
-    csvNote = `\n\n**Note on CSV:** Excluded from ranking as it only supports ${csv.totalCount}/209 questions (flat tabular data only). While CSV is highly token-efficient for simple tabular data, it cannot represent nested structures that other formats handle.`
+    // CSV totalCount is evaluations (questions × models), so divide by number of models to get question count
+    const csvQuestionCount = csv.totalCount / modelCount
+    csvNote = `\n\n**Note on CSV:** Excluded from ranking as it only supports ${csvQuestionCount} of ${totalQuestions} questions (flat tabular data only). While CSV is highly token-efficient for simple tabular data, it cannot represent nested structures that other formats handle.`
   }
 
   return `
