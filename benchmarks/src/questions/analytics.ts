@@ -17,6 +17,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(metric.views))
       .type('field-retrieval')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
     (metric, getId) => new QuestionBuilder()
       .id(getId())
@@ -24,6 +25,8 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(metric.revenue))
       .type('field-retrieval')
       .dataset('analytics')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     (metric, getId) => new QuestionBuilder()
       .id(getId())
@@ -31,6 +34,8 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(metric.bounceRate))
       .type('field-retrieval')
       .dataset('analytics')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     (metric, getId) => new QuestionBuilder()
       .id(getId())
@@ -38,6 +43,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(metric.conversions))
       .type('field-retrieval')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
   ]
 
@@ -63,6 +69,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(totalDays))
       .type('aggregation')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -70,6 +77,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(totalViews))
       .type('aggregation')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -77,6 +85,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(totalConversions))
       .type('aggregation')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -84,6 +93,8 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(totalRevenue.toFixed(2)))
       .type('aggregation')
       .dataset('analytics')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -91,6 +102,8 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
       .groundTruth(String(avgBounceRate.toFixed(2)))
       .type('aggregation')
       .dataset('analytics')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
   )
 
@@ -104,6 +117,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }
@@ -117,6 +131,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }
@@ -133,6 +148,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('filtering')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }
@@ -149,6 +165,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('filtering')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }
@@ -165,6 +182,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('filtering')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }
@@ -181,6 +199,7 @@ export function generateAnalyticsQuestions(metrics: AnalyticsMetric[], getId: ()
         .groundTruth(String(count))
         .type('filtering')
         .dataset('analytics')
+        .answerType('integer')
         .build(),
     )
   }

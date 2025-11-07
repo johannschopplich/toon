@@ -1,7 +1,7 @@
 import type { Dataset, EfficiencyRanking, EvaluationResult, FormatResult, Question } from './types'
 import { FORMATTER_DISPLAY_NAMES, QUESTION_TYPE_LABELS, QUESTION_TYPES } from './constants'
 import { ACCURACY_DATASETS } from './datasets'
-import { models } from './evaluate'
+import { models, PRIMERS } from './evaluate'
 import { supportsCSV } from './formatters'
 import { generateQuestions } from './questions'
 import { createProgressBar, tokenize } from './utils'
@@ -10,6 +10,9 @@ const EFFICIENCY_CHART_STYLE: 'vertical' | 'horizontal' = 'horizontal'
 
 /**
  * Calculate token counts for all format+dataset combinations
+ *
+ * @remarks
+ * Includes primer tokens for fairer comparison across formats
  */
 export function calculateTokenCounts(
   formatters: Record<string, (data: unknown) => string>,
@@ -23,8 +26,11 @@ export function calculateTokenCounts(
         continue
 
       const formattedData = formatter(dataset.data)
+      const primer = PRIMERS[formatName] ?? ''
+      // Include primer in token count for fair comparison
+      const fullPrompt = primer ? `${primer}\n\n${formattedData}` : formattedData
       const key = `${formatName}-${dataset.name}`
-      tokenCounts[key] = tokenize(formattedData)
+      tokenCounts[key] = tokenize(fullPrompt)
     }
   }
 
@@ -137,9 +143,12 @@ function generateEfficiencyRankingReport(
 ): string {
   const toon = formatResults.find(r => r.format === 'toon')
   const json = formatResults.find(r => r.format === 'json-pretty')
+  const csv = formatResults.find(r => r.format === 'csv')
 
   // Build efficiency ranking (accuracy per 1k tokens)
   const efficiencyRanking = formatResults
+    // Exclude CSV since it only supports a subset of datasets (~half the questions)
+    .filter(fr => fr.format !== 'csv')
     .map((fr) => {
       const efficiency = (fr.accuracy * 100) / (fr.totalTokens / 1000)
       return {
@@ -163,6 +172,12 @@ function generateEfficiencyRankingReport(
     summary = `TOON achieves ${toonVsJson} while using ${tokenSavings}.`
   }
 
+  // Add CSV note if available
+  let csvNote = ''
+  if (csv) {
+    csvNote = `\n\n**Note on CSV:** Excluded from ranking as it only supports ${csv.totalCount}/209 questions (flat tabular data only). While CSV is highly token-efficient for simple tabular data, it cannot represent nested structures that other formats handle.`
+  }
+
   return `
 Each format's overall performance, balancing accuracy against token cost:
 
@@ -170,7 +185,7 @@ Each format's overall performance, balancing accuracy against token cost:
 ${efficiencyChart}
 \`\`\`
 
-${summary}
+${summary}${csvNote}
 `.trim()
 }
 
@@ -210,11 +225,13 @@ function generateDetailedAccuracyReport(
   const aggregationCount = questions.filter(q => q.type === 'aggregation').length
   const filteringCount = questions.filter(q => q.type === 'filtering').length
   const structureAwarenessCount = questions.filter(q => q.type === 'structure-awareness').length
+  const structuralValidationCount = questions.filter(q => q.type === 'structural-validation').length
 
   const fieldRetrievalPercent = ((fieldRetrievalCount / totalQuestions) * 100).toFixed(0)
   const aggregationPercent = ((aggregationCount / totalQuestions) * 100).toFixed(0)
   const filteringPercent = ((filteringCount / totalQuestions) * 100).toFixed(0)
   const structureAwarenessPercent = ((structureAwarenessCount / totalQuestions) * 100).toFixed(0)
+  const structuralValidationPercent = ((structuralValidationCount / totalQuestions) * 100).toFixed(0)
 
   // Calculate dataset sizes
   const tabularSize = ACCURACY_DATASETS.find(d => d.name === 'tabular')?.data.employees?.length || 0
@@ -263,8 +280,9 @@ This benchmark tests **LLM comprehension and data retrieval accuracy** across di
 
 #### Datasets Tested
 
-Six datasets designed to test different structural patterns:
+Eleven datasets designed to test different structural patterns and validation capabilities:
 
+**Primary datasets:**
 1. **Tabular** (${tabularSize} employee records): Uniform objects with identical fields – optimal for TOON's tabular format.
 2. **Nested** (${nestedSize} e-commerce orders): Complex structures with nested customer objects and item arrays.
 3. **Analytics** (${analyticsSize} days of metrics): Time-series data with dates and numeric values.
@@ -272,9 +290,16 @@ Six datasets designed to test different structural patterns:
 5. **Event Logs** (${eventLogsSize} logs): Semi-uniform data with ~50% flat logs and ~50% with nested error objects.
 6. **Nested Config** (${nestedConfigSize} configuration): Deeply nested configuration with minimal tabular eligibility.
 
+**Structural validation datasets:**
+7. **Control**: Valid complete dataset (baseline for validation)
+8. **Truncated**: Array with 3 rows removed from end (tests [N] length detection)
+9. **Extra rows**: Array with 3 additional rows beyond declared length
+10. **Width mismatch**: Inconsistent field count (missing salary in row 10)
+11. **Missing fields**: Systematic field omissions (no email in multiple rows)
+
 #### Question Types
 
-${totalQuestions} questions are generated dynamically across four categories:
+${totalQuestions} questions are generated dynamically across five categories:
 
 - **Field retrieval (${fieldRetrievalPercent}%)**: Direct value lookups or values that can be read straight off a record (including booleans and simple counts such as array lengths)
   - Example: "What is Alice's salary?" → \`75000\`
@@ -295,11 +320,16 @@ ${totalQuestions} questions are generated dynamically across four categories:
   - Example: "List the field names for employees" → \`id, name, email, department, salary, yearsExperience, active\`
   - Example: "What is the department of the last employee?" → \`Sales\`
 
+- **Structural validation (${structuralValidationPercent}%)**: Tests ability to detect incomplete, truncated, or corrupted data using structural metadata
+  - Example: "Is this data complete and valid?" → \`YES\` (control dataset) or \`NO\` (corrupted datasets)
+  - Tests TOON's [N] length validation and {fields} consistency checking
+  - Demonstrates CSV's lack of structural validation capabilities
+
 #### Evaluation Process
 
 1. **Format conversion**: Each dataset is converted to all ${formatCount} formats (${formatResults.map(f => FORMATTER_DISPLAY_NAMES[f.format] || f.format).join(', ')}).
 2. **Query LLM**: Each model receives formatted data + question in a prompt and extracts the answer.
-3. **Validate with LLM-as-judge**: \`gpt-5-nano\` validates if the answer is semantically correct (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`).
+3. **Validate deterministically**: Answers are validated using type-aware comparison (e.g., \`50000\` = \`$50,000\`, \`Engineering\` = \`engineering\`, \`2025-01-01\` = \`January 1, 2025\`) without requiring an LLM judge.
 
 #### Models & Configuration
 
@@ -376,9 +406,12 @@ function generateDatasetBreakdown(
   questions: Question[],
   tokenCounts: Record<string, number>,
 ): string {
+  // Build question ID to dataset mapping for O(1) lookups
+  const questionDatasetMap = new Map(questions.map(q => [q.id, q.dataset]))
+
   return ACCURACY_DATASETS.map((dataset) => {
     const datasetResults = formatResults.map((fr) => {
-      const datasetFormatResults = results.filter(r => r.questionId.includes(dataset.name) || questions.find(q => q.id === r.questionId)?.dataset === dataset.name)
+      const datasetFormatResults = results.filter(r => questionDatasetMap.get(r.questionId) === dataset.name)
       if (datasetFormatResults.length === 0)
         return undefined
 

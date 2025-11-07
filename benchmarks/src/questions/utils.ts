@@ -1,3 +1,4 @@
+import type { AnswerType, NormalizationOptions } from '../normalize'
 import type { Question } from '../types'
 
 // Constants for sampling strides
@@ -52,10 +53,21 @@ export class QuestionBuilder {
     return this
   }
 
+  answerType(kind: AnswerType): this {
+    this.question.answerType = kind
+    return this
+  }
+
+  normalize(options: Partial<NormalizationOptions>): this {
+    this.question.normalizationOptions = options
+    return this
+  }
+
   build(): Question {
     if (!this.question.id || !this.question.prompt || !this.question.groundTruth || !this.question.type || !this.question.dataset) {
       throw new Error('Incomplete question')
     }
+
     return this.question as Question
   }
 }
@@ -65,7 +77,7 @@ export class QuestionBuilder {
  */
 export function rotateQuestions<T>(
   items: T[],
-  generators: Array<(item: T, getId: () => string) => Question>,
+  generators: ((item: T, getId: () => string) => Question)[],
   limit: number,
   stride: number,
   getId: () => string,

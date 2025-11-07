@@ -17,6 +17,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(emp.salary))
       .type('field-retrieval')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
     (emp, getId) => new QuestionBuilder()
       .id(getId())
@@ -24,6 +25,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(emp.department)
       .type('field-retrieval')
       .dataset('tabular')
+      .answerType('string')
       .build(),
     (emp, getId) => new QuestionBuilder()
       .id(getId())
@@ -31,6 +33,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(emp.email)
       .type('field-retrieval')
       .dataset('tabular')
+      .answerType('string')
       .build(),
     (emp, getId) => new QuestionBuilder()
       .id(getId())
@@ -38,6 +41,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(emp.yearsExperience))
       .type('field-retrieval')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
     (emp, getId) => new QuestionBuilder()
       .id(getId())
@@ -45,6 +49,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(emp.active ? 'yes' : 'no')
       .type('field-retrieval')
       .dataset('tabular')
+      .answerType('boolean')
       .build(),
   ]
 
@@ -67,6 +72,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }
@@ -81,6 +87,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }
@@ -98,6 +105,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(totalEmployees))
       .type('aggregation')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -105,6 +113,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(avgSalary))
       .type('aggregation')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -112,6 +121,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(activeCount))
       .type('aggregation')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -119,6 +129,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
       .groundTruth(String(inactiveCount))
       .type('aggregation')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
   )
 
@@ -134,6 +145,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('filtering')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }
@@ -148,6 +160,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('filtering')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }
@@ -164,6 +177,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('filtering')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }
@@ -178,6 +192,7 @@ export function generateTabularQuestions(employees: Employee[], getId: () => str
         .groundTruth(String(count))
         .type('filtering')
         .dataset('tabular')
+        .answerType('integer')
         .build(),
     )
   }

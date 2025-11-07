@@ -17,6 +17,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(repo.stars))
       .type('field-retrieval')
       .dataset('github')
+      .answerType('integer')
       .build(),
     (repo, getId) => new QuestionBuilder()
       .id(getId())
@@ -24,6 +25,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(repo.forks))
       .type('field-retrieval')
       .dataset('github')
+      .answerType('integer')
       .build(),
     (repo, getId) => new QuestionBuilder()
       .id(getId())
@@ -31,6 +33,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(repo.watchers))
       .type('field-retrieval')
       .dataset('github')
+      .answerType('integer')
       .build(),
     (repo, getId) => new QuestionBuilder()
       .id(getId())
@@ -38,6 +41,8 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(repo.defaultBranch)
       .type('field-retrieval')
       .dataset('github')
+      .answerType('string')
+      .normalize({ caseSensitive: true })
       .build(),
   ]
 
@@ -62,6 +67,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(totalRepos))
       .type('aggregation')
       .dataset('github')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -69,6 +75,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(totalStars))
       .type('aggregation')
       .dataset('github')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -76,6 +83,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(totalForks))
       .type('aggregation')
       .dataset('github')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -83,6 +91,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
       .groundTruth(String(Math.round(avgStars)))
       .type('aggregation')
       .dataset('github')
+      .answerType('integer')
       .build(),
   )
 
@@ -97,6 +106,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }
@@ -111,6 +121,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }
@@ -125,6 +136,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }
@@ -139,6 +151,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }
@@ -155,6 +168,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('filtering')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }
@@ -171,6 +185,7 @@ export function generateGithubQuestions(repos: Repository[], getId: () => string
         .groundTruth(String(count))
         .type('filtering')
         .dataset('github')
+        .answerType('integer')
         .build(),
     )
   }

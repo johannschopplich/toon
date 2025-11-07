@@ -5,6 +5,7 @@ import { google } from '@ai-sdk/google'
 import { openai } from '@ai-sdk/openai'
 import { xai } from '@ai-sdk/xai'
 import { generateText } from 'ai'
+import { compareAnswers } from './normalize'
 
 /**
  * Models used for evaluation
@@ -74,7 +75,13 @@ ${formattedData}
 
 Question: ${question.prompt}
 
-Provide only the direct answer, without any additional explanation or formatting.
+Answer format requirements:
+- Provide only the value itself, no explanation
+- For numbers: output digits only (no commas, currency symbols, or units)
+- For dates/field names: use the exact string from the data
+- For lists: output comma-separated values with no spaces
+
+Answer:
 `.trim()
 
   const startTime = performance.now()
@@ -83,11 +90,13 @@ Provide only the direct answer, without any additional explanation or formatting
   const actual = text.trim()
   const latencyMs = performance.now() - startTime
 
-  const isCorrect = await validateAnswer({
+  const comparisonResult = compareAnswers(
     actual,
-    expected: question.groundTruth,
-    question: question.prompt,
-  })
+    question.groundTruth,
+    question.answerType ?? 'string',
+    question.normalizationOptions,
+  )
+  const isCorrect = comparisonResult.match
 
   return {
     questionId: question.id,
@@ -100,43 +109,4 @@ Provide only the direct answer, without any additional explanation or formatting
     outputTokens: usage.outputTokens,
     latencyMs,
   }
-}
-
-/**
- * Validate an answer using LLM-as-judge approach
- */
-async function validateAnswer(
-  {
-    actual,
-    expected,
-    question,
-  }:
-  {
-    actual: string
-    expected: string
-    question: string
-  },
-): Promise<boolean> {
-  const prompt = `
-You are validating answers to questions about structured data.
-
-Question: ${question}
-Expected answer: ${expected}
-Actual answer: ${actual}
-
-Is the actual answer correct? Consider:
-- Exact matches are correct
-- Semantically equivalent answers are correct (e.g., "50000" vs "$50,000" vs "50000 dollars")
-- Minor formatting differences are acceptable
-- Case-insensitive comparison for text
-
-Respond with only "YES" or "NO".
-`.trim()
-
-  const { text } = await generateText({
-    model: models.find(m => m.modelId === 'gpt-5-nano')!,
-    prompt,
-  })
-
-  return text.trim().toUpperCase() === 'YES'
 }

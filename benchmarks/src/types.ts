@@ -1,4 +1,5 @@
 import type { DATASET_NAMES, QUESTION_TYPES, STRUCTURE_CLASSES } from './constants'
+import type { AnswerType, NormalizationOptions } from './normalize'
 
 export type QuestionType = typeof QUESTION_TYPES[number]
 export type DatasetName = typeof DATASET_NAMES[number]
@@ -23,6 +24,15 @@ export interface Question {
   groundTruth: string
   type: QuestionType
   dataset: DatasetName
+  /**
+   * Expected answer kind for deterministic comparison.
+   * @default 'string'
+   */
+  answerType?: AnswerType
+  /**
+   * Options for answer normalization and comparison.
+   */
+  normalizationOptions?: Partial<NormalizationOptions>
 }
 
 export interface EvaluationResult {

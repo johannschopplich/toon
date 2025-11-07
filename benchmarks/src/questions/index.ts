@@ -6,6 +6,7 @@ import { generateEventLogsQuestions } from './event-logs'
 import { generateGithubQuestions } from './github'
 import { generateNestedQuestions } from './nested'
 import { generateNestedConfigQuestions } from './nested-config'
+import { generateStructuralValidationQuestions } from './structural-validation'
 import { generateStructureQuestions } from './structure'
 import { generateTabularQuestions } from './tabular'
 import { createIdGenerator } from './utils'
@@ -46,6 +47,9 @@ export function generateQuestions(): Question[] {
 
   // Generate structure-awareness questions (tests format-native affordances)
   questions.push(...generateStructureQuestions(tabular, nested, analytics, github, eventLogs, getId))
+
+  // Generate structural-validation questions (tests ability to detect corrupted data)
+  questions.push(...generateStructuralValidationQuestions(getId))
 
   return questions
 }

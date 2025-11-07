@@ -17,42 +17,52 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
     {
       prompt: 'What is the environment in the configuration?',
       groundTruth: config.environment,
+      answerType: 'string' as const,
     },
     {
       prompt: 'What is the database host?',
       groundTruth: config.database.host,
+      answerType: 'string' as const,
     },
     {
       prompt: 'What is the database port?',
       groundTruth: String(config.database.port),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the maximum connection pool size?',
       groundTruth: String(config.database.pool.max),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the session duration?',
       groundTruth: String(config.authentication.session.duration),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the minimum connection pool size?',
       groundTruth: String(config.database.pool.min),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the connection pool idle timeout?',
       groundTruth: String(config.database.pool.idleTimeout),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the database name?',
       groundTruth: config.database.name,
+      answerType: 'string' as const,
     },
     {
       prompt: 'What is the session refresh threshold?',
       groundTruth: String(config.authentication.session.refreshThreshold),
+      answerType: 'integer' as const,
     },
     {
       prompt: 'What is the version in the configuration?',
       groundTruth: config.version,
+      answerType: 'string' as const,
     },
   ]
 
@@ -64,6 +74,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
         .groundTruth(q.groundTruth)
         .type('field-retrieval')
         .dataset('nested-config')
+        .answerType(q.answerType)
         .build(),
     )
   }
@@ -82,6 +93,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(roleCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -89,6 +101,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(groupCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -96,6 +109,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(providerCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -103,6 +117,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(featureCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -110,6 +125,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(replicaCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
   )
 
@@ -122,6 +138,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(adminScopeProviderCount))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
   )
 
@@ -134,6 +151,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(enabledFeatures))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
   )
 
@@ -146,6 +164,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(adminPermissions))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
   )
 
@@ -164,6 +183,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(totalPermissions))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -171,6 +191,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(distinctPermissions))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -178,6 +199,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(totalVariants))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -185,6 +207,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(highPriorityReplicas))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -192,6 +215,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(featuresWithHighRollout))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -199,6 +223,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
       .groundTruth(String(groupsWithMultipleRoles))
       .type('aggregation')
       .dataset('nested-config')
+      .answerType('integer')
       .build(),
   )
 
@@ -249,6 +274,7 @@ export function generateNestedConfigQuestions(config: NestedConfig | undefined, 
         .groundTruth(q.groundTruth)
         .type('filtering')
         .dataset('nested-config')
+        .answerType('integer')
         .build(),
     )
   }

@@ -17,6 +17,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(log.level)
       .type('field-retrieval')
       .dataset('event-logs')
+      .answerType('string')
       .build(),
     (log, getId) => new QuestionBuilder()
       .id(getId())
@@ -24,6 +25,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(log.endpoint)
       .type('field-retrieval')
       .dataset('event-logs')
+      .answerType('string')
       .build(),
     (log, getId) => new QuestionBuilder()
       .id(getId())
@@ -31,6 +33,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(log.statusCode))
       .type('field-retrieval')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
     (log, getId) => new QuestionBuilder()
       .id(getId())
@@ -38,6 +41,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(log.responseTime))
       .type('field-retrieval')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
   ]
 
@@ -60,6 +64,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(totalLogs))
       .type('aggregation')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -67,6 +72,8 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(avgResponseTime.toFixed(2)))
       .type('aggregation')
       .dataset('event-logs')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
   )
 
@@ -81,6 +88,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('event-logs')
+        .answerType('integer')
         .build(),
     )
   }
@@ -96,6 +104,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('event-logs')
+        .answerType('integer')
         .build(),
     )
   }
@@ -111,6 +120,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(errorCount))
       .type('aggregation')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -118,6 +128,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(successCount))
       .type('aggregation')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
   )
 
@@ -130,6 +141,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
       .groundTruth(String(retryableErrorCount))
       .type('aggregation')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
   )
 
@@ -147,6 +159,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
         .groundTruth(String(count))
         .type('filtering')
         .dataset('event-logs')
+        .answerType('integer')
         .build(),
     )
   }
@@ -161,6 +174,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
         .groundTruth(String(count))
         .type('filtering')
         .dataset('event-logs')
+        .answerType('integer')
         .build(),
     )
   }
@@ -175,6 +189,7 @@ export function generateEventLogsQuestions(logs: EventLog[], getId: () => string
         .groundTruth(String(count))
         .type('filtering')
         .dataset('event-logs')
+        .answerType('integer')
         .build(),
     )
   }

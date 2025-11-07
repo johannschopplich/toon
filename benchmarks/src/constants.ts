@@ -56,9 +56,11 @@ export const FORMATTER_DISPLAY_NAMES: Record<string, string> = {
  */
 export const QUESTION_TYPES = [
   'field-retrieval',
+  'retrieval',
   'aggregation',
   'filtering',
   'structure-awareness',
+  'structural-validation',
 ] as const
 
 /**
@@ -66,9 +68,11 @@ export const QUESTION_TYPES = [
  */
 export const QUESTION_TYPE_LABELS = {
   'field-retrieval': 'Field Retrieval',
+  'retrieval': 'Retrieval',
   'aggregation': 'Aggregation',
   'filtering': 'Filtering',
   'structure-awareness': 'Structure Awareness',
+  'structural-validation': 'Structural Validation',
 } as const
 
 /**
@@ -81,6 +85,12 @@ export const DATASET_NAMES = [
   'github',
   'event-logs',
   'nested-config',
+  'large-uniform',
+  'structural-validation-control',
+  'structural-validation-truncated',
+  'structural-validation-extra-rows',
+  'structural-validation-width-mismatch',
+  'structural-validation-missing-fields',
 ] as const
 
 /**

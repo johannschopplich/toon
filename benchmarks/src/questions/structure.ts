@@ -30,6 +30,7 @@ export function generateStructureQuestions(
       .groundTruth(String(employees.length))
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
   )
 
@@ -42,6 +43,7 @@ export function generateStructureQuestions(
       .groundTruth(employeeFields)
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -53,6 +55,7 @@ export function generateStructureQuestions(
       .groundTruth('email')
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('string')
       .build(),
   )
 
@@ -65,6 +68,7 @@ export function generateStructureQuestions(
       .groundTruth(lastEmployee.department)
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('string')
       .build(),
   )
 
@@ -76,6 +80,7 @@ export function generateStructureQuestions(
       .groundTruth(lastEmployee.name)
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('string')
       .build(),
   )
 
@@ -87,6 +92,7 @@ export function generateStructureQuestions(
       .groundTruth('7')
       .type('structure-awareness')
       .dataset('tabular')
+      .answerType('integer')
       .build(),
   )
 
@@ -100,6 +106,7 @@ export function generateStructureQuestions(
       .groundTruth(String(orders.length))
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('integer')
       .build(),
   )
 
@@ -112,6 +119,7 @@ export function generateStructureQuestions(
       .groundTruth(orderFields)
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -126,6 +134,7 @@ export function generateStructureQuestions(
       .groundTruth(String(orderWithManyItems.items.length))
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('integer')
       .build(),
   )
 
@@ -138,6 +147,7 @@ export function generateStructureQuestions(
       .groundTruth(itemFields)
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -150,6 +160,7 @@ export function generateStructureQuestions(
       .groundTruth(lastOrder.status)
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('string')
       .build(),
   )
 
@@ -162,6 +173,7 @@ export function generateStructureQuestions(
       .groundTruth(customerFields)
       .type('structure-awareness')
       .dataset('nested')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -175,6 +187,7 @@ export function generateStructureQuestions(
       .groundTruth(String(metrics.length))
       .type('structure-awareness')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
   )
 
@@ -187,6 +200,7 @@ export function generateStructureQuestions(
       .groundTruth(metricFields)
       .type('structure-awareness')
       .dataset('analytics')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -198,6 +212,7 @@ export function generateStructureQuestions(
       .groundTruth('revenue')
       .type('structure-awareness')
       .dataset('analytics')
+      .answerType('string')
       .build(),
   )
 
@@ -210,6 +225,7 @@ export function generateStructureQuestions(
       .groundTruth(lastMetric.date)
       .type('structure-awareness')
       .dataset('analytics')
+      .answerType('string')
       .build(),
   )
 
@@ -221,6 +237,7 @@ export function generateStructureQuestions(
       .groundTruth('6')
       .type('structure-awareness')
       .dataset('analytics')
+      .answerType('integer')
       .build(),
   )
 
@@ -234,6 +251,7 @@ export function generateStructureQuestions(
       .groundTruth(String(repos.length))
       .type('structure-awareness')
       .dataset('github')
+      .answerType('integer')
       .build(),
   )
 
@@ -246,6 +264,7 @@ export function generateStructureQuestions(
       .groundTruth(repoFields)
       .type('structure-awareness')
       .dataset('github')
+      .answerType('csv-list-ordered')
       .build(),
   )
 
@@ -257,6 +276,7 @@ export function generateStructureQuestions(
       .groundTruth('forks')
       .type('structure-awareness')
       .dataset('github')
+      .answerType('string')
       .build(),
   )
 
@@ -269,6 +289,7 @@ export function generateStructureQuestions(
       .groundTruth(lastRepo.name)
       .type('structure-awareness')
       .dataset('github')
+      .answerType('string')
       .build(),
   )
 
@@ -280,6 +301,7 @@ export function generateStructureQuestions(
       .groundTruth('11')
       .type('structure-awareness')
       .dataset('github')
+      .answerType('integer')
       .build(),
   )
 
@@ -293,6 +315,7 @@ export function generateStructureQuestions(
       .groundTruth(String(logs.length))
       .type('structure-awareness')
       .dataset('event-logs')
+      .answerType('integer')
       .build(),
   )
 
@@ -305,6 +328,7 @@ export function generateStructureQuestions(
       .groundTruth(logFields)
       .type('structure-awareness')
       .dataset('event-logs')
+      .answerType('csv-list-unordered')
       .build(),
   )
 
@@ -317,6 +341,7 @@ export function generateStructureQuestions(
       .groundTruth(lastLog.level)
       .type('structure-awareness')
       .dataset('event-logs')
+      .answerType('string')
       .build(),
   )
 

@@ -17,6 +17,8 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(order.total))
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     (order, getId) => new QuestionBuilder()
       .id(getId())
@@ -24,6 +26,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(order.status)
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('string')
       .build(),
   ]
 
@@ -43,6 +46,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(order.customer.name)
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('string')
       .build(),
     (order, getId) => new QuestionBuilder()
       .id(getId())
@@ -50,6 +54,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(order.customer.email)
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('string')
       .build(),
     (order, getId) => new QuestionBuilder()
       .id(getId())
@@ -57,6 +62,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(order.orderDate || '')
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('string')
       .build(),
     (order, getId) => new QuestionBuilder()
       .id(getId())
@@ -64,6 +70,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(order.items.length))
       .type('field-retrieval')
       .dataset('nested')
+      .answerType('integer')
       .build(),
   ]
 
@@ -94,6 +101,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('nested')
+        .answerType('integer')
         .build(),
     )
   }
@@ -105,6 +113,8 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(totalRevenue.toFixed(2)))
       .type('aggregation')
       .dataset('nested')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -112,6 +122,8 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(avgOrderValue.toFixed(2)))
       .type('aggregation')
       .dataset('nested')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -119,6 +131,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(totalOrders))
       .type('aggregation')
       .dataset('nested')
+      .answerType('integer')
       .build(),
     new QuestionBuilder()
       .id(getId())
@@ -126,6 +139,8 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
       .groundTruth(String(maxOrderValue.toFixed(2)))
       .type('aggregation')
       .dataset('nested')
+      .answerType('number')
+      .normalize({ decimalPlaces: 2 })
       .build(),
   )
 
@@ -139,6 +154,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
         .groundTruth(String(count))
         .type('aggregation')
         .dataset('nested')
+        .answerType('integer')
         .build(),
     )
   }
@@ -156,6 +172,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
         .groundTruth(String(count))
         .type('filtering')
         .dataset('nested')
+        .answerType('integer')
         .build(),
     )
   }
@@ -172,6 +189,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
         .groundTruth(String(count))
         .type('filtering')
         .dataset('nested')
+        .answerType('integer')
         .build(),
     )
   }
@@ -188,6 +206,7 @@ export function generateNestedQuestions(orders: Order[], getId: () => string): Q
         .groundTruth(String(count))
         .type('filtering')
         .dataset('nested')
+        .answerType('integer')
         .build(),
     )
   }

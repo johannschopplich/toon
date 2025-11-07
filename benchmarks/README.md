@@ -34,10 +34,10 @@ Results are saved to `results/token-efficiency.md`.
 
 Tests how well LLMs can answer questions about data in different formats (TOON, JSON, JSON compact, XML, YAML, CSV):
 
-1. Generate ~200 questions across 6 datasets (CSV only included for datasets with flat/tabular structure)
+1. Generate 209 questions across 11 datasets (6 primary + 5 structural validation; CSV only included for datasets with flat/tabular structure)
 2. Convert each dataset to all supported formats
 3. Query each LLM with formatted data + question
-4. Validate answers using `gpt-5-nano` as judge
+4. Validate answers deterministically using type-aware comparison (no LLM judge needed)
 5. Aggregate metrics and generate report
 
 ### Setup
@@ -95,10 +95,22 @@ src/
 ├── datasets.ts                   # Test data generators
 ├── evaluate.ts                   # LLM evaluation
 ├── formatters.ts                 # Format converters
-├── questions.ts                  # Question generation
+├── normalize.ts                  # Answer normalization
 ├── report.ts                     # Markdown reports
 ├── storage.ts                    # Result caching
-└── utils.ts                      # Helpers
+├── types.ts                      # Type definitions
+├── utils.ts                      # Helpers
+└── questions/                    # Question generators
+    ├── analytics.ts
+    ├── event-logs.ts
+    ├── github.ts
+    ├── index.ts
+    ├── nested-config.ts
+    ├── nested.ts
+    ├── structural-validation.ts
+    ├── structure.ts
+    ├── tabular.ts
+    └── utils.ts
 data/
 └── github-repos.json             # Top 100 GitHub repos
 results/

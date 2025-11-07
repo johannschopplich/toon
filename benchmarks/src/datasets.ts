@@ -145,6 +145,30 @@ export interface NestedConfig {
 }
 
 /**
+ * Product structure for large uniform arrays
+ */
+export interface Product {
+  sku: string
+  name: string
+  category: string
+  price: number
+  qty: number
+  lastUpdated: string
+}
+
+/**
+ * Internal types for structural validation pattern generation
+ */
+type StructuralValidationType = 'truncated' | 'extra-rows' | 'width-mismatch' | 'missing-fields'
+
+interface StructuralValidationFixture {
+  type: StructuralValidationType
+  description: string
+  data: Record<string, unknown>
+  isValid: boolean
+}
+
+/**
  * Generate analytics time-series data
  */
 export function generateAnalyticsData(days: number, startDate = '2025-01-01'): {
@@ -506,6 +530,100 @@ export function generateNestedConfig(): NestedConfig {
 }
 
 /**
+ * Generate large uniform product array (5000+ rows)
+ *
+ * @remarks
+ * Tests TOON's token efficiency and structural reliability at scale.
+ */
+export function generateProducts(count: number): { products: Product[] } {
+  const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Sports', 'Books', 'Toys'] as const
+
+  return {
+    products: Array.from({ length: count }, (_, i): Product => ({
+      sku: `SKU-${String(i + 1).padStart(6, '0')}`,
+      name: faker.commerce.productName(),
+      category: categories[i % categories.length]!,
+      price: Number(faker.commerce.price({ min: 5, max: 500 })),
+      qty: faker.number.int({ min: 0, max: 1000 }),
+      lastUpdated: faker.date.recent({ days: 30 }).toISOString().split('T')[0]!,
+    })),
+  }
+}
+
+/**
+ * Generate structural validation fixtures from employee data
+ *
+ * @remarks
+ * Creates deliberately corrupted datasets to test TOON's structural validation
+ * capabilities via [N] length declarations and {fields} headers.
+ * Internal function used to generate structural validation datasets.
+ */
+function generateStructuralValidationFixtures(): StructuralValidationFixture[] {
+  const baseData = generateEmployees(20)
+
+  return [
+    // Valid baseline
+    {
+      type: 'truncated' as const,
+      description: 'Valid complete dataset (control)',
+      data: { employees: baseData.employees },
+      isValid: true,
+    },
+    // Truncated array (missing last 3 rows)
+    {
+      type: 'truncated' as const,
+      description: 'Array truncated: 3 rows removed from end',
+      data: { employees: baseData.employees.slice(0, -3) },
+      isValid: false, // [N] won't match actual row count in TOON
+    },
+    // Extra rows (3 more than original)
+    {
+      type: 'extra-rows' as const,
+      description: 'Extra rows added beyond declared length',
+      data: {
+        employees: [
+          ...baseData.employees,
+          ...generateEmployees(3).employees,
+        ],
+      },
+      isValid: false, // [N] won't match actual row count in TOON
+    },
+    // Width mismatch (inconsistent field count)
+    {
+      type: 'width-mismatch' as const,
+      description: 'Inconsistent field count (missing salary in row 10)',
+      data: {
+        employees: baseData.employees.map((emp, i) => {
+          if (i === 9) {
+            // Row 10, missing salary field
+            const { salary, ...rest } = emp
+            return rest
+          }
+          return emp
+        }),
+      },
+      isValid: false, // Not all objects have same fields (tabular requirement)
+    },
+    // Missing required fields
+    {
+      type: 'missing-fields' as const,
+      description: 'Missing required fields (no email in multiple rows)',
+      data: {
+        employees: baseData.employees.map((emp, i) => {
+          if (i % 5 === 0) {
+            // Every 5th row, missing email
+            const { email, ...rest } = emp
+            return rest
+          }
+          return emp
+        }),
+      },
+      isValid: false, // Not all objects have same fields (tabular requirement)
+    },
+  ]
+}
+
+/**
  * Event logs dataset: Semi-uniform structure
  *
  * @remarks
@@ -540,6 +658,34 @@ const nestedConfigDataset: Dataset = {
 }
 
 /**
+ * Structural validation datasets: Tests ability to detect incomplete, truncated, or corrupted data
+ *
+ * @remarks
+ * These datasets test TOON's structural validation advantages via [N] length declarations
+ * and {fields} headers. CSV is included to demonstrate its lack of structural metadata.
+ */
+const structuralValidationDatasets: Dataset[] = generateStructuralValidationFixtures().map((fixture, index) => {
+  const datasetNames = [
+    'structural-validation-control',
+    'structural-validation-truncated',
+    'structural-validation-extra-rows',
+    'structural-validation-width-mismatch',
+    'structural-validation-missing-fields',
+  ] as const
+
+  return {
+    name: datasetNames[index]!,
+    description: fixture.description,
+    data: fixture.data,
+    metadata: {
+      supportsCSV: true, // Include CSV to show it can't validate structure
+      structureClass: 'uniform',
+      tabularEligibility: 100,
+    },
+  }
+})
+
+/**
  * Datasets for accuracy benchmarks (smaller sizes for faster evaluation)
  */
 export const ACCURACY_DATASETS: Dataset[] = [
@@ -549,6 +695,7 @@ export const ACCURACY_DATASETS: Dataset[] = [
   githubDataset, // 100 repos
   eventLogsDataset, // 75 logs
   nestedConfigDataset, // 1 config
+  ...structuralValidationDatasets, // 5 validation fixtures
 ]
 
 /**
