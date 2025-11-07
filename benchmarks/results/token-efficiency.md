@@ -77,7 +77,7 @@ Datasets with flat tabular structures where CSV is applicable.
 ```
 
 <details>
-<summary><strong>View detailed examples</strong></summary>
+<summary><strong>Show detailed examples</strong></summary>
 
 #### 📈 Time-series analytics data
 

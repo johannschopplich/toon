@@ -81,7 +81,7 @@ export function generateAccuracyReport(
 Benchmarks test LLM comprehension across different input formats using ${totalQuestions} data retrieval questions on ${modelNames.length} ${modelNames.length === 1 ? 'model' : 'models'}.
 
 <details>
-<summary><strong>View Dataset Catalog</strong></summary>
+<summary><strong>Show Dataset Catalog</strong></summary>
 
 ${generateDatasetCatalog(ACCURACY_DATASETS)}
 

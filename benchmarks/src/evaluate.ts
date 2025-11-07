@@ -10,9 +10,9 @@ import { generateText } from 'ai'
  * Models used for evaluation
  */
 export const models: LanguageModelV2[] = [
-  openai('gpt-5-nano'),
   anthropic('claude-haiku-4-5-20251001'),
   google('gemini-2.5-flash'),
+  openai('gpt-5-nano'),
   xai('grok-4-fast-non-reasoning'),
 ]
 

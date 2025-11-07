@@ -88,7 +88,7 @@ function generateTotalLines(
   baselineFormat?: { name: string, tokens: number },
 ) {
   const separatorHalf = '─'.repeat(36)
-  const lines: string[] = [`${separatorHalf} Total ${separatorHalf}`]
+  const lines = [`${separatorHalf} Total ${separatorHalf}`]
 
   if (baselineFormat) {
     // Flat-only track with CSV baseline
@@ -300,12 +300,13 @@ const detailedExamples = results
       displayData = { metrics: displayData.metrics.slice(0, ANALYTICS_METRICS_LIMIT) }
     }
 
-    const separator = i < filtered.length - 1 ? '\n\n---' : ''
     const emoji = DATASET_ICONS[result.dataset.name] || DEFAULT_DATASET_ICON
     const json = result.formats.find(f => f.name === 'json-pretty')!
     const toon = result.formats.find(f => f.name === 'toon')!
+    const separator = i < filtered.length - 1 ? '---' : ''
 
-    return `#### ${emoji} ${result.dataset.description}
+    return `
+#### ${emoji} ${result.dataset.description}
 
 **Savings:** ${json.savings.toLocaleString('en-US')} tokens (${json.savingsPercent.toFixed(1)}% reduction vs JSON)
 
@@ -319,7 +320,10 @@ ${JSON.stringify(displayData, undefined, 2)}
 
 \`\`\`
 ${encode(displayData)}
-\`\`\`${separator}`
+\`\`\`
+
+${separator}
+`.trim()
   })
   .join('\n\n')
 
@@ -327,7 +331,7 @@ const markdown = `
 ${barChartSection}
 
 <details>
-<summary><strong>View detailed examples</strong></summary>
+<summary><strong>Show detailed examples</strong></summary>
 
 ${detailedExamples}
 
