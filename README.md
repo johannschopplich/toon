@@ -660,6 +660,8 @@ Eleven datasets designed to test different structural patterns and validation ca
 
 ## Installation & Quick Start
 
+### TypeScript/JavaScript
+
 ```bash
 # npm
 npm install @toon-format/toon
@@ -688,6 +690,34 @@ console.log(encode(data))
 //   1,Alice,admin
 //   2,Bob,user
 ```
+
+### Python
+
+```bash
+# From source
+cd packages/toon-py
+pip install -e .
+```
+
+**Example usage:**
+
+```python
+from toon import encode
+
+data = {
+  "users": [
+    {"id": 1, "name": "Alice", "role": "admin"},
+    {"id": 2, "name": "Bob", "role": "user"}
+  ]
+}
+
+print(encode(data))
+# users[2]{id,name,role}:
+#   1,Alice,admin
+#   2,Bob,user
+```
+
+See [packages/toon-py](./packages/toon-py) for more details.
 
 ## CLI
 
@@ -1227,7 +1257,8 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ### Official Implementations
 
-- **Python:** [toon_format](https://github.com/toon-format/toon-python) *(in development)*
+- **TypeScript/JavaScript:** [packages/toon](./packages/toon) *(this repo)*
+- **Python:** [packages/toon-py](./packages/toon-py) *(this repo)*
 - **Rust:** [toon_format](https://github.com/toon-format/toon-rust) *(in development)*
 
 ### Community Implementations
