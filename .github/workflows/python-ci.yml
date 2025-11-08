@@ -2,15 +2,15 @@ name: Python CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'packages/toon-py/**'
-      - '.github/workflows/python-ci.yml'
+      - .github/workflows/python-ci.yml
   pull_request:
-    branches: [ main ]
+    branches: [main]
     paths:
       - 'packages/toon-py/**'
-      - '.github/workflows/python-ci.yml'
+      - .github/workflows/python-ci.yml
 
 jobs:
   test:
@@ -19,28 +19,28 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12']
-    
+
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
-    
-    - name: Install dependencies
-      run: |
-        cd packages/toon-py
-        python -m pip install --upgrade pip
-        pip install -e ".[dev]"
-    
-    - name: Run tests
-      run: |
-        cd packages/toon-py
-        pytest --cov=toon --cov-report=xml --cov-report=term
-    
-    - name: Upload coverage
-      uses: codecov/codecov-action@v3
-      with:
-        files: ./packages/toon-py/coverage.xml
-        flags: python
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          cd packages/toon-py
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run tests
+        run: |
+          cd packages/toon-py
+          pytest --cov=toon --cov-report=xml --cov-report=term
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/toon-py/coverage.xml
+          flags: python
