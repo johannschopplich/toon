@@ -36,11 +36,11 @@ Benchmarks test LLM comprehension across different input formats using 209 data 
 Each format's overall performance, balancing accuracy against token cost:
 
 ```
-TOON           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓   26.9  │  73.9% acc  │  2,744 tokens
-JSON compact   ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░   22.9  │  70.7% acc  │  3,081 tokens
-YAML           ▓▓▓▓▓▓▓▓▓▓▓▓▓▓░░░░░░   18.6  │  69.0% acc  │  3,719 tokens
-JSON           ▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░   15.3  │  69.7% acc  │  4,545 tokens
-XML            ▓▓▓▓▓▓▓▓▓▓░░░░░░░░░░   13.0  │  67.1% acc  │  5,167 tokens
+TOON           ████████████████████   26.9  │  73.9% acc  │  2,744 tokens
+JSON compact   █████████████████░░░   22.9  │  70.7% acc  │  3,081 tokens
+YAML           ██████████████░░░░░░   18.6  │  69.0% acc  │  3,719 tokens
+JSON           ███████████░░░░░░░░░   15.3  │  69.7% acc  │  4,545 tokens
+XML            ██████████░░░░░░░░░░   13.0  │  67.1% acc  │  5,167 tokens
 ```
 
 TOON achieves **73.9%** accuracy (vs JSON's 69.7%) while using **39.6% fewer tokens**.

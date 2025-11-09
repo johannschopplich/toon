@@ -559,7 +559,7 @@ function generateHorizontalEfficiencyChart(
   return ranking
     .map((r) => {
       const normalizedValue = r.efficiency / maxEfficiency
-      const bar = createProgressBar(normalizedValue, 1, barWidth, { filled: '▓', empty: '░' })
+      const bar = createProgressBar(normalizedValue, 1, barWidth)
       const displayName = FORMATTER_DISPLAY_NAMES[r.format] || r.format
       const formatName = displayName.padEnd(maxFormatWidth)
       const efficiency = r.efficiency.toFixed(1).padStart(4)
