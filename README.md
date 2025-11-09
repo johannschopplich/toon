@@ -1249,6 +1249,10 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
 
+## Credits
+
+- Logo design by [鈴木ックス(SZKX)](https://x.com/szkx_art)
+
 ## License
 
 [MIT](./LICENSE) License © 2025-PRESENT [Johann Schopplich](https://github.com/johannschopplich)
