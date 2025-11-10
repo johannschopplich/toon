@@ -65,9 +65,9 @@ cat data.toon | toon --decode
 | `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
-| `--key-folding <mode>` | Enable key folding: `off`, `safe` (default: `off`) - v1.5 |
-| `--flatten-depth <number>` | Maximum folded segment count when key folding is enabled (default: `Infinity`) - v1.5 |
-| `--expand-paths <mode>` | Enable path expansion: `off`, `safe` (default: `off`) - v1.5 |
+| `--key-folding <mode>` | Enable key folding: `off`, `safe` (default: `off`) |
+| `--flatten-depth <number>` | Maximum folded segment count when key folding is enabled (default: `Infinity`) |
+| `--expand-paths <mode>` | Enable path expansion: `off`, `safe` (default: `off`) |
 
 ## Advanced Examples
 
@@ -122,7 +122,7 @@ cat large-dataset.json | toon --delimiter "\t" > output.toon
 jq '.results' data.json | toon > filtered.toon
 ```
 
-### Key Folding (v1.5)
+### Key Folding (spec v1.5)
 
 Collapse nested wrapper chains to reduce tokens:
 
@@ -196,7 +196,7 @@ toon data.json --key-folding safe --delimiter "\t" --stats -o output.toon
 - **Token analysis** to see potential savings before sending to LLMs
 - **Pipeline integration** with existing JSON-based workflows
 - **Flexible formatting** with delimiter and indentation options
-- **Key folding (v1.5)** to collapse nested wrappers for additional token savings
+- **Key folding** to collapse nested wrappers for additional token savings
 
 ## Related
 
