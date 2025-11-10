@@ -44,7 +44,6 @@ describe('toon CLI', () => {
         const expected = encode(data, {
           delimiter: DEFAULT_DELIMITER,
           indent: 2,
-          lengthMarker: false,
         })
 
         expect(output).toBe(expected)

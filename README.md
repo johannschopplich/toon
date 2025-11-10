@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/toon-format/toon/actions/workflows/ci.yml/badge.svg)](https://github.com/toon-format/toon/actions)
 [![npm version](https://img.shields.io/npm/v/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
-[![SPEC v1.5](https://img.shields.io/badge/spec-v1.5-lightgray)](https://github.com/toon-format/spec)
+[![SPEC v2.0](https://img.shields.io/badge/spec-v2.0-lightgray)](https://github.com/toon-format/spec)
 [![npm downloads (total)](https://img.shields.io/npm/dt/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -67,7 +67,7 @@ TOON excels with uniform arrays of objects, but there are cases where other form
 
 - **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
 - **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
-- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (length markers, field headers, delimiter scoping) that improves LLM reliability.
+- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
 
 See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
 
@@ -80,7 +80,7 @@ See [benchmarks](#benchmarks) for concrete comparisons across different data str
 - 🍱 **Minimal syntax:** removes redundant punctuation (braces, brackets, most quotes)
 - 📐 **Indentation-based structure:** like YAML, uses whitespace instead of braces
 - 🧺 **Tabular arrays:** declare keys once, stream data as rows
-- 🔗 **Optional key folding (spec v1.5):** collapses single-key wrapper chains into dotted paths (e.g., `data.metadata.items`) to reduce indentation and tokens
+- 🔗 **Optional key folding:** collapses single-key wrapper chains into dotted paths (e.g., `data.metadata.items`) to reduce indentation and tokens
 
 [^1]: For flat tabular data, CSV is more compact. TOON adds minimal overhead to provide explicit structure and validation that improves LLM reliability.
 
@@ -734,7 +734,6 @@ cat data.toon | npx @toon-format/cli --decode
 | `-d, --decode` | Force decode mode (overrides auto-detection) |
 | `--delimiter <char>` | Array delimiter: `,` (comma), `\t` (tab), `\|` (pipe) |
 | `--indent <number>` | Indentation size (default: `2`) |
-| `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
 | `--key-folding <mode>` | Key folding mode: `off`, `safe` (default: `off`) - collapses nested chains |
@@ -750,13 +749,13 @@ npx @toon-format/cli data.json --stats -o output.toon
 # Tab-separated output (often more token-efficient)
 npx @toon-format/cli data.json --delimiter "\t" -o output.toon
 
-# Pipe-separated with length markers
-npx @toon-format/cli data.json --delimiter "|" --length-marker -o output.toon
+# Pipe-separated output
+npx @toon-format/cli data.json --delimiter "|" -o output.toon
 
 # Lenient decoding (skip validation)
 npx @toon-format/cli data.toon --no-strict -o output.json
 
-# Key folding for nested data (spec v1.5)
+# Key folding for nested data
 npx @toon-format/cli data.json --key-folding safe -o output.toon
 
 # Stdin workflows
@@ -1015,7 +1014,6 @@ Converts any JSON-serializable value to TOON format.
 - `options` – Optional encoding options:
   - `indent?: number` – Number of spaces per indentation level (default: `2`)
   - `delimiter?: ',' | '\t' | '|'` – Delimiter for array values and tabular rows (default: `','`)
-  - `lengthMarker?: '#' | false` – Optional marker to prefix array lengths (default: `false`)
   - `keyFolding?: 'off' | 'safe'` – Enable key folding to collapse single-key wrapper chains into dotted paths (default: `'off'`). When `'safe'`, only valid identifier segments are folded
   - `flattenDepth?: number` – Maximum number of segments to fold when `keyFolding` is enabled (default: `Infinity`). Values 0-1 have no practical effect
 
@@ -1098,37 +1096,6 @@ items[2|]{sku|name|qty|price}:
   B2|Gadget|1|14.5
 ```
 
-#### Length Marker Option
-
-The `lengthMarker` option adds an optional hash (`#`) prefix to array lengths to emphasize that the bracketed value represents a count, not an index:
-
-```ts
-const data = {
-  tags: ['reading', 'gaming', 'coding'],
-  items: [
-    { sku: 'A1', qty: 2, price: 9.99 },
-    { sku: 'B2', qty: 1, price: 14.5 },
-  ],
-}
-
-console.log(
-  encode(data, { lengthMarker: '#' })
-)
-// tags[#3]: reading,gaming,coding
-// items[#2]{sku,qty,price}:
-//   A1,2,9.99
-//   B2,1,14.5
-
-// Custom delimiter with length marker
-console.log(
-  encode(data, { lengthMarker: '#', delimiter: '|' })
-)
-// tags[#3|]: reading|gaming|coding
-// items[#2|]{sku|qty|price}:
-//   A1|2|9.99
-//   B2|1|14.5
-```
-
 ### `decode(input: string, options?: DecodeOptions): JsonValue`
 
 Converts a TOON-formatted string back to JavaScript values.
@@ -1179,7 +1146,7 @@ By default, the decoder validates input strictly:
 - Format familiarity and structure matter as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only. When this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be more efficient at scale.
   - **TOON excels at:** Uniform arrays of objects (same fields, primitive values), especially large datasets with consistent structure.
   - **JSON is better for:** Non-uniform data, deeply nested structures, and objects with varying field sets.
-  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds structure (`[N]` length markers, delimiter scoping, deterministic quoting) that improves LLM reliability with minimal token overhead.
+  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds structure (`[N]` array lengths, delimiter scoping, deterministic quoting) that improves LLM reliability with minimal token overhead.
 - **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
 - **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
 
@@ -1189,7 +1156,7 @@ TOON works best when you show the format instead of describing it. The structure
 
 ### Sending TOON to LLMs (Input)
 
-Wrap your encoded data in a fenced code block (label it \`\`\`toon for clarity). The indentation and headers are usually enough – models treat it like familiar YAML or CSV. The explicit length markers (`[N]`) and field headers (`{field1,field2}`) help the model track structure, especially for large tables.
+Wrap your encoded data in a fenced code block (label it \`\`\`toon for clarity). The indentation and headers are usually enough – models treat it like familiar YAML or CSV. The explicit array lengths (`[N]`) and field headers (`{field1,field2}`) help the model track structure, especially for large tables.
 
 ### Generating TOON from LLMs (Output)
 
@@ -1267,7 +1234,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 ## Other Implementations
 
 > [!NOTE]
-> When implementing TOON in other languages, please follow the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md) (currently v1.5) to ensure compatibility across implementations. The [conformance tests](https://github.com/toon-format/spec/tree/main/tests) provide language-agnostic test fixtures that validate your implementations.
+> When implementing TOON in other languages, please follow the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md) (currently v2.0) to ensure compatibility across implementations. The [conformance tests](https://github.com/toon-format/spec/tree/main/tests) provide language-agnostic test fixtures that validate your implementations.
 
 ### Official Implementations
 

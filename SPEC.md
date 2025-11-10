@@ -4,7 +4,7 @@ The TOON specification has moved to a dedicated repository: [github.com/toon-for
 
 ## Current Version
 
-**Version 1.4** (2025-11-05)
+**Version 2.0** (2025-11-10)
 
 ## Quick Links
 

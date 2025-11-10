@@ -113,15 +113,15 @@ export function encodeArray(
   options: ResolvedEncodeOptions,
 ): void {
   if (value.length === 0) {
-    const header = formatHeader(0, { key, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+    const header = formatHeader(0, { key, delimiter: options.delimiter })
     writer.push(depth, header)
     return
   }
 
   // Primitive array
   if (isArrayOfPrimitives(value)) {
-    const formatted = encodeInlineArrayLine(value, options.delimiter, key, options.lengthMarker)
-    writer.push(depth, formatted)
+    const arrayLine = encodeInlineArrayLine(value, options.delimiter, key)
+    writer.push(depth, arrayLine)
     return
   }
 
@@ -161,19 +161,19 @@ export function encodeArrayOfArraysAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = formatHeader(values.length, { key: prefix, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+  const header = formatHeader(values.length, { key: prefix, delimiter: options.delimiter })
   writer.push(depth, header)
 
   for (const arr of values) {
     if (isArrayOfPrimitives(arr)) {
-      const inline = encodeInlineArrayLine(arr, options.delimiter, undefined, options.lengthMarker)
-      writer.pushListItem(depth + 1, inline)
+      const arrayLine = encodeInlineArrayLine(arr, options.delimiter)
+      writer.pushListItem(depth + 1, arrayLine)
     }
   }
 }
 
-export function encodeInlineArrayLine(values: readonly JsonPrimitive[], delimiter: string, prefix?: string, lengthMarker?: '#' | false): string {
-  const header = formatHeader(values.length, { key: prefix, delimiter, lengthMarker })
+export function encodeInlineArrayLine(values: readonly JsonPrimitive[], delimiter: string, prefix?: string): string {
+  const header = formatHeader(values.length, { key: prefix, delimiter })
   const joinedValue = encodeAndJoinPrimitives(values, delimiter)
   // Only add space if there are values
   if (values.length === 0) {
@@ -194,7 +194,7 @@ export function encodeArrayOfObjectsAsTabular(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const formattedHeader = formatHeader(rows.length, { key: prefix, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+  const formattedHeader = formatHeader(rows.length, { key: prefix, fields: header, delimiter: options.delimiter })
   writer.push(depth, `${formattedHeader}`)
 
   writeTabularRows(rows, header, writer, depth + 1, options)
@@ -265,7 +265,7 @@ export function encodeMixedArrayAsListItems(
   depth: Depth,
   options: ResolvedEncodeOptions,
 ): void {
-  const header = formatHeader(items.length, { key: prefix, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+  const header = formatHeader(items.length, { key: prefix, delimiter: options.delimiter })
   writer.push(depth, header)
 
   for (const item of items) {
@@ -289,15 +289,15 @@ export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, dept
   else if (isJsonArray(firstValue)) {
     if (isArrayOfPrimitives(firstValue)) {
       // Inline format for primitive arrays
-      const formatted = encodeInlineArrayLine(firstValue, options.delimiter, firstKey, options.lengthMarker)
-      writer.pushListItem(depth, formatted)
+      const arrayPropertyLine = encodeInlineArrayLine(firstValue, options.delimiter, firstKey)
+      writer.pushListItem(depth, arrayPropertyLine)
     }
     else if (isArrayOfObjects(firstValue)) {
       // Check if array of objects can use tabular format
       const header = extractTabularHeader(firstValue)
       if (header) {
         // Tabular format for uniform arrays of objects
-        const formattedHeader = formatHeader(firstValue.length, { key: firstKey, fields: header, delimiter: options.delimiter, lengthMarker: options.lengthMarker })
+        const formattedHeader = formatHeader(firstValue.length, { key: firstKey, fields: header, delimiter: options.delimiter })
         writer.pushListItem(depth, formattedHeader)
         writeTabularRows(firstValue, header, writer, depth + 1, options)
       }
@@ -347,8 +347,8 @@ function encodeListItemValue(
     writer.pushListItem(depth, encodePrimitive(value, options.delimiter))
   }
   else if (isJsonArray(value) && isArrayOfPrimitives(value)) {
-    const inline = encodeInlineArrayLine(value, options.delimiter, undefined, options.lengthMarker)
-    writer.pushListItem(depth, inline)
+    const arrayLine = encodeInlineArrayLine(value, options.delimiter)
+    writer.pushListItem(depth, arrayLine)
   }
   else if (isJsonObject(value)) {
     encodeObjectAsListItem(value, writer, depth, options)

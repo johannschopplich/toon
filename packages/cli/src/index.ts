@@ -41,11 +41,6 @@ export const mainCommand: CommandDef<{
     description: string
     default: string
   }
-  lengthMarker: {
-    type: 'boolean'
-    description: string
-    default: false
-  }
   strict: {
     type: 'boolean'
     description: string
@@ -106,11 +101,6 @@ export const mainCommand: CommandDef<{
       type: 'string',
       description: 'Indentation size',
       default: '2',
-    },
-    lengthMarker: {
-      type: 'boolean',
-      description: 'Use length marker (#) for arrays',
-      default: false,
     },
     strict: {
       type: 'boolean',
@@ -187,10 +177,9 @@ export const mainCommand: CommandDef<{
           output: outputPath,
           delimiter: delimiter as Delimiter,
           indent,
-          lengthMarker: args.lengthMarker === true ? '#' : false,
-          printStats: args.stats === true,
           keyFolding: keyFolding as NonNullable<EncodeOptions['keyFolding']>,
           flattenDepth,
+          printStats: args.stats === true,
         })
       }
       else {

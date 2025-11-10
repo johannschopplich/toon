@@ -1,5 +1,5 @@
 import type { ArrayHeaderInfo, Delimiter, JsonPrimitive } from '../types'
-import { BACKSLASH, CLOSE_BRACE, CLOSE_BRACKET, COLON, DELIMITERS, DOUBLE_QUOTE, FALSE_LITERAL, HASH, NULL_LITERAL, OPEN_BRACE, OPEN_BRACKET, PIPE, TAB, TRUE_LITERAL } from '../constants'
+import { BACKSLASH, CLOSE_BRACE, CLOSE_BRACKET, COLON, DELIMITERS, DOUBLE_QUOTE, FALSE_LITERAL, NULL_LITERAL, OPEN_BRACE, OPEN_BRACKET, PIPE, TAB, TRUE_LITERAL } from '../constants'
 import { isBooleanOrNullLiteral, isNumericLiteral } from '../shared/literal-utils'
 import { findClosingQuote, findUnquotedChar, unescapeString } from '../shared/string-utils'
 
@@ -84,7 +84,7 @@ export function parseArrayHeaderLine(
     return
   }
 
-  const { length, delimiter, hasLengthMarker } = parsedBracket
+  const { length, delimiter } = parsedBracket
 
   // Check for fields segment
   let fields: string[] | undefined
@@ -102,7 +102,6 @@ export function parseArrayHeaderLine(
       length,
       delimiter,
       fields,
-      hasLengthMarker,
     },
     inlineValues: afterColon || undefined,
   }
@@ -111,15 +110,8 @@ export function parseArrayHeaderLine(
 export function parseBracketSegment(
   seg: string,
   defaultDelimiter: Delimiter,
-): { length: number, delimiter: Delimiter, hasLengthMarker: boolean } {
-  let hasLengthMarker = false
+): { length: number, delimiter: Delimiter } {
   let content = seg
-
-  // Check for length marker
-  if (content.startsWith(HASH)) {
-    hasLengthMarker = true
-    content = content.slice(1)
-  }
 
   // Check for delimiter suffix
   let delimiter = defaultDelimiter
@@ -137,7 +129,7 @@ export function parseBracketSegment(
     throw new TypeError(`Invalid array length: ${seg}`)
   }
 
-  return { length, delimiter, hasLengthMarker }
+  return { length, delimiter }
 }
 
 // #endregion

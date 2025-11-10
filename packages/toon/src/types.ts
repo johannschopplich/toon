@@ -25,12 +25,6 @@ export interface EncodeOptions {
    */
   delimiter?: Delimiter
   /**
-   * Optional marker to prefix array lengths in headers.
-   * When set to `#`, arrays render as [#N] instead of [N].
-   * @default false
-   */
-  lengthMarker?: '#' | false
-  /**
    * Enable key folding to collapse single-key wrapper chains.
    * When set to 'safe', nested objects with single keys are collapsed into dotted paths
    * (e.g., data.metadata.items instead of nested indentation).
@@ -84,7 +78,6 @@ export interface ArrayHeaderInfo {
   length: number
   delimiter: Delimiter
   fields?: string[]
-  hasLengthMarker: boolean
 }
 
 export interface ParsedLine {

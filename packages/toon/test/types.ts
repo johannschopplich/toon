@@ -13,7 +13,6 @@ export interface TestCase {
   options?: {
     delimiter?: ',' | '\t' | '|'
     indent?: number
-    lengthMarker?: '#'
     strict?: boolean
     keyFolding?: 'off' | 'safe'
     flattenDepth?: number

@@ -62,7 +62,6 @@ cat data.toon | toon --decode
 | `-d, --decode` | Force decode mode (overrides auto-detection) |
 | `--delimiter <char>` | Array delimiter: `,` (comma), `\t` (tab), `\|` (pipe) |
 | `--indent <number>` | Indentation size (default: `2`) |
-| `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
 | `--key-folding <mode>` | Enable key folding: `off`, `safe` (default: `off`) |
@@ -122,7 +121,7 @@ cat large-dataset.json | toon --delimiter "\t" > output.toon
 jq '.results' data.json | toon > filtered.toon
 ```
 
-### Key Folding (spec v1.5)
+### Key Folding (Since v1.5)
 
 Collapse nested wrapper chains to reduce tokens:
 

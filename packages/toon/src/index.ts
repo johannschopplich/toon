@@ -88,7 +88,6 @@ function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
   return {
     indent: options?.indent ?? 2,
     delimiter: options?.delimiter ?? DEFAULT_DELIMITER,
-    lengthMarker: options?.lengthMarker ?? false,
     keyFolding: options?.keyFolding ?? 'off',
     flattenDepth: options?.flattenDepth ?? Number.POSITIVE_INFINITY,
   }
