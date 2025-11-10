@@ -57,7 +57,6 @@ export function expandPathsSafe(value: JsonValue, strict: boolean): JsonValue {
     const quotedKeys = (value as ObjectWithQuotedKeys)[QUOTED_KEY_MARKER]
 
     for (const [key, keyValue] of Object.entries(value)) {
-
       // Skip expansion for keys that were originally quoted
       const isQuoted = quotedKeys?.has(key)
 
