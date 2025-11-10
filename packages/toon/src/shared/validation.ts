@@ -1,4 +1,4 @@
-import { COMMA, LIST_ITEM_MARKER } from '../constants'
+import { DEFAULT_DELIMITER, LIST_ITEM_MARKER } from '../constants'
 import { isBooleanOrNullLiteral } from './literal-utils'
 
 /**
@@ -39,7 +39,7 @@ export function isIdentifierSegment(key: string): boolean {
  * - Contains the active delimiter
  * - Starts with a list marker (hyphen)
  */
-export function isSafeUnquoted(value: string, delimiter: string = COMMA): boolean {
+export function isSafeUnquoted(value: string, delimiter: string = DEFAULT_DELIMITER): boolean {
   if (!value) {
     return false
   }

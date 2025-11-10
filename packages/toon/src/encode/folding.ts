@@ -1,7 +1,7 @@
 import type { JsonValue, ResolvedEncodeOptions } from '../types'
 import { DOT } from '../constants'
 import { isIdentifierSegment } from '../shared/validation'
-import { isJsonObject } from './normalize'
+import { isEmptyObject, isJsonObject } from './normalize'
 
 // #region Key folding helpers
 
@@ -160,25 +160,13 @@ function collectSingleKeyChain(
     currentValue = nextValue
   }
 
-  // Determine the tail - simplified with early returns
-  if (!isJsonObject(currentValue)) {
-    // Array, primitive, or null - this is a leaf value
+  // Determine the tail
+  if (!isJsonObject(currentValue) || isEmptyObject(currentValue)) {
+    // Array, primitive, null, or empty object - this is a leaf value
     return { segments, tail: undefined, leafValue: currentValue }
   }
 
-  const keys = Object.keys(currentValue)
-
-  if (keys.length === 0) {
-    // Empty object is a leaf
-    return { segments, tail: undefined, leafValue: currentValue }
-  }
-
-  if (keys.length === 1 && segments.length === maxDepth) {
-    // Hit depth limit with remaining chain
-    return { segments, tail: currentValue, leafValue: currentValue }
-  }
-
-  // Multi-key object is the remainder
+  // Has keys - return as tail (remainder)
   return { segments, tail: currentValue, leafValue: currentValue }
 }
 

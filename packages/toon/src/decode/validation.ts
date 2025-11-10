@@ -24,11 +24,8 @@ export function validateNoExtraListItems(
   itemDepth: Depth,
   expectedCount: number,
 ): void {
-  if (cursor.atEnd())
-    return
-
   const nextLine = cursor.peek()
-  if (nextLine && nextLine.depth === itemDepth && nextLine.content.startsWith(LIST_ITEM_PREFIX)) {
+  if (nextLine?.depth === itemDepth && nextLine.content.startsWith(LIST_ITEM_PREFIX)) {
     throw new RangeError(`Expected ${expectedCount} list array items, but found more`)
   }
 }
@@ -41,13 +38,9 @@ export function validateNoExtraTabularRows(
   rowDepth: Depth,
   header: ArrayHeaderInfo,
 ): void {
-  if (cursor.atEnd())
-    return
-
   const nextLine = cursor.peek()
   if (
-    nextLine
-    && nextLine.depth === rowDepth
+    nextLine?.depth === rowDepth
     && !nextLine.content.startsWith(LIST_ITEM_PREFIX)
     && isDataRow(nextLine.content, header.delimiter)
   ) {
@@ -71,14 +64,13 @@ export function validateNoBlankLinesInRange(
   // Find blank lines within the range
   // Note: We don't filter by depth because ANY blank line between array items is an error,
   // regardless of its indentation level
-  const blanksInRange = blankLines.filter(
-    blank => blank.lineNumber > startLine
-      && blank.lineNumber < endLine,
+  const firstBlank = blankLines.find(
+    blank => blank.lineNumber > startLine && blank.lineNumber < endLine,
   )
 
-  if (blanksInRange.length > 0) {
+  if (firstBlank) {
     throw new SyntaxError(
-      `Line ${blanksInRange[0]!.lineNumber}: Blank lines inside ${context} are not allowed in strict mode`,
+      `Line ${firstBlank.lineNumber}: Blank lines inside ${context} are not allowed in strict mode`,
     )
   }
 }

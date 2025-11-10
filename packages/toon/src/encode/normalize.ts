@@ -94,6 +94,10 @@ export function isJsonObject(value: unknown): value is JsonObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+export function isEmptyObject(value: JsonObject): boolean {
+  return Object.keys(value).length === 0
+}
+
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
   if (value === null || typeof value !== 'object') {
     return false
@@ -108,15 +112,15 @@ export function isPlainObject(value: unknown): value is Record<string, unknown> 
 // #region Array type detection
 
 export function isArrayOfPrimitives(value: JsonArray): value is readonly JsonPrimitive[] {
-  return value.every(item => isJsonPrimitive(item))
+  return value.length === 0 || value.every(item => isJsonPrimitive(item))
 }
 
 export function isArrayOfArrays(value: JsonArray): value is readonly JsonArray[] {
-  return value.every(item => isJsonArray(item))
+  return value.length === 0 || value.every(item => isJsonArray(item))
 }
 
 export function isArrayOfObjects(value: JsonArray): value is readonly JsonObject[] {
-  return value.every(item => isJsonObject(item))
+  return value.length === 0 || value.every(item => isJsonObject(item))
 }
 
 // #endregion

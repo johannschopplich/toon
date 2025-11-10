@@ -47,17 +47,7 @@ export class LineCursor {
 
   peekAtDepth(targetDepth: Depth): ParsedLine | undefined {
     const line = this.peek()
-    if (!line || line.depth < targetDepth) {
-      return undefined
-    }
-    if (line.depth === targetDepth) {
-      return line
-    }
-    return undefined
-  }
-
-  hasMoreAtDepth(targetDepth: Depth): boolean {
-    return this.peekAtDepth(targetDepth) !== undefined
+    return line?.depth === targetDepth ? line : undefined
   }
 }
 

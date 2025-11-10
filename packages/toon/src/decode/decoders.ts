@@ -73,7 +73,8 @@ function decodeObject(cursor: LineCursor, baseDepth: Depth, options: ResolvedDec
     }
 
     if (line.depth === computedDepth) {
-      const [key, value, isQuoted] = decodeKeyValuePair(line, cursor, computedDepth, options)
+      cursor.advance()
+      const { key, value, isQuoted } = decodeKeyValue(line.content, cursor, computedDepth, options)
       obj[key] = value
 
       // Track quoted dotted keys for expansion phase
@@ -132,17 +133,6 @@ function decodeKeyValue(
   // Inline primitive value
   const decodedValue = parsePrimitiveToken(rest)
   return { key, value: decodedValue, followDepth: baseDepth + 1, isQuoted }
-}
-
-function decodeKeyValuePair(
-  line: ParsedLine,
-  cursor: LineCursor,
-  baseDepth: Depth,
-  options: ResolvedDecodeOptions,
-): [key: string, value: JsonValue, isQuoted: boolean] {
-  cursor.advance()
-  const { key, value, isQuoted } = decodeKeyValue(line.content, cursor, baseDepth, options)
-  return [key, value, isQuoted]
 }
 
 // #endregion
@@ -396,7 +386,8 @@ function decodeObjectFromListItem(
     }
 
     if (line.depth === followDepth && !line.content.startsWith(LIST_ITEM_PREFIX)) {
-      const [k, v, kIsQuoted] = decodeKeyValuePair(line, cursor, followDepth, options)
+      cursor.advance()
+      const { key: k, value: v, isQuoted: kIsQuoted } = decodeKeyValue(line.content, cursor, followDepth, options)
       obj[k] = v
 
       // Track quoted dotted keys

@@ -52,13 +52,11 @@ export function expandPathsSafe(value: JsonValue, strict: boolean): JsonValue {
 
   if (isJsonObject(value)) {
     const expandedObject: JsonObject = {}
-    const keys = Object.keys(value)
 
     // Check if this object has quoted key metadata
     const quotedKeys = (value as ObjectWithQuotedKeys)[QUOTED_KEY_MARKER]
 
-    for (const key of keys) {
-      const keyValue = value[key]!
+    for (const [key, keyValue] of Object.entries(value)) {
 
       // Skip expansion for keys that were originally quoted
       const isQuoted = quotedKeys?.has(key)
@@ -207,8 +205,7 @@ function mergeObjects(
   source: JsonObject,
   strict: boolean,
 ): void {
-  for (const key of Object.keys(source)) {
-    const sourceValue = source[key]!
+  for (const [key, sourceValue] of Object.entries(source)) {
     const targetValue = target[key]
 
     if (targetValue === undefined) {

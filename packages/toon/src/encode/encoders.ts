@@ -1,7 +1,7 @@
 import type { Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions } from '../types'
 import { DOT, LIST_ITEM_MARKER } from '../constants'
 import { tryFoldKeyChain } from './folding'
-import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
+import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isEmptyObject, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
 import { encodeAndJoinPrimitives, encodeKey, encodePrimitive, formatHeader } from './primitives'
 import { LineWriter } from './writer'
 
@@ -38,8 +38,8 @@ export function encodeObject(value: JsonObject, writer: LineWriter, depth: Depth
 
   const effectiveFlattenDepth = remainingDepth ?? options.flattenDepth
 
-  for (const key of keys) {
-    encodeKeyValuePair(key, value[key]!, writer, depth, options, keys, rootLiteralKeys, pathPrefix, effectiveFlattenDepth)
+  for (const [key, val] of Object.entries(value)) {
+    encodeKeyValuePair(key, val, writer, depth, options, keys, rootLiteralKeys, pathPrefix, effectiveFlattenDepth)
   }
 }
 
@@ -66,7 +66,7 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
           encodeArray(foldedKey, leafValue, writer, depth, options)
           return
         }
-        else if (isJsonObject(leafValue) && Object.keys(leafValue).length === 0) {
+        else if (isJsonObject(leafValue) && isEmptyObject(leafValue)) {
           writer.push(depth, `${encodedFoldedKey}:`)
           return
         }
@@ -94,13 +94,8 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
     encodeArray(key, value, writer, depth, options)
   }
   else if (isJsonObject(value)) {
-    const nestedKeys = Object.keys(value)
-    if (nestedKeys.length === 0) {
-      // Empty object
-      writer.push(depth, `${encodedKey}:`)
-    }
-    else {
-      writer.push(depth, `${encodedKey}:`)
+    writer.push(depth, `${encodedKey}:`)
+    if (!isEmptyObject(value)) {
       encodeObject(value, writer, depth + 1, options, rootLiteralKeys, currentPath, effectiveFlattenDepth)
     }
   }
@@ -279,16 +274,14 @@ export function encodeMixedArrayAsListItems(
 }
 
 export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions): void {
-  const keys = Object.keys(obj)
-  if (keys.length === 0) {
+  if (isEmptyObject(obj)) {
     writer.push(depth, LIST_ITEM_MARKER)
     return
   }
 
-  // First key-value on the same line as "- "
-  const firstKey = keys[0]!
+  const entries = Object.entries(obj)
+  const [firstKey, firstValue] = entries[0]!
   const encodedKey = encodeKey(firstKey)
-  const firstValue = obj[firstKey]!
 
   if (isJsonPrimitive(firstValue)) {
     writer.pushListItem(depth, `${encodedKey}: ${encodePrimitive(firstValue, options.delimiter)}`)
@@ -327,20 +320,16 @@ export function encodeObjectAsListItem(obj: JsonObject, writer: LineWriter, dept
     }
   }
   else if (isJsonObject(firstValue)) {
-    const nestedKeys = Object.keys(firstValue)
-    if (nestedKeys.length === 0) {
-      writer.pushListItem(depth, `${encodedKey}:`)
-    }
-    else {
-      writer.pushListItem(depth, `${encodedKey}:`)
+    writer.pushListItem(depth, `${encodedKey}:`)
+    if (!isEmptyObject(firstValue)) {
       encodeObject(firstValue, writer, depth + 2, options)
     }
   }
 
-  // Remaining keys on indented lines
-  for (let i = 1; i < keys.length; i++) {
-    const key = keys[i]!
-    encodeKeyValuePair(key, obj[key]!, writer, depth + 1, options)
+  // Remaining entries on indented lines
+  for (let i = 1; i < entries.length; i++) {
+    const [key, value] = entries[i]!
+    encodeKeyValuePair(key, value, writer, depth + 1, options)
   }
 }
 
