@@ -1,5 +1,6 @@
 import type { Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions } from '../types'
 import { LIST_ITEM_MARKER } from '../constants'
+import { tryFoldKeyChain } from './folding'
 import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
 import { encodeAndJoinPrimitives, encodeKey, encodePrimitive, formatHeader } from './primitives'
 import { LineWriter } from './writer'
@@ -31,11 +32,46 @@ export function encodeObject(value: JsonObject, writer: LineWriter, depth: Depth
   const keys = Object.keys(value)
 
   for (const key of keys) {
-    encodeKeyValuePair(key, value[key]!, writer, depth, options)
+    encodeKeyValuePair(key, value[key]!, writer, depth, options, keys)
   }
 }
 
-export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions): void {
+export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions, siblings?: readonly string[]): void {
+  // Attempt key folding when enabled
+  if (options.keyFolding === 'safe' && siblings) {
+    const foldResult = tryFoldKeyChain(key, value, siblings, options)
+
+    if (foldResult) {
+      const { foldedKey, remainder, leafValue } = foldResult
+      const encodedFoldedKey = encodeKey(foldedKey)
+
+      // Case 1: Fully folded to a leaf value
+      if (remainder === undefined) {
+        // The folded chain ended at a leaf (primitive, array, or empty object)
+        if (isJsonPrimitive(leafValue)) {
+          writer.push(depth, `${encodedFoldedKey}: ${encodePrimitive(leafValue, options.delimiter)}`)
+          return
+        }
+        else if (isJsonArray(leafValue)) {
+          encodeArray(foldedKey, leafValue, writer, depth, options)
+          return
+        }
+        else if (isJsonObject(leafValue) && Object.keys(leafValue).length === 0) {
+          writer.push(depth, `${encodedFoldedKey}:`)
+          return
+        }
+      }
+
+      // Case 2: Partially folded with a tail object
+      if (isJsonObject(remainder)) {
+        writer.push(depth, `${encodedFoldedKey}:`)
+        encodeObject(remainder, writer, depth + 1, options)
+        return
+      }
+    }
+  }
+
+  // No folding applied - use standard encoding
   const encodedKey = encodeKey(key)
 
   if (isJsonPrimitive(value)) {

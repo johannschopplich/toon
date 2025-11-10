@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/toon-format/toon/actions/workflows/ci.yml/badge.svg)](https://github.com/toon-format/toon/actions)
 [![npm version](https://img.shields.io/npm/v/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
-[![SPEC v1.4](https://img.shields.io/badge/spec-v1.4-lightgray)](https://github.com/toon-format/spec)
+[![SPEC v1.5](https://img.shields.io/badge/spec-v1.5-lightgray)](https://github.com/toon-format/spec)
 [![npm downloads (total)](https://img.shields.io/npm/dt/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
@@ -80,6 +80,7 @@ See [benchmarks](#benchmarks) for concrete comparisons across different data str
 - 🍱 **Minimal syntax:** removes redundant punctuation (braces, brackets, most quotes)
 - 📐 **Indentation-based structure:** like YAML, uses whitespace instead of braces
 - 🧺 **Tabular arrays:** declare keys once, stream data as rows
+- 🔗 **Optional key folding (v1.5):** collapses single-key wrapper chains into dotted paths (e.g., `data.metadata.items`) to reduce indentation and tokens
 
 [^1]: For flat tabular data, CSV is more compact. TOON adds minimal overhead to provide explicit structure and validation that improves LLM reliability.
 
@@ -736,6 +737,9 @@ cat data.toon | npx @toon-format/cli --decode
 | `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
+| `--key-folding <mode>` | Key folding mode: `off`, `safe` (default: `off`) - collapses nested chains (v1.5) |
+| `--flatten-depth <number>` | Maximum segments to fold (default: `Infinity`) - requires `--key-folding safe` (v1.5) |
+| `--expand-paths <mode>` | Path expansion mode: `off`, `safe` (default: `off`) - reconstructs dotted keys (v1.5) |
 
 ### Examples
 
@@ -751,6 +755,9 @@ npx @toon-format/cli data.json --delimiter "|" --length-marker -o output.toon
 
 # Lenient decoding (skip validation)
 npx @toon-format/cli data.toon --no-strict -o output.json
+
+# Key folding for nested data (v1.5)
+npx @toon-format/cli data.json --key-folding safe -o output.toon
 
 # Stdin workflows
 echo '{"name": "Ada", "age": 30}' | npx @toon-format/cli --stats
@@ -796,6 +803,40 @@ user:
   id: 123
   name: Ada
 ```
+
+### Key Folding (Optional)
+
+New in v1.5: Optionally collapse single-key wrapper chains into dotted paths to reduce tokens. Enable with `keyFolding: 'safe'`.
+
+Standard nesting:
+
+```
+data:
+  metadata:
+    items[2]: a,b
+```
+
+With key folding:
+
+```
+data.metadata.items[2]: a,b
+```
+
+Round-trip with path expansion:
+
+```ts
+import { decode, encode } from '@toon-format/toon'
+
+const original = { data: { metadata: { items: ['a', 'b'] } } }
+
+const toon = encode(original, { keyFolding: 'safe' })
+// → "data.metadata.items[2]: a,b"
+
+const restored = decode(toon, { expandPaths: 'safe' })
+// → Matches original structure
+```
+
+See §13.4 in the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md#134-key-folding-and-path-expansion) for folding rules and safety guarantees.
 
 ### Arrays
 
@@ -975,6 +1016,8 @@ Converts any JSON-serializable value to TOON format.
   - `indent?: number` – Number of spaces per indentation level (default: `2`)
   - `delimiter?: ',' | '\t' | '|'` – Delimiter for array values and tabular rows (default: `','`)
   - `lengthMarker?: '#' | false` – Optional marker to prefix array lengths (default: `false`)
+  - `keyFolding?: 'off' | 'safe'` – Enable key folding to collapse single-key wrapper chains into dotted paths (default: `'off'`). When `'safe'`, only valid identifier segments are folded (v1.5)
+  - `flattenDepth?: number` – Maximum number of segments to fold when `keyFolding` is enabled (default: `Infinity`). Values 0-1 have no practical effect (v1.5)
 
 **Returns:**
 
@@ -1096,6 +1139,7 @@ Converts a TOON-formatted string back to JavaScript values.
 - `options` – Optional decoding options:
   - `indent?: number` – Expected number of spaces per indentation level (default: `2`)
   - `strict?: boolean` – Enable strict validation (default: `true`)
+  - `expandPaths?: 'off' | 'safe'` – Enable path expansion to reconstruct dotted keys into nested objects (default: `'off'`). Pairs with `keyFolding: 'safe'` for lossless round-trips (v1.5)
 
 **Returns:**
 
@@ -1223,7 +1267,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 ## Other Implementations
 
 > [!NOTE]
-> When implementing TOON in other languages, please follow the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md) (currently v1.4) to ensure compatibility across implementations. The [conformance tests](https://github.com/toon-format/spec/tree/main/tests) provide language-agnostic test fixtures that validate implementations across any language.
+> When implementing TOON in other languages, please follow the [specification](https://github.com/toon-format/spec/blob/main/SPEC.md) (currently v1.5) to ensure compatibility across implementations. The [conformance tests](https://github.com/toon-format/spec/tree/main/tests) provide language-agnostic test fixtures that validate your implementations.
 
 ### Official Implementations
 

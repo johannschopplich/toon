@@ -13,8 +13,11 @@ export interface TestCase {
   options?: {
     delimiter?: ',' | '\t' | '|'
     indent?: number
-    lengthMarker?: '#' | ''
+    lengthMarker?: '#'
     strict?: boolean
+    keyFolding?: 'off' | 'safe'
+    flattenDepth?: number
+    expandPaths?: 'off' | 'safe'
   }
   specSection?: string
   note?: string

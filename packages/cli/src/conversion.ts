@@ -1,4 +1,4 @@
-import type { DecodeOptions, Delimiter, EncodeOptions } from '../../toon/src'
+import type { DecodeOptions, EncodeOptions } from '../../toon/src'
 import type { InputSource } from './types'
 import * as fsp from 'node:fs/promises'
 import * as path from 'node:path'
@@ -11,9 +11,11 @@ import { formatInputLabel, readInput } from './utils'
 export async function encodeToToon(config: {
   input: InputSource
   output?: string
-  delimiter: Delimiter
-  indent: number
+  indent: NonNullable<EncodeOptions['indent']>
+  delimiter: NonNullable<EncodeOptions['delimiter']>
   lengthMarker: NonNullable<EncodeOptions['lengthMarker']>
+  keyFolding?: NonNullable<EncodeOptions['keyFolding']>
+  flattenDepth?: number
   printStats: boolean
 }): Promise<void> {
   const jsonContent = await readInput(config.input)
@@ -30,6 +32,8 @@ export async function encodeToToon(config: {
     delimiter: config.delimiter,
     indent: config.indent,
     lengthMarker: config.lengthMarker,
+    keyFolding: config.keyFolding,
+    flattenDepth: config.flattenDepth,
   }
 
   const toonOutput = encode(data, encodeOptions)
@@ -59,8 +63,9 @@ export async function encodeToToon(config: {
 export async function decodeToJson(config: {
   input: InputSource
   output?: string
-  indent: number
-  strict: boolean
+  indent: NonNullable<DecodeOptions['indent']>
+  strict: NonNullable<DecodeOptions['strict']>
+  expandPaths?: NonNullable<DecodeOptions['expandPaths']>
 }): Promise<void> {
   const toonContent = await readInput(config.input)
 
@@ -69,6 +74,7 @@ export async function decodeToJson(config: {
     const decodeOptions: DecodeOptions = {
       indent: config.indent,
       strict: config.strict,
+      expandPaths: config.expandPaths,
     }
     data = decode(toonContent, decodeOptions)
   }

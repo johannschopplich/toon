@@ -65,6 +65,9 @@ cat data.toon | toon --decode
 | `--length-marker` | Add `#` prefix to array lengths (e.g., `items[#3]`) |
 | `--stats` | Show token count estimates and savings (encode only) |
 | `--no-strict` | Disable strict validation when decoding |
+| `--key-folding <mode>` | Enable key folding: `off`, `safe` (default: `off`) - v1.5 |
+| `--flatten-depth <number>` | Maximum folded segment count when key folding is enabled (default: `Infinity`) - v1.5 |
+| `--expand-paths <mode>` | Enable path expansion: `off`, `safe` (default: `off`) - v1.5 |
 
 ## Advanced Examples
 
@@ -119,12 +122,81 @@ cat large-dataset.json | toon --delimiter "\t" > output.toon
 jq '.results' data.json | toon > filtered.toon
 ```
 
+### Key Folding (v1.5)
+
+Collapse nested wrapper chains to reduce tokens:
+
+#### Basic key folding
+
+```bash
+# Encode with key folding
+toon input.json --key-folding safe -o output.toon
+```
+
+For data like:
+```json
+{
+  "data": {
+    "metadata": {
+      "items": ["a", "b"]
+    }
+  }
+}
+```
+
+Output becomes:
+```
+data.metadata.items[2]: a,b
+```
+
+Instead of:
+```
+data:
+  metadata:
+    items[2]: a,b
+```
+
+#### Limit folding depth
+
+```bash
+# Fold maximum 2 levels deep
+toon input.json --key-folding safe --flatten-depth 2 -o output.toon
+```
+
+#### Path expansion on decode
+
+```bash
+# Reconstruct nested structure from folded keys
+toon data.toon --expand-paths safe -o output.json
+```
+
+#### Round-trip workflow
+
+```bash
+# Encode with folding
+toon input.json --key-folding safe -o compressed.toon
+
+# Decode with expansion (restores original structure)
+toon compressed.toon --expand-paths safe -o output.json
+
+# Verify round-trip
+diff input.json output.json
+```
+
+#### Combined with other options
+
+```bash
+# Key folding + tab delimiter + stats
+toon data.json --key-folding safe --delimiter "\t" --stats -o output.toon
+```
+
 ## Why Use the CLI?
 
 - **Quick conversions** between formats without writing code
 - **Token analysis** to see potential savings before sending to LLMs
 - **Pipeline integration** with existing JSON-based workflows
 - **Flexible formatting** with delimiter and indentation options
+- **Key folding (v1.5)** to collapse nested wrappers for additional token savings
 
 ## Related
 

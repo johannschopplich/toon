@@ -1,6 +1,7 @@
 import type { DecodeOptions, EncodeOptions, JsonValue, ResolvedDecodeOptions, ResolvedEncodeOptions } from './types'
 import { DEFAULT_DELIMITER } from './constants'
 import { decodeValueFromLines } from './decode/decoders'
+import { expandPathsSafe } from './decode/expand'
 import { LineCursor, toParsedLines } from './decode/scanner'
 import { encodeValue } from './encode/encoders'
 import { normalizeValue } from './encode/normalize'
@@ -34,7 +35,14 @@ export function decode(input: string, options?: DecodeOptions): JsonValue {
   }
 
   const cursor = new LineCursor(scanResult.lines, scanResult.blankLines)
-  return decodeValueFromLines(cursor, resolvedOptions)
+  const value = decodeValueFromLines(cursor, resolvedOptions)
+
+  // Apply path expansion if enabled
+  if (resolvedOptions.expandPaths === 'safe') {
+    return expandPathsSafe(value, resolvedOptions.strict)
+  }
+
+  return value
 }
 
 function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
@@ -42,6 +50,8 @@ function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {
     indent: options?.indent ?? 2,
     delimiter: options?.delimiter ?? DEFAULT_DELIMITER,
     lengthMarker: options?.lengthMarker ?? false,
+    keyFolding: options?.keyFolding ?? 'off',
+    flattenDepth: options?.flattenDepth ?? Number.POSITIVE_INFINITY,
   }
 }
 
@@ -49,5 +59,6 @@ function resolveDecodeOptions(options?: DecodeOptions): ResolvedDecodeOptions {
   return {
     indent: options?.indent ?? 2,
     strict: options?.strict ?? true,
+    expandPaths: options?.expandPaths ?? 'off',
   }
 }

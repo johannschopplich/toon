@@ -7,6 +7,7 @@ import delimiters from '@toon-format/spec/tests/fixtures/decode/delimiters.json'
 import indentationErrors from '@toon-format/spec/tests/fixtures/decode/indentation-errors.json'
 import numbers from '@toon-format/spec/tests/fixtures/decode/numbers.json'
 import objects from '@toon-format/spec/tests/fixtures/decode/objects.json'
+import pathExpansion from '@toon-format/spec/tests/fixtures/decode/path-expansion.json'
 import primitives from '@toon-format/spec/tests/fixtures/decode/primitives.json'
 import rootForm from '@toon-format/spec/tests/fixtures/decode/root-form.json'
 import validationErrors from '@toon-format/spec/tests/fixtures/decode/validation-errors.json'
@@ -21,6 +22,7 @@ const fixtureFiles = [
   arraysPrimitive,
   arraysTabular,
   arraysNested,
+  pathExpansion,
   delimiters,
   whitespace,
   rootForm,

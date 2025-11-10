@@ -13,6 +13,19 @@ export function isValidUnquotedKey(key: string): boolean {
 }
 
 /**
+ * Checks if a key segment is a valid identifier for safe folding/expansion.
+ *
+ * @remarks
+ * Identifier segments are more restrictive than unquoted keys:
+ * - Must start with a letter or underscore
+ * - Followed only by letters, digits, or underscores (no dots)
+ * - Used for safe key folding and path expansion
+ */
+export function isIdentifierSegment(key: string): boolean {
+  return /^[A-Z_]\w*$/i.test(key)
+}
+
+/**
  * Determines if a string value can be safely encoded without quotes.
  *
  * @remarks

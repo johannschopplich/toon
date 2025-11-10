@@ -1,5 +1,5 @@
 import type { CommandDef } from 'citty'
-import type { Delimiter } from '../../toon/src'
+import type { DecodeOptions, Delimiter, EncodeOptions } from '../../toon/src'
 import type { InputSource } from './types'
 import * as path from 'node:path'
 import process from 'node:process'
@@ -50,6 +50,20 @@ export const mainCommand: CommandDef<{
     type: 'boolean'
     description: string
     default: true
+  }
+  keyFolding: {
+    type: 'string'
+    description: string
+    default: string
+  }
+  flattenDepth: {
+    type: 'string'
+    description: string
+  }
+  expandPaths: {
+    type: 'string'
+    description: string
+    default: string
   }
   stats: {
     type: 'boolean'
@@ -103,6 +117,20 @@ export const mainCommand: CommandDef<{
       description: 'Enable strict mode for decoding',
       default: true,
     },
+    keyFolding: {
+      type: 'string',
+      description: 'Enable key folding: off, safe (default: off)',
+      default: 'off',
+    },
+    flattenDepth: {
+      type: 'string',
+      description: 'Maximum folded segment count when key folding is enabled (default: Infinity)',
+    },
+    expandPaths: {
+      type: 'string',
+      description: 'Enable path expansion: off, safe (default: off)',
+      default: 'off',
+    },
     stats: {
       type: 'boolean',
       description: 'Show token statistics',
@@ -129,6 +157,27 @@ export const mainCommand: CommandDef<{
       throw new Error(`Invalid delimiter "${delimiter}". Valid delimiters are: comma (,), tab (\\t), pipe (|)`)
     }
 
+    // Validate `keyFolding`
+    const keyFolding = args.keyFolding || 'off'
+    if (keyFolding !== 'off' && keyFolding !== 'safe') {
+      throw new Error(`Invalid keyFolding value "${keyFolding}". Valid values are: off, safe`)
+    }
+
+    // Parse and validate `flattenDepth`
+    let flattenDepth: number | undefined
+    if (args.flattenDepth !== undefined) {
+      flattenDepth = Number.parseInt(args.flattenDepth, 10)
+      if (Number.isNaN(flattenDepth) || flattenDepth < 0) {
+        throw new Error(`Invalid flattenDepth value: ${args.flattenDepth}`)
+      }
+    }
+
+    // Validate `expandPaths`
+    const expandPaths = args.expandPaths || 'off'
+    if (expandPaths !== 'off' && expandPaths !== 'safe') {
+      throw new Error(`Invalid expandPaths value "${expandPaths}". Valid values are: off, safe`)
+    }
+
     const mode = detectMode(inputSource, args.encode, args.decode)
 
     try {
@@ -140,6 +189,8 @@ export const mainCommand: CommandDef<{
           indent,
           lengthMarker: args.lengthMarker === true ? '#' : false,
           printStats: args.stats === true,
+          keyFolding: keyFolding as NonNullable<EncodeOptions['keyFolding']>,
+          flattenDepth,
         })
       }
       else {
@@ -148,6 +199,7 @@ export const mainCommand: CommandDef<{
           output: outputPath,
           indent,
           strict: args.strict !== false,
+          expandPaths: expandPaths as NonNullable<DecodeOptions['expandPaths']>,
         })
       }
     }
