@@ -18,9 +18,6 @@ export interface ObjectWithQuotedKeys extends JsonObject {
   [QUOTED_KEY_MARKER]?: Set<string>
 }
 
-/**
- * Checks if two values can be merged (both are plain objects).
- */
 function canMerge(a: JsonValue, b: JsonValue): a is JsonObject {
   return isJsonObject(a) && isJsonObject(b)
 }
@@ -140,13 +137,13 @@ function insertPathSafe(
 
   // Walk to the penultimate segment, creating objects as needed
   for (let i = 0; i < segments.length - 1; i++) {
-    const seg = segments[i]!
-    const segmentValue = currentNode[seg]
+    const currentSegment = segments[i]!
+    const segmentValue = currentNode[currentSegment]
 
     if (segmentValue === undefined) {
       // Create new intermediate object
       const newObj: JsonObject = {}
-      currentNode[seg] = newObj
+      currentNode[currentSegment] = newObj
       currentNode = newObj
     }
     else if (isJsonObject(segmentValue)) {
@@ -157,12 +154,12 @@ function insertPathSafe(
       // Conflict: existing value is not an object
       if (strict) {
         throw new TypeError(
-          `Path expansion conflict at segment "${seg}": expected object but found ${typeof segmentValue}`,
+          `Path expansion conflict at segment "${currentSegment}": expected object but found ${typeof segmentValue}`,
         )
       }
       // Non-strict: overwrite with new object
       const newObj: JsonObject = {}
-      currentNode[seg] = newObj
+      currentNode[currentSegment] = newObj
       currentNode = newObj
     }
   }

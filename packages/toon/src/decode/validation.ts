@@ -4,12 +4,6 @@ import { COLON, LIST_ITEM_PREFIX } from '../constants'
 
 /**
  * Asserts that the actual count matches the expected count in strict mode.
- *
- * @param actual The actual count
- * @param expected The expected count
- * @param itemType The type of items being counted (e.g., `list array items`, `tabular rows`)
- * @param options Decode options
- * @throws RangeError if counts don't match in strict mode
  */
 export function assertExpectedCount(
   actual: number,
@@ -24,11 +18,6 @@ export function assertExpectedCount(
 
 /**
  * Validates that there are no extra list items beyond the expected count.
- *
- * @param cursor The line cursor
- * @param itemDepth The expected depth of items
- * @param expectedCount The expected number of items
- * @throws RangeError if extra items are found
  */
 export function validateNoExtraListItems(
   cursor: LineCursor,
@@ -46,11 +35,6 @@ export function validateNoExtraListItems(
 
 /**
  * Validates that there are no extra tabular rows beyond the expected count.
- *
- * @param cursor The line cursor
- * @param rowDepth The expected depth of rows
- * @param header The array header info containing length and delimiter
- * @throws RangeError if extra rows are found
  */
 export function validateNoExtraTabularRows(
   cursor: LineCursor,
@@ -72,17 +56,7 @@ export function validateNoExtraTabularRows(
 }
 
 /**
- * Validates that there are no blank lines within a specific line range and depth.
- *
- * @remarks
- * In strict mode, blank lines inside arrays/tabular rows are not allowed.
- *
- * @param startLine The starting line number (inclusive)
- * @param endLine The ending line number (inclusive)
- * @param blankLines Array of blank line information
- * @param strict Whether strict mode is enabled
- * @param context Description of the context (e.g., "list array", "tabular array")
- * @throws SyntaxError if blank lines are found in strict mode
+ * Validates that there are no blank lines within a specific line range in strict mode.
  */
 export function validateNoBlankLinesInRange(
   startLine: number,
@@ -110,11 +84,7 @@ export function validateNoBlankLinesInRange(
 }
 
 /**
- * Checks if a line represents a data row (as opposed to a key-value pair) in a tabular array.
- *
- * @param content The line content
- * @param delimiter The delimiter used in the table
- * @returns true if the line is a data row, false if it's a key-value pair
+ * Checks if a line is a data row (vs a key-value pair) in a tabular array.
  */
 function isDataRow(content: string, delimiter: Delimiter): boolean {
   const colonPos = content.indexOf(COLON)

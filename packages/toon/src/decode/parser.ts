@@ -144,6 +144,15 @@ export function parseBracketSegment(
 
 // #region Delimited value parsing
 
+/**
+ * Parses a delimited string into values, respecting quoted strings and escape sequences.
+ *
+ * @remarks
+ * Uses a state machine that tracks:
+ * - `inQuotes`: Whether we're inside a quoted string (to ignore delimiters)
+ * - `valueBuffer`: Accumulates characters for the current value
+ * - Escape sequences: Handled within quoted strings
+ */
 export function parseDelimitedValues(input: string, delimiter: Delimiter): string[] {
   const values: string[] = []
   let valueBuffer = ''
@@ -252,22 +261,22 @@ export function parseStringLiteral(token: string): string {
 }
 
 export function parseUnquotedKey(content: string, start: number): { key: string, end: number } {
-  let end = start
-  while (end < content.length && content[end] !== COLON) {
-    end++
+  let parsePosition = start
+  while (parsePosition < content.length && content[parsePosition] !== COLON) {
+    parsePosition++
   }
 
   // Validate that a colon was found
-  if (end >= content.length || content[end] !== COLON) {
+  if (parsePosition >= content.length || content[parsePosition] !== COLON) {
     throw new SyntaxError('Missing colon after key')
   }
 
-  const key = content.slice(start, end).trim()
+  const key = content.slice(start, parsePosition).trim()
 
   // Skip the colon
-  end++
+  parsePosition++
 
-  return { key, end }
+  return { key, end: parsePosition }
 }
 
 export function parseQuotedKey(content: string, start: number): { key: string, end: number } {
@@ -281,15 +290,15 @@ export function parseQuotedKey(content: string, start: number): { key: string, e
   // Extract and unescape the key content
   const keyContent = content.slice(start + 1, closingQuoteIndex)
   const key = unescapeString(keyContent)
-  let end = closingQuoteIndex + 1
+  let parsePosition = closingQuoteIndex + 1
 
   // Validate and skip colon after quoted key
-  if (end >= content.length || content[end] !== COLON) {
+  if (parsePosition >= content.length || content[parsePosition] !== COLON) {
     throw new SyntaxError('Missing colon after key')
   }
-  end++
+  parsePosition++
 
-  return { key, end }
+  return { key, end: parsePosition }
 }
 
 export function parseKeyToken(content: string, start: number): { key: string, end: number, isQuoted: boolean } {

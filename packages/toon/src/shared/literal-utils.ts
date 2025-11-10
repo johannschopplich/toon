@@ -1,8 +1,5 @@
 import { FALSE_LITERAL, NULL_LITERAL, TRUE_LITERAL } from '../constants'
 
-/**
- * Checks if a token is a boolean or null literal (`true`, `false`, `null`).
- */
 export function isBooleanOrNullLiteral(token: string): boolean {
   return token === TRUE_LITERAL || token === FALSE_LITERAL || token === NULL_LITERAL
 }

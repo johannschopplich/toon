@@ -138,6 +138,8 @@ function collectSingleKeyChain(
   const segments: string[] = [startKey]
   let currentValue = startValue
 
+  // Traverse nested single-key objects, collecting each key into segments array
+  // Stop when we encounter: multi-key object, array, primitive, or depth limit
   while (segments.length < maxDepth) {
     // Must be an object to continue
     if (!isJsonObject(currentValue)) {
@@ -180,12 +182,6 @@ function collectSingleKeyChain(
   return { segments, tail: currentValue, leafValue: currentValue }
 }
 
-/**
- * Builds a folded key from segments.
- *
- * @param segments - Array of key segments
- * @returns Dot-separated key string
- */
 function buildFoldedKey(segments: readonly string[]): string {
   return segments.join(DOT)
 }

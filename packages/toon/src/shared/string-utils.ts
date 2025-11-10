@@ -69,11 +69,7 @@ export function unescapeString(value: string): string {
 }
 
 /**
- * Finds the index of the closing double quote in a string, accounting for escape sequences.
- *
- * @param content The string to search in
- * @param start The index of the opening quote
- * @returns The index of the closing quote, or -1 if not found
+ * Finds the index of the closing double quote, accounting for escape sequences.
  */
 export function findClosingQuote(content: string, start: number): number {
   let i = start + 1
@@ -92,12 +88,7 @@ export function findClosingQuote(content: string, start: number): number {
 }
 
 /**
- * Finds the index of a specific character outside of quoted sections.
- *
- * @param content The string to search in
- * @param char The character to look for
- * @param start Optional starting index (defaults to 0)
- * @returns The index of the character, or -1 if not found outside quotes
+ * Finds the index of a character outside of quoted sections.
  */
 export function findUnquotedChar(content: string, char: string, start = 0): number {
   let inQuotes = false

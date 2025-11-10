@@ -92,13 +92,13 @@ export function toParsedLines(source: string, indentSize: number, strict: boolea
     // Strict mode validation
     if (strict) {
       // Find the full leading whitespace region (spaces and tabs)
-      let wsEnd = 0
-      while (wsEnd < raw.length && (raw[wsEnd] === SPACE || raw[wsEnd] === TAB)) {
-        wsEnd++
+      let whitespaceEndIndex = 0
+      while (whitespaceEndIndex < raw.length && (raw[whitespaceEndIndex] === SPACE || raw[whitespaceEndIndex] === TAB)) {
+        whitespaceEndIndex++
       }
 
       // Check for tabs in leading whitespace (before actual content)
-      if (raw.slice(0, wsEnd).includes(TAB)) {
+      if (raw.slice(0, whitespaceEndIndex).includes(TAB)) {
         throw new SyntaxError(`Line ${lineNumber}: Tabs are not allowed in indentation in strict mode`)
       }
 

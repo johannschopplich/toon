@@ -20,12 +20,51 @@ export type {
   ResolvedEncodeOptions,
 } from './types'
 
+/**
+ * Encodes a JavaScript value into TOON format string.
+ *
+ * @param input - Any JavaScript value (objects, arrays, primitives)
+ * @param options - Optional encoding configuration
+ * @returns TOON formatted string
+ *
+ * @example
+ * ```ts
+ * encode({ name: 'Alice', age: 30 })
+ * // name: Alice
+ * // age: 30
+ *
+ * encode({ users: [{ id: 1 }, { id: 2 }] })
+ * // users[]:
+ * //   - id: 1
+ * //   - id: 2
+ *
+ * encode(data, { indent: 4, keyFolding: 'safe' })
+ * ```
+ */
 export function encode(input: unknown, options?: EncodeOptions): string {
   const normalizedValue = normalizeValue(input)
   const resolvedOptions = resolveOptions(options)
   return encodeValue(normalizedValue, resolvedOptions)
 }
 
+/**
+ * Decodes a TOON format string into a JavaScript value.
+ *
+ * @param input - TOON formatted string
+ * @param options - Optional decoding configuration
+ * @returns Parsed JavaScript value (object, array, or primitive)
+ *
+ * @example
+ * ```ts
+ * decode('name: Alice\nage: 30')
+ * // { name: 'Alice', age: 30 }
+ *
+ * decode('users[]:\n  - id: 1\n  - id: 2')
+ * // { users: [{ id: 1 }, { id: 2 }] }
+ *
+ * decode(toonString, { strict: false, expandPaths: 'safe' })
+ * ```
+ */
 export function decode(input: string, options?: DecodeOptions): JsonValue {
   const resolvedOptions = resolveDecodeOptions(options)
   const scanResult = toParsedLines(input, resolvedOptions.indent, resolvedOptions.strict)
