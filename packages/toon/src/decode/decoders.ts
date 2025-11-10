@@ -1,7 +1,9 @@
 import type { ArrayHeaderInfo, Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ParsedLine, ResolvedDecodeOptions } from '../types'
+import type { ObjectWithQuotedKeys } from './expand'
 import type { LineCursor } from './scanner'
-import { COLON, DEFAULT_DELIMITER, LIST_ITEM_PREFIX } from '../constants'
+import { COLON, DEFAULT_DELIMITER, DOT, LIST_ITEM_PREFIX } from '../constants'
 import { findClosingQuote } from '../shared/string-utils'
+import { QUOTED_KEY_MARKER } from './expand'
 import { isArrayHeaderAfterHyphen, isObjectFirstFieldAfterHyphen, mapRowValuesToPrimitives, parseArrayHeaderLine, parseDelimitedValues, parseKeyToken, parsePrimitiveToken } from './parser'
 import { assertExpectedCount, validateNoBlankLinesInRange, validateNoExtraListItems, validateNoExtraTabularRows } from './validation'
 
@@ -55,6 +57,7 @@ function isKeyValueLine(line: ParsedLine): boolean {
 
 function decodeObject(cursor: LineCursor, baseDepth: Depth, options: ResolvedDecodeOptions): JsonObject {
   const obj: JsonObject = {}
+  const quotedKeys: Set<string> = new Set()
 
   // Detect the actual depth of the first field (may differ from baseDepth in nested structures)
   let computedDepth: Depth | undefined
@@ -70,13 +73,23 @@ function decodeObject(cursor: LineCursor, baseDepth: Depth, options: ResolvedDec
     }
 
     if (line.depth === computedDepth) {
-      const [key, value] = decodeKeyValuePair(line, cursor, computedDepth, options)
+      const [key, value, isQuoted] = decodeKeyValuePair(line, cursor, computedDepth, options)
       obj[key] = value
+
+      // Track quoted dotted keys for expansion phase
+      if (isQuoted && key.includes(DOT)) {
+        quotedKeys.add(key)
+      }
     }
     else {
       // Different depth (shallower or deeper) - stop object parsing
       break
     }
+  }
+
+  // Attach quoted key metadata if any were found
+  if (quotedKeys.size > 0) {
+    (obj as ObjectWithQuotedKeys)[QUOTED_KEY_MARKER] = quotedKeys
   }
 
   return obj
@@ -87,21 +100,22 @@ function decodeKeyValue(
   cursor: LineCursor,
   baseDepth: Depth,
   options: ResolvedDecodeOptions,
-): { key: string, value: JsonValue, followDepth: Depth } {
+): { key: string, value: JsonValue, followDepth: Depth, isQuoted: boolean } {
   // Check for array header first (before parsing key)
   const arrayHeader = parseArrayHeaderLine(content, DEFAULT_DELIMITER)
   if (arrayHeader && arrayHeader.header.key) {
-    const value = decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
+    const decodedValue = decodeArrayFromHeader(arrayHeader.header, arrayHeader.inlineValues, cursor, baseDepth, options)
     // After an array, subsequent fields are at baseDepth + 1 (where array content is)
     return {
       key: arrayHeader.header.key,
-      value,
+      value: decodedValue,
       followDepth: baseDepth + 1,
+      isQuoted: false, // Array keys parsed separately in `parseArrayHeaderLine`
     }
   }
 
   // Regular key-value pair
-  const { key, end } = parseKeyToken(content, 0)
+  const { key, end, isQuoted } = parseKeyToken(content, 0)
   const rest = content.slice(end).trim()
 
   // No value after colon - expect nested object or empty
@@ -109,15 +123,15 @@ function decodeKeyValue(
     const nextLine = cursor.peek()
     if (nextLine && nextLine.depth > baseDepth) {
       const nested = decodeObject(cursor, baseDepth + 1, options)
-      return { key, value: nested, followDepth: baseDepth + 1 }
+      return { key, value: nested, followDepth: baseDepth + 1, isQuoted }
     }
     // Empty object
-    return { key, value: {}, followDepth: baseDepth + 1 }
+    return { key, value: {}, followDepth: baseDepth + 1, isQuoted }
   }
 
   // Inline primitive value
-  const value = parsePrimitiveToken(rest)
-  return { key, value, followDepth: baseDepth + 1 }
+  const decodedValue = parsePrimitiveToken(rest)
+  return { key, value: decodedValue, followDepth: baseDepth + 1, isQuoted }
 }
 
 function decodeKeyValuePair(
@@ -125,10 +139,10 @@ function decodeKeyValuePair(
   cursor: LineCursor,
   baseDepth: Depth,
   options: ResolvedDecodeOptions,
-): [key: string, value: JsonValue] {
+): [key: string, value: JsonValue, isQuoted: boolean] {
   cursor.advance()
-  const { key, value } = decodeKeyValue(line.content, cursor, baseDepth, options)
-  return [key, value]
+  const { key, value, isQuoted } = decodeKeyValue(line.content, cursor, baseDepth, options)
+  return [key, value, isQuoted]
 }
 
 // #endregion
@@ -364,9 +378,15 @@ function decodeObjectFromListItem(
   options: ResolvedDecodeOptions,
 ): JsonObject {
   const afterHyphen = firstLine.content.slice(LIST_ITEM_PREFIX.length)
-  const { key, value, followDepth } = decodeKeyValue(afterHyphen, cursor, baseDepth, options)
+  const { key, value, followDepth, isQuoted } = decodeKeyValue(afterHyphen, cursor, baseDepth, options)
 
   const obj: JsonObject = { [key]: value }
+  const quotedKeys: Set<string> = new Set()
+
+  // Track if first key was quoted and dotted
+  if (isQuoted && key.includes(DOT)) {
+    quotedKeys.add(key)
+  }
 
   // Read subsequent fields
   while (!cursor.atEnd()) {
@@ -376,12 +396,22 @@ function decodeObjectFromListItem(
     }
 
     if (line.depth === followDepth && !line.content.startsWith(LIST_ITEM_PREFIX)) {
-      const [k, v] = decodeKeyValuePair(line, cursor, followDepth, options)
+      const [k, v, kIsQuoted] = decodeKeyValuePair(line, cursor, followDepth, options)
       obj[k] = v
+
+      // Track quoted dotted keys
+      if (kIsQuoted && k.includes(DOT)) {
+        quotedKeys.add(k)
+      }
     }
     else {
       break
     }
+  }
+
+  // Attach quoted key metadata if any were found
+  if (quotedKeys.size > 0) {
+    (obj as ObjectWithQuotedKeys)[QUOTED_KEY_MARKER] = quotedKeys
   }
 
   return obj

@@ -22,7 +22,7 @@ export function escapeString(value: string): string {
  * Handles `\n`, `\t`, `\r`, `\\`, and `\"` escape sequences.
  */
 export function unescapeString(value: string): string {
-  let result = ''
+  let unescaped = ''
   let i = 0
 
   while (i < value.length) {
@@ -33,27 +33,27 @@ export function unescapeString(value: string): string {
 
       const next = value[i + 1]
       if (next === 'n') {
-        result += NEWLINE
+        unescaped += NEWLINE
         i += 2
         continue
       }
       if (next === 't') {
-        result += TAB
+        unescaped += TAB
         i += 2
         continue
       }
       if (next === 'r') {
-        result += CARRIAGE_RETURN
+        unescaped += CARRIAGE_RETURN
         i += 2
         continue
       }
       if (next === BACKSLASH) {
-        result += BACKSLASH
+        unescaped += BACKSLASH
         i += 2
         continue
       }
       if (next === DOUBLE_QUOTE) {
-        result += DOUBLE_QUOTE
+        unescaped += DOUBLE_QUOTE
         i += 2
         continue
       }
@@ -61,11 +61,11 @@ export function unescapeString(value: string): string {
       throw new SyntaxError(`Invalid escape sequence: \\${next}`)
     }
 
-    result += value[i]
+    unescaped += value[i]
     i++
   }
 
-  return result
+  return unescaped
 }
 
 /**

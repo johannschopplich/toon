@@ -1,5 +1,5 @@
 import type { Depth, JsonArray, JsonObject, JsonPrimitive, JsonValue, ResolvedEncodeOptions } from '../types'
-import { LIST_ITEM_MARKER } from '../constants'
+import { DOT, LIST_ITEM_MARKER } from '../constants'
 import { tryFoldKeyChain } from './folding'
 import { isArrayOfArrays, isArrayOfObjects, isArrayOfPrimitives, isJsonArray, isJsonObject, isJsonPrimitive } from './normalize'
 import { encodeAndJoinPrimitives, encodeKey, encodePrimitive, formatHeader } from './primitives'
@@ -28,21 +28,31 @@ export function encodeValue(value: JsonValue, options: ResolvedEncodeOptions): s
 
 // #region Object encoding
 
-export function encodeObject(value: JsonObject, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions): void {
+export function encodeObject(value: JsonObject, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions, rootLiteralKeys?: Set<string>, pathPrefix?: string, remainingDepth?: number): void {
   const keys = Object.keys(value)
 
+  // At root level (depth 0), collect all literal dotted keys for collision checking
+  if (depth === 0 && !rootLiteralKeys) {
+    rootLiteralKeys = new Set(keys.filter(k => k.includes('.')))
+  }
+
+  const effectiveFlattenDepth = remainingDepth ?? options.flattenDepth
+
   for (const key of keys) {
-    encodeKeyValuePair(key, value[key]!, writer, depth, options, keys)
+    encodeKeyValuePair(key, value[key]!, writer, depth, options, keys, rootLiteralKeys, pathPrefix, effectiveFlattenDepth)
   }
 }
 
-export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions, siblings?: readonly string[]): void {
+export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWriter, depth: Depth, options: ResolvedEncodeOptions, siblings?: readonly string[], rootLiteralKeys?: Set<string>, pathPrefix?: string, flattenDepth?: number): void {
+  const currentPath = pathPrefix ? `${pathPrefix}${DOT}${key}` : key
+  const effectiveFlattenDepth = flattenDepth ?? options.flattenDepth
+
   // Attempt key folding when enabled
   if (options.keyFolding === 'safe' && siblings) {
-    const foldResult = tryFoldKeyChain(key, value, siblings, options)
+    const foldResult = tryFoldKeyChain(key, value, siblings, options, rootLiteralKeys, pathPrefix, effectiveFlattenDepth)
 
     if (foldResult) {
-      const { foldedKey, remainder, leafValue } = foldResult
+      const { foldedKey, remainder, leafValue, segmentCount } = foldResult
       const encodedFoldedKey = encodeKey(foldedKey)
 
       // Case 1: Fully folded to a leaf value
@@ -65,7 +75,10 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
       // Case 2: Partially folded with a tail object
       if (isJsonObject(remainder)) {
         writer.push(depth, `${encodedFoldedKey}:`)
-        encodeObject(remainder, writer, depth + 1, options)
+        // Calculate remaining depth budget (subtract segments already folded)
+        const remainingDepth = effectiveFlattenDepth - segmentCount
+        const foldedPath = pathPrefix ? `${pathPrefix}${DOT}${foldedKey}` : foldedKey
+        encodeObject(remainder, writer, depth + 1, options, rootLiteralKeys, foldedPath, remainingDepth)
         return
       }
     }
@@ -88,7 +101,7 @@ export function encodeKeyValuePair(key: string, value: JsonValue, writer: LineWr
     }
     else {
       writer.push(depth, `${encodedKey}:`)
-      encodeObject(value, writer, depth + 1, options)
+      encodeObject(value, writer, depth + 1, options, rootLiteralKeys, currentPath, effectiveFlattenDepth)
     }
   }
 }

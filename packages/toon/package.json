@@ -38,6 +38,6 @@
     "test": "vitest"
   },
   "devDependencies": {
-    "@toon-format/spec": "^1.4.0"
+    "@toon-format/spec": "^1.5.2"
   }
 }

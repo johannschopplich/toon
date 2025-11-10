@@ -24,6 +24,11 @@ export interface FoldResult {
    * Used to avoid redundant traversal when encoding the folded value.
    */
   leafValue: JsonValue
+  /**
+   * The number of segments that were folded.
+   * Used to calculate remaining depth budget for nested encoding.
+   */
+  segmentCount: number
 }
 
 /**
@@ -55,6 +60,9 @@ export function tryFoldKeyChain(
   value: JsonValue,
   siblings: readonly string[],
   options: ResolvedEncodeOptions,
+  rootLiteralKeys?: Set<string>,
+  pathPrefix?: string,
+  flattenDepth?: number,
 ): FoldResult | undefined {
   // Only fold when safe mode is enabled
   if (options.keyFolding !== 'safe') {
@@ -66,8 +74,11 @@ export function tryFoldKeyChain(
     return undefined
   }
 
+  // Use provided flattenDepth or fall back to options default
+  const effectiveFlattenDepth = flattenDepth ?? options.flattenDepth
+
   // Collect the chain of single-key objects
-  const { segments, tail, leafValue } = collectSingleKeyChain(key, value, options.flattenDepth)
+  const { segments, tail, leafValue } = collectSingleKeyChain(key, value, effectiveFlattenDepth)
 
   // Need at least 2 segments for folding to be worthwhile
   if (segments.length < 2) {
@@ -79,11 +90,19 @@ export function tryFoldKeyChain(
     return undefined
   }
 
-  // Build the folded key
+  // Build the folded key (relative to current nesting level)
   const foldedKey = buildFoldedKey(segments)
 
-  // Check for collision with existing literal sibling keys (inline check)
+  // Build the absolute path from root
+  const absolutePath = pathPrefix ? `${pathPrefix}${DOT}${foldedKey}` : foldedKey
+
+  // Check for collision with existing literal sibling keys (at current level)
   if (siblings.includes(foldedKey)) {
+    return undefined
+  }
+
+  // Check for collision with root-level literal dotted keys
+  if (rootLiteralKeys && rootLiteralKeys.has(absolutePath)) {
     return undefined
   }
 
@@ -91,6 +110,7 @@ export function tryFoldKeyChain(
     foldedKey,
     remainder: tail,
     leafValue,
+    segmentCount: segments.length,
   }
 }
 
@@ -116,15 +136,15 @@ function collectSingleKeyChain(
   maxDepth: number,
 ): { segments: string[], tail: JsonValue | undefined, leafValue: JsonValue } {
   const segments: string[] = [startKey]
-  let current = startValue
+  let currentValue = startValue
 
   while (segments.length < maxDepth) {
     // Must be an object to continue
-    if (!isJsonObject(current)) {
+    if (!isJsonObject(currentValue)) {
       break
     }
 
-    const keys = Object.keys(current)
+    const keys = Object.keys(currentValue)
 
     // Must have exactly one key to continue the chain
     if (keys.length !== 1) {
@@ -132,32 +152,32 @@ function collectSingleKeyChain(
     }
 
     const nextKey = keys[0]!
-    const nextValue = current[nextKey]!
+    const nextValue = currentValue[nextKey]!
 
     segments.push(nextKey)
-    current = nextValue
+    currentValue = nextValue
   }
 
   // Determine the tail - simplified with early returns
-  if (!isJsonObject(current)) {
+  if (!isJsonObject(currentValue)) {
     // Array, primitive, or null - this is a leaf value
-    return { segments, tail: undefined, leafValue: current }
+    return { segments, tail: undefined, leafValue: currentValue }
   }
 
-  const keys = Object.keys(current)
+  const keys = Object.keys(currentValue)
 
   if (keys.length === 0) {
     // Empty object is a leaf
-    return { segments, tail: undefined, leafValue: current }
+    return { segments, tail: undefined, leafValue: currentValue }
   }
 
   if (keys.length === 1 && segments.length === maxDepth) {
     // Hit depth limit with remaining chain
-    return { segments, tail: current, leafValue: current }
+    return { segments, tail: currentValue, leafValue: currentValue }
   }
 
   // Multi-key object is the remainder
-  return { segments, tail: current, leafValue: current }
+  return { segments, tail: currentValue, leafValue: currentValue }
 }
 
 /**

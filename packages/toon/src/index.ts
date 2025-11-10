@@ -35,14 +35,14 @@ export function decode(input: string, options?: DecodeOptions): JsonValue {
   }
 
   const cursor = new LineCursor(scanResult.lines, scanResult.blankLines)
-  const value = decodeValueFromLines(cursor, resolvedOptions)
+  const decodedValue = decodeValueFromLines(cursor, resolvedOptions)
 
   // Apply path expansion if enabled
   if (resolvedOptions.expandPaths === 'safe') {
-    return expandPathsSafe(value, resolvedOptions.strict)
+    return expandPathsSafe(decodedValue, resolvedOptions.strict)
   }
 
-  return value
+  return decodedValue
 }
 
 function resolveOptions(options?: EncodeOptions): ResolvedEncodeOptions {

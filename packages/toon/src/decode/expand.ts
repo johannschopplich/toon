@@ -6,6 +6,19 @@ import { isIdentifierSegment } from '../shared/validation'
 // #region Path expansion (safe)
 
 /**
+ * Symbol used to mark object keys that were originally quoted in the TOON source.
+ * Quoted dotted keys should not be expanded, even if they meet expansion criteria.
+ */
+export const QUOTED_KEY_MARKER: unique symbol = Symbol('quotedKey')
+
+/**
+ * Type for objects that may have quoted key metadata attached.
+ */
+export interface ObjectWithQuotedKeys extends JsonObject {
+  [QUOTED_KEY_MARKER]?: Set<string>
+}
+
+/**
  * Checks if two values can be merged (both are plain objects).
  */
 function canMerge(a: JsonValue, b: JsonValue): a is JsonObject {
@@ -41,30 +54,59 @@ export function expandPathsSafe(value: JsonValue, strict: boolean): JsonValue {
   }
 
   if (isJsonObject(value)) {
-    const result: JsonObject = {}
+    const expandedObject: JsonObject = {}
     const keys = Object.keys(value)
 
-    for (const key of keys) {
-      const val = value[key]!
+    // Check if this object has quoted key metadata
+    const quotedKeys = (value as ObjectWithQuotedKeys)[QUOTED_KEY_MARKER]
 
-      // Check if key contains dots
-      if (key.includes(DOT)) {
+    for (const key of keys) {
+      const keyValue = value[key]!
+
+      // Skip expansion for keys that were originally quoted
+      const isQuoted = quotedKeys?.has(key)
+
+      // Check if key contains dots and should be expanded
+      if (key.includes(DOT) && !isQuoted) {
         const segments = key.split(DOT)
 
         // Validate all segments are identifiers
         if (segments.every(seg => isIdentifierSegment(seg))) {
           // Expand this dotted key
-          const expandedValue = expandPathsSafe(val, strict)
-          insertPathSafe(result, segments, expandedValue, strict)
+          const expandedValue = expandPathsSafe(keyValue, strict)
+          insertPathSafe(expandedObject, segments, expandedValue, strict)
           continue
         }
       }
 
       // Not expandable - keep as literal key, but still recursively expand the value
-      result[key] = expandPathsSafe(val, strict)
+      const expandedValue = expandPathsSafe(keyValue, strict)
+
+      // Check for conflicts with already-expanded keys
+      if (key in expandedObject) {
+        const conflictingValue = expandedObject[key]!
+        // If both are objects, try to merge them
+        if (canMerge(conflictingValue, expandedValue)) {
+          mergeObjects(conflictingValue as JsonObject, expandedValue as JsonObject, strict)
+        }
+        else {
+          // Conflict: incompatible types
+          if (strict) {
+            throw new TypeError(
+              `Path expansion conflict at key "${key}": cannot merge ${typeof conflictingValue} with ${typeof expandedValue}`,
+            )
+          }
+          // Non-strict: overwrite (LWW)
+          expandedObject[key] = expandedValue
+        }
+      }
+      else {
+        // No conflict - insert directly
+        expandedObject[key] = expandedValue
+      }
     }
 
-    return result
+    return expandedObject
   }
 
   // Primitive value - return as-is
@@ -80,7 +122,7 @@ export function expandPathsSafe(value: JsonValue, strict: boolean): JsonValue {
  * - If both are objects: deep merge (continue insertion)
  * - If values differ: conflict
  *   - strict=true: throw TypeError
- *   - strict=false: overwrite with new value (last-wins)
+ *   - strict=false: overwrite with new value (LWW)
  *
  * @param target - The object to insert into
  * @param segments - Array of path segments (e.g., ['data', 'metadata', 'items'])
@@ -94,58 +136,58 @@ function insertPathSafe(
   value: JsonValue,
   strict: boolean,
 ): void {
-  let current: JsonObject = target
+  let currentNode: JsonObject = target
 
   // Walk to the penultimate segment, creating objects as needed
   for (let i = 0; i < segments.length - 1; i++) {
     const seg = segments[i]!
-    const existing = current[seg]
+    const segmentValue = currentNode[seg]
 
-    if (existing === undefined) {
+    if (segmentValue === undefined) {
       // Create new intermediate object
       const newObj: JsonObject = {}
-      current[seg] = newObj
-      current = newObj
+      currentNode[seg] = newObj
+      currentNode = newObj
     }
-    else if (isJsonObject(existing)) {
+    else if (isJsonObject(segmentValue)) {
       // Continue into existing object
-      current = existing
+      currentNode = segmentValue
     }
     else {
       // Conflict: existing value is not an object
       if (strict) {
         throw new TypeError(
-          `Path expansion conflict at segment "${seg}": expected object but found ${typeof existing}`,
+          `Path expansion conflict at segment "${seg}": expected object but found ${typeof segmentValue}`,
         )
       }
       // Non-strict: overwrite with new object
       const newObj: JsonObject = {}
-      current[seg] = newObj
-      current = newObj
+      currentNode[seg] = newObj
+      currentNode = newObj
     }
   }
 
   // Insert at the final segment
   const lastSeg = segments[segments.length - 1]!
-  const existing = current[lastSeg]
+  const destinationValue = currentNode[lastSeg]
 
-  if (existing === undefined) {
+  if (destinationValue === undefined) {
     // No conflict - insert directly
-    current[lastSeg] = value
+    currentNode[lastSeg] = value
   }
-  else if (canMerge(existing, value)) {
+  else if (canMerge(destinationValue, value)) {
     // Both are objects - deep merge
-    mergeObjects(existing as JsonObject, value as JsonObject, strict)
+    mergeObjects(destinationValue as JsonObject, value as JsonObject, strict)
   }
   else {
     // Conflict: incompatible types
     if (strict) {
       throw new TypeError(
-        `Path expansion conflict at key "${lastSeg}": cannot merge ${typeof existing} with ${typeof value}`,
+        `Path expansion conflict at key "${lastSeg}": cannot merge ${typeof destinationValue} with ${typeof value}`,
       )
     }
     // Non-strict: overwrite (LWW)
-    current[lastSeg] = value
+    currentNode[lastSeg] = value
   }
 }
 

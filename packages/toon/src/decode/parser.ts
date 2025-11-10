@@ -146,7 +146,7 @@ export function parseBracketSegment(
 
 export function parseDelimitedValues(input: string, delimiter: Delimiter): string[] {
   const values: string[] = []
-  let current = ''
+  let valueBuffer = ''
   let inQuotes = false
   let i = 0
 
@@ -155,32 +155,32 @@ export function parseDelimitedValues(input: string, delimiter: Delimiter): strin
 
     if (char === BACKSLASH && i + 1 < input.length && inQuotes) {
       // Escape sequence in quoted string
-      current += char + input[i + 1]
+      valueBuffer += char + input[i + 1]
       i += 2
       continue
     }
 
     if (char === DOUBLE_QUOTE) {
       inQuotes = !inQuotes
-      current += char
+      valueBuffer += char
       i++
       continue
     }
 
     if (char === delimiter && !inQuotes) {
-      values.push(current.trim())
-      current = ''
+      values.push(valueBuffer.trim())
+      valueBuffer = ''
       i++
       continue
     }
 
-    current += char
+    valueBuffer += char
     i++
   }
 
   // Add last value
-  if (current || values.length > 0) {
-    values.push(current.trim())
+  if (valueBuffer || values.length > 0) {
+    values.push(valueBuffer.trim())
   }
 
   return values
@@ -292,12 +292,12 @@ export function parseQuotedKey(content: string, start: number): { key: string, e
   return { key, end }
 }
 
-export function parseKeyToken(content: string, start: number): { key: string, end: number } {
+export function parseKeyToken(content: string, start: number): { key: string, end: number, isQuoted: boolean } {
   if (content[start] === DOUBLE_QUOTE) {
-    return parseQuotedKey(content, start)
+    return { ...parseQuotedKey(content, start), isQuoted: true }
   }
   else {
-    return parseUnquotedKey(content, start)
+    return { ...parseUnquotedKey(content, start), isQuoted: false }
   }
 }
 
