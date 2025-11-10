@@ -1,6 +1,50 @@
+# Dependencies
 dist
 node_modules
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Test fixtures
 packages/toon/test/fixtures/*.json
 packages/toon/test/fixtures/*.toon
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# CI/CD
+.github/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Build outputs
+*.tsbuildinfo
+.cache
+
+# Temporary files
+*.tmp
+.temp
+tmp/
+temp/
