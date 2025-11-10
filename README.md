@@ -1292,6 +1292,7 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 - **R**: [toon](https://github.com/laresbernardo/toon)
 - **Ruby:** [toon-ruby](https://github.com/andrepcg/toon-ruby)
 - **Swift:** [TOONEncoder](https://github.com/mattt/TOONEncoder)
+- **Kotlin:** [Kotlin-Toon Encoder/Decoder](https://github.com/vexpera-br/kotlin-toon)
 
 ## Credits
 
