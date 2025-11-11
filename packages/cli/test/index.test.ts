@@ -3,28 +3,8 @@ import { consola } from 'consola'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_DELIMITER, encode } from '../../toon/src'
 import { version } from '../package.json' with { type: 'json' }
-import { createCliTestContext, runCli } from './utils'
-import { Readable } from 'node:stream'
+import { createCliTestContext, runCli, mockStdin } from './utils'
 
-export function mockStdin(input: string): () => void {
-  const mockStream = new Readable()
-  mockStream.push(input)
-  mockStream.push(null)
-  
-  const originalStdin = process.stdin
-  Object.defineProperty(process, 'stdin', {
-    value: mockStream,
-    writable: true,
-  })
-  
-  // Return cleanup function
-  return () => {
-    Object.defineProperty(process, 'stdin', {
-      value: originalStdin,
-      writable: true,
-    })
-  }
-}
 describe('toon CLI', () => {
   beforeEach(() => {
     vi.spyOn(process, 'exit').mockImplementation(() => 0 as never)
