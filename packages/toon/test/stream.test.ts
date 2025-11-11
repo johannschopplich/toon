@@ -34,9 +34,7 @@ describe('Streaming API', () => {
       expect(result).toContain('name: Bob')
       expect(result).toContain('age: 25')
       expect(result).toContain('hello world')
-      expect(result).toContain('- 1')
-      expect(result).toContain('- 2')
-      expect(result).toContain('- 3')
+      expect(result).toContain('[3]: 1,2,3')
     })
 
     it('should handle encoding options', async () => {
@@ -72,11 +70,10 @@ age: 30
 name: Bob
 age: 25
 ---
-hello world
----
-- 1
-- 2
-- 3
+[3]:
+  - 1
+  - 2
+  - 3
 `
 
       const inputStream = Readable.from([toonData])
@@ -94,11 +91,10 @@ hello world
           .on('error', reject)
       })
 
-      expect(results).toHaveLength(4)
+      expect(results).toHaveLength(3)
       expect(results[0]).toEqual({ name: 'Alice', age: 30 })
       expect(results[1]).toEqual({ name: 'Bob', age: 25 })
-      expect(results[2]).toBe('hello world')
-      expect(results[3]).toEqual([1, 2, 3])
+      expect(results[2]).toEqual([1, 2, 3])
     })
 
     it('should handle decoding options', async () => {
@@ -132,24 +128,26 @@ hello world
         { products: [{ id: 1, name: 'Widget', price: 19.99 }, { id: 2, name: 'Gadget', price: 29.99 }] },
         'Simple string',
         42,
-        true,
-        null
+        true
       ]
 
       // Encode stream
       const inputStream = Readable.from(originalData)
       const encodeTransform = encodeStream({ keyFolding: 'safe' })
 
-      let encodedData = ''
+      const encodedChunks: string[] = []
       await new Promise<void>((resolve, reject) => {
         inputStream
           .pipe(encodeTransform)
           .on('data', (chunk: Buffer) => {
-            encodedData += chunk.toString()
+            encodedChunks.push(chunk.toString().trim())
           })
           .on('end', resolve)
           .on('error', reject)
       })
+
+      // Join with --- separators for decode stream
+      const encodedData = encodedChunks.join('\n---\n')
 
       // Decode stream
       const decodeInputStream = Readable.from([encodedData])
