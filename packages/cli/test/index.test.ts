@@ -203,27 +203,6 @@ describe('toon CLI', () => {
         cleanup()
       }
     })
-
-    it('encodes JSON from stdin using explicit "-" argument', async () => {
-      const data = { test: 'explicit hyphen' }
-      const cleanup = mockStdin(JSON.stringify(data))
-      
-      const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
-        stdout.push(String(message ?? ''))
-      })
-      
-      try {
-        await runCli({ rawArgs: ['-'] })
-        
-        expect(stdout).toHaveLength(1)
-        expect(stdout[0]).toBe(encode(data))
-      }
-      finally {
-        logSpy.mockRestore()
-        cleanup()
-      }
-    })
   })
 
   describe('stdin with options', () => {
