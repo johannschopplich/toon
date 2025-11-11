@@ -7,7 +7,7 @@ import { createReadStream, createWriteStream } from 'node:fs'
 import { Readable, Transform } from 'node:stream'
 import { consola } from 'consola'
 import { estimateTokenCount } from 'tokenx'
-import { decode, decodeStream, encode, encodeStream } from '../../toon/src'
+import { decode, decodeStream, encode, encodeStream, validateJson, validateToon } from '../../toon/src'
 import { formatInputLabel, readInput } from './utils'
 
 export async function encodeToToon(config: {
@@ -267,5 +267,39 @@ class JSONFormatter extends Transform {
     } catch (error) {
       callback(error as Error)
     }
+  }
+}
+
+export async function validateData(config: {
+  input: InputSource
+  schemaPath: string
+  isToon: boolean
+}): Promise<void> {
+  const inputContent = await readInput(config.input)
+
+  // Read and parse schema
+  let schema: any
+  try {
+    const schemaContent = await fsp.readFile(config.schemaPath, 'utf-8')
+    schema = JSON.parse(schemaContent)
+  } catch (error) {
+    throw new Error(`Failed to read or parse schema: ${error instanceof Error ? error.message : String(error)}`)
+  }
+
+  // Validate data
+  const result = config.isToon
+    ? validateToon(inputContent, schema)
+    : validateJson(JSON.parse(inputContent), schema)
+
+  if (result.valid) {
+    const relativeInputPath = formatInputLabel(config.input)
+    consola.success(`Validation passed for \`${relativeInputPath}\``)
+  } else {
+    const relativeInputPath = formatInputLabel(config.input)
+    consola.error(`Validation failed for \`${relativeInputPath}\``)
+    for (const error of result.errors) {
+      console.log(`  ${error.path || 'root'}: ${error.message}`)
+    }
+    process.exit(1)
   }
 }

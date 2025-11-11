@@ -7,7 +7,7 @@ import { defineCommand } from 'citty'
 import { consola } from 'consola'
 import { DEFAULT_DELIMITER, DELIMITERS } from '../../toon/src'
 import { name, version } from '../package.json' with { type: 'json' }
-import { decodeToJson, encodeToToon } from './conversion'
+import { decodeToJson, encodeToToon, validateData } from './conversion'
 import { detectMode } from './utils'
 
 export const mainCommand: CommandDef<{
@@ -69,6 +69,15 @@ export const mainCommand: CommandDef<{
     type: 'boolean'
     description: string
     default: false
+  }
+  validate: {
+    type: 'boolean'
+    description: string
+    alias: string
+  }
+  schema: {
+    type: 'string'
+    description: string
   }
 }> = defineCommand({
   meta: {
@@ -136,6 +145,15 @@ export const mainCommand: CommandDef<{
       description: 'Enable streaming mode for large datasets',
       default: false,
     },
+    validate: {
+      type: 'boolean',
+      description: 'Validate data against a schema',
+      alias: 'V',
+    },
+    schema: {
+      type: 'string',
+      description: 'Path to JSON schema file for validation',
+    },
   },
   async run({ args }) {
     const input = args.input
@@ -179,6 +197,21 @@ export const mainCommand: CommandDef<{
     }
 
     const mode = detectMode(inputSource, args.encode, args.decode)
+
+    // Handle validation mode
+    if (args.validate) {
+      if (!args.schema) {
+        throw new Error('Schema file is required for validation. Use --schema <path>')
+      }
+      const schemaPath = path.resolve(args.schema)
+      const isToon = mode === 'decode' || inputSource.type === 'file' && inputSource.path.endsWith('.toon')
+      await validateData({
+        input: inputSource,
+        schemaPath,
+        isToon,
+      })
+      return
+    }
 
     try {
       if (mode === 'encode') {

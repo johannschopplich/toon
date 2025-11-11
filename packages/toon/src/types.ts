@@ -122,3 +122,30 @@ export type ResolvedStreamEncodeOptions = Readonly<Required<StreamEncodeOptions>
 export type ResolvedStreamDecodeOptions = Readonly<Required<StreamDecodeOptions>>
 
 // #endregion
+
+// #region Schema validation types
+
+export interface Schema {
+  type: 'object' | 'array' | 'string' | 'number' | 'boolean' | 'null'
+  required?: string[]
+  properties?: Record<string, Schema>
+  items?: Schema
+  enum?: any[]
+  minimum?: number
+  maximum?: number
+  minLength?: number
+  maxLength?: number
+  pattern?: string
+}
+
+export interface ValidationError {
+  path: string
+  message: string
+}
+
+export interface ValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+}
+
+// #endregion
