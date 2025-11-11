@@ -2,9 +2,10 @@ import * as fsp from 'node:fs/promises'
 import * as os from 'node:os'
 import * as path from 'node:path'
 import process from 'node:process'
+import { Readable } from 'node:stream'
 import { runMain } from 'citty'
 import { mainCommand } from '../src/index'
-import { Readable } from 'node:stream'
+
 interface FileRecord {
   [relativePath: string]: string
 }
@@ -77,17 +78,15 @@ async function writeFiles(baseDir: string, files: FileRecord): Promise<void> {
   )
 }
 
-
-
 export function mockStdin(input: string): () => void {
   const mockStream = Readable.from([input])
-  
+
   const originalStdin = process.stdin
   Object.defineProperty(process, 'stdin', {
     value: mockStream,
     writable: true,
   })
-  
+
   return () => {
     Object.defineProperty(process, 'stdin', {
       value: originalStdin,

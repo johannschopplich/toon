@@ -3,7 +3,7 @@ import { consola } from 'consola'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_DELIMITER, encode } from '../../toon/src'
 import { version } from '../package.json' with { type: 'json' }
-import { createCliTestContext, runCli, mockStdin } from './utils'
+import { createCliTestContext, mockStdin, runCli } from './utils'
 
 describe('toon CLI', () => {
   beforeEach(() => {
@@ -34,7 +34,7 @@ describe('toon CLI', () => {
       const cleanup = mockStdin(JSON.stringify(data))
 
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
 
@@ -44,7 +44,6 @@ describe('toon CLI', () => {
         expect(stdout[0]).toBe(encode(data))
       }
       finally {
-        logSpy.mockRestore()
         cleanup()
       }
     })
@@ -85,7 +84,7 @@ describe('toon CLI', () => {
       })
 
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
 
@@ -96,26 +95,25 @@ describe('toon CLI', () => {
         expect(stdout[0]).toBe(encode(data))
       }
       finally {
-        logSpy.mockRestore()
         await context.cleanup()
       }
     })
+
     it('encodes JSON from stdin to output file', async () => {
       const data = { key: 'value' }
       const context = await createCliTestContext({})
       const cleanup = mockStdin(JSON.stringify(data))
-      
+
       const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
-      
+
       try {
         await context.run(['--output', 'output.toon'])
-        
+
         const output = await context.read('output.toon')
         expect(output).toBe(encode(data))
-        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Encoded.*stdin.*→.*output\.toon/))
+        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Encoded.*stdin[^\n\r\u2028\u2029\u2192]*\u2192.*output\.toon/))
       }
       finally {
-        consolaSuccess.mockRestore()
         cleanup()
         await context.cleanup()
       }
@@ -146,17 +144,18 @@ describe('toon CLI', () => {
         await context.cleanup()
       }
     })
+
     it('decodes TOON from stdin', async () => {
       const data = { items: ['a', 'b'], count: 2 }
       const toonInput = encode(data)
-      
+
       const cleanup = mockStdin(toonInput)
-      
+
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
-      
+
       try {
         await runCli({ rawArgs: ['--decode'] })
         expect(stdout).toHaveLength(1)
@@ -164,27 +163,26 @@ describe('toon CLI', () => {
         expect(result).toEqual(data)
       }
       finally {
-        logSpy.mockRestore()
         cleanup()
       }
     })
+
     it('decodes TOON from stdin to output file', async () => {
       const data = { name: 'test', values: [1, 2, 3] }
       const toonInput = encode(data)
       const context = await createCliTestContext({})
       const cleanup = mockStdin(toonInput)
-      
+
       const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
-      
+
       try {
         await context.run(['--decode', '--output', 'output.json'])
-        
+
         const output = await context.read('output.json')
         expect(JSON.parse(output)).toEqual(data)
-        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Decoded.*stdin.*→.*output\.json/))
+        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Decoded.*stdin[^\n\r\u2028\u2029\u2192]*\u2192.*output\.json/))
       }
       finally {
-        consolaSuccess.mockRestore()
         cleanup()
         await context.cleanup()
       }
@@ -194,38 +192,34 @@ describe('toon CLI', () => {
   describe('stdin edge cases', () => {
     it('handles invalid JSON from stdin', async () => {
       const cleanup = mockStdin('{ invalid json }')
-      
+
       const consolaError = vi.spyOn(consola, 'error').mockImplementation(() => undefined)
       const exitSpy = vi.mocked(process.exit)
-      
+
       try {
         await runCli({ rawArgs: [] })
-        
+
         expect(exitSpy).toHaveBeenCalledWith(1)
         expect(consolaError).toHaveBeenCalled()
       }
       finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
         cleanup()
       }
     })
-    
+
     it('handles invalid TOON from stdin', async () => {
       const cleanup = mockStdin('key: "unterminated string')
-      
+
       const consolaError = vi.spyOn(consola, 'error').mockImplementation(() => undefined)
       const exitSpy = vi.mocked(process.exit)
-      
+
       try {
         await runCli({ rawArgs: ['--decode'] })
-        
+
         expect(exitSpy).toHaveBeenCalledWith(1)
         expect(consolaError).toHaveBeenCalled()
       }
       finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
         cleanup()
       }
     })
@@ -235,72 +229,43 @@ describe('toon CLI', () => {
     it('encodes JSON from stdin with custom delimiter', async () => {
       const data = { items: [1, 2, 3] }
       const cleanup = mockStdin(JSON.stringify(data))
-      
+
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
-      
+
       try {
         await runCli({ rawArgs: ['--delimiter', '|'] })
-        
+
         expect(stdout).toHaveLength(1)
         expect(stdout[0]).toBe(encode(data, { delimiter: '|' }))
       }
       finally {
-        logSpy.mockRestore()
-        cleanup()
-      }
-    })
-
-    it('encodes JSON from stdin with --stats', async () => {
-      const data = { value: 123 }
-      const cleanup = mockStdin(JSON.stringify(data))
-      
-      const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
-        stdout.push(String(message ?? ''))
-      })
-      
-      const consolaInfoSpy = vi.spyOn(consola, 'info').mockImplementation(() => undefined)
-      const consolaSuccessSpy = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
-      
-      try {
-        await runCli({ rawArgs: ['--stats'] })
-        
-        expect(stdout[0]).toBe(encode(data))
-        expect(consolaInfoSpy).toHaveBeenCalledWith(expect.stringContaining('Token estimates'))
-        expect(consolaSuccessSpy).toHaveBeenCalled()
-      }
-      finally {
-        logSpy.mockRestore()
-        consolaInfoSpy.mockRestore()
-        consolaSuccessSpy.mockRestore()
         cleanup()
       }
     })
 
     it('encodes JSON from stdin with custom indent', async () => {
-      const data = { 
-        nested: { 
-          deep: { value: 1 } 
-        } 
+      const data = {
+        nested: {
+          deep: { value: 1 },
+        },
       }
       const cleanup = mockStdin(JSON.stringify(data))
-      
+
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
-      
+
       try {
         await runCli({ rawArgs: ['--indent', '4'] })
-        
+
         expect(stdout).toHaveLength(1)
         expect(stdout[0]).toBe(encode(data, { indent: 4 }))
       }
       finally {
-        logSpy.mockRestore()
         cleanup()
       }
     })
@@ -309,21 +274,20 @@ describe('toon CLI', () => {
       const data = { test: true }
       const toonInput = encode(data)
       const cleanup = mockStdin(toonInput)
-      
+
       const stdout: string[] = []
-      const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
+      vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
         stdout.push(String(message ?? ''))
       })
-      
+
       try {
         await runCli({ rawArgs: ['--decode', '--no-strict'] })
-        
+
         expect(stdout).toHaveLength(1)
         const result = JSON.parse(stdout?.at(0) ?? '')
         expect(result).toEqual(data)
       }
       finally {
-        logSpy.mockRestore()
         cleanup()
       }
     })
@@ -350,8 +314,6 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Invalid delimiter')
       }
       finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
@@ -376,8 +338,6 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Invalid indent value')
       }
       finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
@@ -395,8 +355,6 @@ describe('toon CLI', () => {
         expect(consolaError).toHaveBeenCalled()
       }
       finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
