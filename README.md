@@ -54,22 +54,25 @@ users[2]{id,name,role}:
 ```
 
 <details>
-<summary><strong>Why create a new format?</strong></summary>
-
-For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when you're making hundreds of LLM calls with uniform tabular data, eliminating repeated keys compounds savings significantly. If token costs matter to your use case, TOON reduces them. If not, stick with what works.
-
-</details>
-
-<details>
 <summary><strong>When NOT to use TOON</strong></summary>
 
 TOON excels with uniform arrays of objects, but there are cases where other formats are better:
 
 - **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
 - **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
-- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
+- **Flat tabular structures**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
+- **Wall-clock latency**: If end-to-end response time is your top priority and your model/infrastructure is tuned for JSON, benchmark on your exact stack. Some deployments may process compact JSON faster despite TOON's lower token count.
 
 See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
+
+</details>
+
+<details>
+<summary><strong>Performance considerations</strong></summary>
+
+TOON reduces input tokens, which typically lowers cost and can improve time-to-first-token. However, wall-clock throughput varies by model and serving stack. Some local deployments (e.g., Ollama with certain quantized models) may process compact JSON faster despite TOON's lower token count.
+
+**If latency is critical:** Benchmark on your exact setup. Measure TTFT, tokens/sec, and total time for both TOON and minified JSON. Use whichever is faster for your stack.
 
 </details>
 
