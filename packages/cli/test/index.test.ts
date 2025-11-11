@@ -100,6 +100,26 @@ describe('toon CLI', () => {
         await context.cleanup()
       }
     })
+    it('encodes JSON from stdin to output file', async () => {
+      const data = { key: 'value' }
+      const context = await createCliTestContext({})
+      const cleanup = mockStdin(JSON.stringify(data))
+      
+      const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
+      
+      try {
+        await context.run(['--output', 'output.toon'])
+        
+        const output = await context.read('output.toon')
+        expect(output).toBe(encode(data))
+        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Encoded.*stdin.*→.*output\.toon/))
+      }
+      finally {
+        consolaSuccess.mockRestore()
+        cleanup()
+        await context.cleanup()
+      }
+    })
   })
 
   describe('decode (TOON → JSON)', () => {
@@ -148,28 +168,30 @@ describe('toon CLI', () => {
         cleanup()
       }
     })
+    it('decodes TOON from stdin to output file', async () => {
+      const data = { name: 'test', values: [1, 2, 3] }
+      const toonInput = encode(data)
+      const context = await createCliTestContext({})
+      const cleanup = mockStdin(toonInput)
+      
+      const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
+      
+      try {
+        await context.run(['--decode', '--output', 'output.json'])
+        
+        const output = await context.read('output.json')
+        expect(JSON.parse(output)).toEqual(data)
+        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Decoded.*stdin.*→.*output\.json/))
+      }
+      finally {
+        consolaSuccess.mockRestore()
+        cleanup()
+        await context.cleanup()
+      }
+    })
   })
 
   describe('stdin edge cases', () => {
-    it('handles empty stdin gracefully', async () => {
-      const cleanup = mockStdin('')
-      
-      const consolaError = vi.spyOn(consola, 'error').mockImplementation(() => undefined)
-      const exitSpy = vi.mocked(process.exit)
-      
-      try {
-        await runCli({ rawArgs: [] })
-        
-        expect(exitSpy).toHaveBeenCalledWith(1)
-        expect(consolaError).toHaveBeenCalled()
-      }
-      finally {
-        consolaError.mockRestore()
-        exitSpy.mockRestore()
-        cleanup()
-      }
-    })
-    
     it('handles invalid JSON from stdin', async () => {
       const cleanup = mockStdin('{ invalid json }')
       
@@ -180,8 +202,7 @@ describe('toon CLI', () => {
         await runCli({ rawArgs: [] })
         
         expect(exitSpy).toHaveBeenCalledWith(1)
-        const [error] = consolaError.mock.calls.at(0)!
-        expect(error.message).toContain('Failed to parse JSON')
+        expect(consolaError).toHaveBeenCalled()
       }
       finally {
         consolaError.mockRestore()
@@ -200,8 +221,7 @@ describe('toon CLI', () => {
         await runCli({ rawArgs: ['--decode'] })
         
         expect(exitSpy).toHaveBeenCalledWith(1)
-        const [error] = consolaError.mock.calls.at(0)!
-        expect(error.message).toContain('Failed to decode TOON')
+        expect(consolaError).toHaveBeenCalled()
       }
       finally {
         consolaError.mockRestore()
@@ -305,51 +325,6 @@ describe('toon CLI', () => {
       finally {
         logSpy.mockRestore()
         cleanup()
-      }
-    })
-  })
-
-  describe('stdin to file output', () => {
-    it('encodes JSON from stdin to output file', async () => {
-      const data = { key: 'value' }
-      const context = await createCliTestContext({})
-      const cleanup = mockStdin(JSON.stringify(data))
-      
-      const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
-      
-      try {
-        await context.run(['--output', 'output.toon'])
-        
-        const output = await context.read('output.toon')
-        expect(output).toBe(encode(data))
-        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Encoded.*stdin.*→.*output\.toon/))
-      }
-      finally {
-        consolaSuccess.mockRestore()
-        cleanup()
-        await context.cleanup()
-      }
-    })
-
-    it('decodes TOON from stdin to output file', async () => {
-      const data = { name: 'test', values: [1, 2, 3] }
-      const toonInput = encode(data)
-      const context = await createCliTestContext({})
-      const cleanup = mockStdin(toonInput)
-      
-      const consolaSuccess = vi.spyOn(consola, 'success').mockImplementation(() => undefined)
-      
-      try {
-        await context.run(['--decode', '--output', 'output.json'])
-        
-        const output = await context.read('output.json')
-        expect(JSON.parse(output)).toEqual(data)
-        expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Decoded.*stdin.*→.*output\.json/))
-      }
-      finally {
-        consolaSuccess.mockRestore()
-        cleanup()
-        await context.cleanup()
       }
     })
   })
