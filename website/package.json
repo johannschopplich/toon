@@ -7,14 +7,21 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "analyze": "npx vite-bundle-visualizer"
   },
   "dependencies": {
+    "@mdx-js/react": "^3.1.1",
     "@tailwindcss/vite": "^4.1.17",
+    "gray-matter": "^4.0.3",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-helmet-async": "^2.0.5",
-    "react-router-dom": "^7.9.5"
+    "react-router-dom": "^7.9.5",
+    "vite-plugin-html": "^3.2.2",
+    "vite-plugin-pages": "^0.33.1",
+    "vite-plugin-sitemap": "^0.8.2",
+    "vite-ssg": "^28.2.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

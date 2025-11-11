@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://yourdomain.com/sitemap.xml
+
+User-agent: Googlebot
+Disallow: /private
