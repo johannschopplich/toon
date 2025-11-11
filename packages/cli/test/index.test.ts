@@ -164,6 +164,8 @@ describe('toon CLI', () => {
         expect(consolaError).toHaveBeenCalled()
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         cleanup()
       }
     })
@@ -182,6 +184,8 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Failed to parse JSON')
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         cleanup()
       }
     })
@@ -200,6 +204,8 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Failed to decode TOON')
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         cleanup()
       }
     })
@@ -248,6 +254,8 @@ describe('toon CLI', () => {
       }
       finally {
         logSpy.mockRestore()
+        consolaInfoSpy.mockRestore()
+        consolaSuccessSpy.mockRestore()
         cleanup()
       }
     })
@@ -317,6 +325,7 @@ describe('toon CLI', () => {
         expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Encoded.*stdin.*→.*output\.toon/))
       }
       finally {
+        consolaSuccess.mockRestore()
         cleanup()
         await context.cleanup()
       }
@@ -338,6 +347,7 @@ describe('toon CLI', () => {
         expect(consolaSuccess).toHaveBeenCalledWith(expect.stringMatching(/Decoded.*stdin.*→.*output\.json/))
       }
       finally {
+        consolaSuccess.mockRestore()
         cleanup()
         await context.cleanup()
       }
@@ -365,6 +375,8 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Invalid delimiter')
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
@@ -389,6 +401,8 @@ describe('toon CLI', () => {
         expect(error.message).toContain('Invalid indent value')
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
@@ -406,6 +420,8 @@ describe('toon CLI', () => {
         expect(consolaError).toHaveBeenCalled()
       }
       finally {
+        consolaError.mockRestore()
+        exitSpy.mockRestore()
         await context.cleanup()
       }
     })
