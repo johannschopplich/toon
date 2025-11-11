@@ -4,7 +4,27 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_DELIMITER, encode } from '../../toon/src'
 import { version } from '../package.json' with { type: 'json' }
 import { createCliTestContext, runCli } from './utils'
+import { Readable } from 'node:stream'
 
+export function mockStdin(input: string): () => void {
+  const mockStream = new Readable()
+  mockStream.push(input)
+  mockStream.push(null)
+  
+  const originalStdin = process.stdin
+  Object.defineProperty(process, 'stdin', {
+    value: mockStream,
+    writable: true,
+  })
+  
+  // Return cleanup function
+  return () => {
+    Object.defineProperty(process, 'stdin', {
+      value: originalStdin,
+      writable: true,
+    })
+  }
+}
 describe('toon CLI', () => {
   beforeEach(() => {
     vi.spyOn(process, 'exit').mockImplementation(() => 0 as never)
@@ -31,18 +51,7 @@ describe('toon CLI', () => {
         count: 3,
         nested: { ok: true },
       }
-      const jsonInput = JSON.stringify(data)
-
-      const { Readable } = await import('node:stream')
-      const mockStdin = new Readable()
-      mockStdin.push(jsonInput)
-      mockStdin.push(null)
-
-      const orginalStdin = process.stdin
-      Object.defineProperty(process, 'stdin', {
-         value: mockStdin,
-         writable: true
-      })
+      const cleanup = mockStdin(JSON.stringify(data))
 
       const stdout: string[] = []
       const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
@@ -51,16 +60,12 @@ describe('toon CLI', () => {
 
       try {
         await runCli()
-
         expect(stdout).toHaveLength(1)
         expect(stdout[0]).toBe(encode(data))
       }
       finally {
-        Object.defineProperty(process, 'stdin', {
-          value: orginalStdin,
-          writable: true,
-        })
         logSpy.mockRestore()
+        cleanup()
       }
     })
 
@@ -145,16 +150,7 @@ describe('toon CLI', () => {
       const data = { items: ['a', 'b'], count: 2 }
       const toonInput = encode(data)
       
-      const { Readable } = await import('node:stream')
-      const mockStdin = new Readable()
-      mockStdin.push(toonInput)
-      mockStdin.push(null)
-      
-      const originalStdin = process.stdin
-      Object.defineProperty(process, 'stdin', {
-        value: mockStdin,
-        writable: true,
-      })
+      const cleanup = mockStdin(toonInput)
       
       const stdout: string[] = []
       const logSpy = vi.spyOn(console, 'log').mockImplementation((message?: unknown) => {
@@ -163,17 +159,13 @@ describe('toon CLI', () => {
       
       try {
         await runCli({ rawArgs: ['--decode'] })
-        
         expect(stdout).toHaveLength(1)
         const result = JSON.parse(stdout?.at(0) ?? '')
         expect(result).toEqual(data)
       }
       finally {
         logSpy.mockRestore()
-        Object.defineProperty(process, 'stdin', {
-          value: originalStdin,
-          writable: true,
-        })
+        cleanup()
       }
       
     })
