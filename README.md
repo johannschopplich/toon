@@ -50,15 +50,15 @@ YAML conveys the same infromation with **fewer tokens**:
 
 ```yaml
 users:
-- id: 1
-  name: Alice
-  role: admin
-- id: 2
-  name: Bob
-  role: user
+  - id: 1
+    name: Alice
+    role: admin
+  - id: 2
+    name: Bob
+    role: user
 ```
 
-TOON conveys the same information with even **fewer tokens**:
+TOON conveys the same information with **even fewer tokens**:
 
 ```
 users[2]{id,name,role}:
