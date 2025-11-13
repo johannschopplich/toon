@@ -663,7 +663,7 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 
 ## Playgrounds
 
-Experiment with TOON format interactively before installing:
+Experiment with TOON format interactively using these community-built tools:
 
 - **[Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration)** – Compare token usage across CSV, JSON (pretty/compressed), YAML, and TOON formats. Use preset datasets or paste your own data to see real-time token comparisons.
 - **[TOON Tools](https://toontools.vercel.app/)** – Full toolkit including bidirectional converters (JSON, CSV, XML, YAML ↔ TOON), token counter with side-by-side comparison, TOON validator, batch file converter, and format playground.
