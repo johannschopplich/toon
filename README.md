@@ -1117,7 +1117,7 @@ A JavaScript value (object, array, or primitive) representing the parsed TOON da
 TOON includes JSON Lines (JSONL) support for processing streaming data or datasets with one JSON object per line:
 
 ```ts
-import { encodeJsonl, decodeJsonl } from '@toon-format/toon'
+import { decodeJsonl, encodeJsonl } from '@toon-format/toon'
 
 // Convert array to JSONL with TOON encoding and --- separators
 const data = [

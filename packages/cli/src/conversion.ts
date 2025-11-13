@@ -5,7 +5,7 @@ import * as path from 'node:path'
 import process from 'node:process'
 import { consola } from 'consola'
 import { estimateTokenCount } from 'tokenx'
-import { decode, encode, decodeJsonl, encodeJsonl } from '../../toon/src'
+import { decode, decodeJsonl, encode, encodeJsonl } from '../../toon/src'
 import { formatInputLabel, readInput } from './utils'
 
 export async function encodeToToon(config: {

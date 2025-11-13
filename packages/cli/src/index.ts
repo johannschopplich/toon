@@ -7,7 +7,7 @@ import { defineCommand } from 'citty'
 import { consola } from 'consola'
 import { DEFAULT_DELIMITER, DELIMITERS } from '../../toon/src'
 import { name, version } from '../package.json' with { type: 'json' }
-import { decodeToJson, encodeToToon, encodeJsonlToToon, decodeToonToJsonl } from './conversion'
+import { decodeToJson, decodeToonToJsonl, encodeJsonlToToon, encodeToToon } from './conversion'
 import { detectMode } from './utils'
 
 export const mainCommand: CommandDef<{
