@@ -46,7 +46,19 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 }
 ```
 
-TOON conveys the same information with **fewer tokens**:
+YAML conveys the same infromation with **fewer tokens**:
+
+```yaml
+users:
+- id: 1
+  name: Alice
+  role: admin
+- id: 2
+  name: Bob
+  role: user
+```
+
+TOON conveys the same information with even **fewer tokens**:
 
 ```
 users[2]{id,name,role}:
