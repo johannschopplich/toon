@@ -11,8 +11,7 @@ const footerLinks = {
         { label: "GitHub", href: "https://github.com/toon-format/toon/tree/main" },
     ],
     resources: [
-        { label: "Getting Started", href: "https://github.com/toon-format/toon/tree/main?tab=readme-ov-file#playgrounds" },
-
+        { label: "Getting Started", href: "https://github.com/toon-format/toon?tab=readme-ov-file#installation--quick-start" },
         { label: "Contributing", href: "https://github.com/toon-format/toon" },
         { label: "Community", href: "https://github.com/toon-format" },
     ],
