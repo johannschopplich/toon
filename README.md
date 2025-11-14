@@ -661,14 +661,23 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 
 <!-- /automd -->
 
-## Playgrounds
-
-Experiment with TOON format interactively using these community-built tools:
-
-- **[Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration)** – Compare token usage across CSV, JSON (pretty/compressed), YAML, and TOON formats. Use preset datasets or paste your own data to see real-time token comparisons.
-- **[TOON Tools](https://toontools.vercel.app/)** – Full toolkit including bidirectional converters (JSON, CSV, XML, YAML ↔ TOON), token counter with side-by-side comparison, TOON validator, batch file converter, and format playground.
-
 ## Installation & Quick Start
+
+### CLI (No Installation Required)
+
+Try TOON instantly with npx:
+
+```bash
+# Convert JSON to TOON
+npx @toon-format/cli input.json -o output.toon
+
+# Pipe from stdin
+echo '{"name": "Ada", "role": "dev"}' | npx @toon-format/cli
+```
+
+See [CLI section](#cli) for all options and examples.
+
+### TypeScript Library
 
 ```bash
 # npm
@@ -698,6 +707,13 @@ console.log(encode(data))
 //   1,Alice,admin
 //   2,Bob,user
 ```
+
+## Playgrounds
+
+Experiment with TOON format interactively using these community-built tools for token comparison, format conversion, and validation:
+
+- **[Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration)**
+- **[TOON Tools](https://toontools.vercel.app/)**
 
 ## CLI
 
@@ -1247,16 +1263,20 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ### Official Implementations
 
+> [!TIP]
+> These implementations are actively being developed by dedicated teams. Contributions are welcome! Join the effort by opening issues, submitting PRs, or discussing implementation details in the respective repositories.
+
+- **.NET:** [toon_format](https://github.com/toon-format/toon-dotnet) *(in development)*
+- **Dart:** [toon](https://github.com/toon-format/toon-dart) *(in development)*
+- **Go:** [gotoon](https://github.com/toon-format/toon-go) *(in development)*
 - **Python:** [toon_format](https://github.com/toon-format/toon-python) *(in development)*
 - **Rust:** [toon_format](https://github.com/toon-format/toon-rust) *(in development)*
 
 ### Community Implementations
 
-- **.NET:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
 - **C++:** [ctoon](https://github.com/mohammadraziei/ctoon)
 - **Clojure:** [toon](https://github.com/vadelabs/toon)
 - **Crystal:** [toon-crystal](https://github.com/mamantoha/toon-crystal)
-- **Dart:** [toon](https://github.com/wisamidris77/toon)
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
 - **Gleam:** [toon_codec](https://github.com/axelbellec/toon_codec)
 - **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
