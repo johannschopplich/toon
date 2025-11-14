@@ -12,16 +12,18 @@
 
 TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
 
-TOON achieves CSV-like compactness while adding explicit structure that helps LLMs parse and validate data reliably.
+TOON achieves CSV-like compactness while adding explicit structure that helps LLMs parse and validate data reliably. Think of it as a translation layer: use JSON programmatically, convert to TOON for LLM input.
 
 > [!TIP]
-> Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
+> TOON is production-ready, but also an idea in progress. Nothing's set in stone – help shape where it goes by contributing to the [spec](https://github.com/toon-format/spec) or sharing feedback.
 
 ## Table of Contents
 
 - [Why TOON?](#why-toon)
 - [Key Features](#key-features)
+- [When Not to Use TOON](#when-not-to-use-toon)
 - [Benchmarks](#benchmarks)
+- [Playgrounds](#playgrounds)
 - [📋 Full Specification](https://github.com/toon-format/spec/blob/main/SPEC.md)
 - [Installation & Quick Start](#installation--quick-start)
 - [CLI](#cli)
@@ -45,33 +47,25 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 }
 ```
 
-TOON conveys the same information with **fewer tokens**:
+YAML conveys the same infromation with **fewer tokens**:
+
+```yaml
+users:
+  - id: 1
+    name: Alice
+    role: admin
+  - id: 2
+    name: Bob
+    role: user
+```
+
+TOON conveys the same information with **even fewer tokens**:
 
 ```
 users[2]{id,name,role}:
   1,Alice,admin
   2,Bob,user
 ```
-
-<details>
-<summary><strong>Why create a new format?</strong></summary>
-
-For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when you're making hundreds of LLM calls with uniform tabular data, eliminating repeated keys compounds savings significantly. If token costs matter to your use case, TOON reduces them. If not, stick with what works.
-
-</details>
-
-<details>
-<summary><strong>When NOT to use TOON</strong></summary>
-
-TOON excels with uniform arrays of objects, but there are cases where other formats are better:
-
-- **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
-- **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
-- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
-
-See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
-
-</details>
 
 ## Key Features
 
@@ -84,10 +78,18 @@ See [benchmarks](#benchmarks) for concrete comparisons across different data str
 
 [^1]: For flat tabular data, CSV is more compact. TOON adds minimal overhead to provide explicit structure and validation that improves LLM reliability.
 
-## Benchmarks
+## When Not to Use TOON
 
-> [!TIP]
-> Try the interactive [Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration) to compare token usage across CSV, JSON, YAML, and TOON with your own data.
+TOON excels with uniform arrays of objects, but there are cases where other formats are better:
+
+- **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
+- **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
+- **Pure tabular data**: CSV is smaller than TOON for flat tables. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
+- **Latency-critical applications**: If end-to-end response time is your top priority, benchmark on your exact setup. Some deployments (especially local/quantized models like Ollama) may process compact JSON faster despite TOON's lower token count. Measure TTFT, tokens/sec, and total time for both formats and use whichever is faster.
+
+See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
+
+## Benchmarks
 
 Benchmarks are organized into two tracks to ensure fair comparisons:
 
@@ -658,6 +660,13 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 </details>
 
 <!-- /automd -->
+
+## Playgrounds
+
+Experiment with TOON format interactively using these community-built tools:
+
+- **[Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration)** – Compare token usage across CSV, JSON (pretty/compressed), YAML, and TOON formats. Use preset datasets or paste your own data to see real-time token comparisons.
+- **[TOON Tools](https://toontools.vercel.app/)** – Full toolkit including bidirectional converters (JSON, CSV, XML, YAML ↔ TOON), token counter with side-by-side comparison, TOON validator, batch file converter, and format playground.
 
 ## Installation & Quick Start
 
