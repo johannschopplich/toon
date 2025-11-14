@@ -14,15 +14,14 @@ const router = createBrowserRouter([
     path: "/docs",
     element: <Docs />,
   },
-])
+]);
 
 function App() {
-
   return (
-     <div className="min-h-screen bg-b text-foreground">
+    <div className="min-h-screen bg-b text-foreground">
       <RouterProvider router={router} />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

@@ -1,4 +1,5 @@
 import type { FunctionComponent } from "react";
+import Footer from "@/components/footer";
 import NavBar from "@/components/navbar";
 
 import SEO from "../../helmet/seo";
@@ -16,8 +17,8 @@ const Home: FunctionComponent = () => {
 
             }}
         />
-        <NavBar/>
-        
+        <NavBar />
+        <Footer />
     </>);
 }
 
