@@ -1,4 +1,5 @@
 import type { FunctionComponent } from "react";
+import CTASection from "@/components/cta-section";
 import FeatureSection from "@/components/feature-section";
 import Footer from "@/components/footer";
 import HeroSection from "@/components/hero-section";
@@ -27,6 +28,7 @@ const Home: FunctionComponent = () => {
         <FeatureSection/>
         <StatsSection/>
         <UseCasesSection/>
+        <CTASection/>
         <Footer />
     </>);
 }
