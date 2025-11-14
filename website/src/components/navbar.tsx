@@ -46,7 +46,7 @@ const NavBar: FunctionComponent = () => {
                         <Link to="#docs" className="text-sm font-medium transition-colors hover:opacity-70">
                             Docs
                         </Link>
-                        <Link to="#github" className="text-sm font-medium transition-colors hover:opacity-70">
+                        <Link to="https://github.com/toon-format/toon#readme" className="text-sm font-medium transition-colors hover:opacity-70">
                             GitHub
                         </Link>
                     </nav>

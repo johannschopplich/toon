@@ -1,5 +1,6 @@
 import type { FunctionComponent } from "react";
 import Footer from "@/components/footer";
+import HeroSection from "@/components/hero-section";
 import NavBar from "@/components/navbar";
 
 import SEO from "../../helmet/seo";
@@ -7,17 +8,19 @@ import SEO from "../../helmet/seo";
 const Home: FunctionComponent = () => {
     return (<>
         <SEO
-            title="Home Page Title"
-            description="A detailed description of the Home page." canonical="https://yourdomain.com/"
+            title="TOON"
+            description="Token-Oriented Object Notation is a compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for LLM input as a lossless, drop-in representation of JSON data." 
+            canonical="https://toonformat.dev/"
             schemaMarkup={{
                 '@context': 'https://schema.org',
                 '@type': 'WebSite',
-                name: 'Your Site',
-                url: 'https://yourdomain.com/',
+                name: 'Toon',
+                url: 'https://toonformat.dev//',
 
             }}
         />
         <NavBar />
+        <HeroSection/>
         <Footer />
     </>);
 }

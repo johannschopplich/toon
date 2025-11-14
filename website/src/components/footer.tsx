@@ -7,21 +7,19 @@ import logo from "@/assets/images/logo.svg";
 const footerLinks = {
     quickLinks: [
         { label: "Home", href: "/" },
-        { label: "Documentation", href: "#docs" },
-        { label: "GitHub", href: "#github" },
-        { label: "Examples", href: "#examples" },
+        { label: "Documentation", href: "https://github.com/toon-format/toon/blob/main/README.md" },
+        { label: "GitHub", href: "https://github.com/toon-format/toon/tree/main" },
     ],
     resources: [
-        { label: "Getting Started", href: "#getting-started" },
-        { label: "API Reference", href: "#api" },
-        { label: "Contributing", href: "#contributing" },
-        { label: "Community", href: "#community" },
+        { label: "Getting Started", href: "https://github.com/toon-format/toon/tree/main?tab=readme-ov-file#playgrounds" },
+
+        { label: "Contributing", href: "https://github.com/toon-format/toon" },
+        { label: "Community", href: "https://github.com/toon-format" },
     ],
     sitemap: [
-        { label: "Features", href: "#features" },
-        { label: "Use Cases", href: "#use-cases" },
-        { label: "Metrics", href: "#metrics" },
-        { label: "Support", href: "#support" },
+        { label: "Features", href: "https://github.com/toon-format/toon?tab=readme-ov-file#key-features" },
+        { label: "Playgrounds", href: "https://github.com/toon-format/toon/tree/main?tab=readme-ov-file#playgrounds" },
+        { label: "Benchmarks", href: "https://github.com/toon-format/toon/tree/main/benchmarks" },
     ],
 }
 
@@ -29,7 +27,7 @@ const Footer: FunctionComponent = () => {
     return (
         <footer className="border-t border-border bg-background">
             <div className="container max-w-screen-2xl px-4 py-12">
-                <div className="grid gap-8 lg:grid-cols-2 md:grid-cols-4 sm:grid-cols-2 lg:gap-12">
+                <div className="grid gap-8 lg:grid-cols-4 md:grid-cols-3 sm:grid-cols-2 lg:gap-12">
                     <div className="space-y-4">
                         <div className="inline-block">
                             <img src={logo} alt="TOON" className="w-8 h-8" />
