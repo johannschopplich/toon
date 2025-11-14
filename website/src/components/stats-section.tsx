@@ -27,7 +27,7 @@ const StatsSection: FunctionComponent = () => {
 
     return (
         <section ref={sectionRef} className="bg-primary py-12 md:py-20">
-            <div className="container max-w-screen-xl px-4">
+            <div className="container max-w-7xl px-4">
                 <div
                     className={`transition-all duration-700 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"}`}
                 >

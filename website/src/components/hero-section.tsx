@@ -84,7 +84,7 @@ const HeroSection: FunctionComponent = () => {
                                 </div>
                                 <div className="text-2xl rotate-90 md:rotate-0">→</div>
                                 <div className="relative px-8 py-3 md:px-10 md:py-4 rounded text-center font-mono text-base md:text-lg font-semibold w-full max-w-[200px] md:w-auto md:min-w-[140px] border-l-2 border-t-2 border-b-2 border-foreground">
-                                    <div className="absolute top-0 bottom-0 right-10 md:right-16 w-[2px] border-r-2 border-dashed border-foreground"></div>
+                                    <div className="absolute top-0 bottom-0 right-10 md:right-16 w-0.5 border-r-2 border-dashed border-foreground"></div>
                                     <div className="absolute top-0 bottom-0 right-0 w-10 md:w-16 border-r-2 border-dotted border-foreground rounded-r"></div>
                                     TOON
                                 </div>

@@ -4,6 +4,7 @@ import Footer from "@/components/footer";
 import HeroSection from "@/components/hero-section";
 import NavBar from "@/components/navbar";
 import StatsSection from "@/components/stats-section";
+import UseCasesSection from "@/components/use-cases";
 
 import SEO from "../../helmet/seo";
 
@@ -25,6 +26,7 @@ const Home: FunctionComponent = () => {
         <HeroSection/>
         <FeatureSection/>
         <StatsSection/>
+        <UseCasesSection/>
         <Footer />
     </>);
 }
