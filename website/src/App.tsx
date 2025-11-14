@@ -1,4 +1,4 @@
-import "./App.css";
+// import "./App.css";
 
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
@@ -19,9 +19,9 @@ const router = createBrowserRouter([
 function App() {
 
   return (
-    <>
+     <div className="min-h-screen bg-b text-foreground">
       <RouterProvider router={router} />
-    </>
+    </div>
   )
 }
 
