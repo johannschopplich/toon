@@ -1168,15 +1168,6 @@ By default, the decoder validates input strictly:
 - **Array length mismatches**: Throws when declared length doesn't match actual count.
 - **Delimiter mismatches**: Throws when row delimiters don't match header.
 
-## Notes and Limitations
-
-- Format familiarity and structure matter as much as token count. TOON's tabular format requires arrays of objects with identical keys and primitive values only. When this doesn't hold (due to mixed types, non-uniform objects, or nested structures), TOON switches to list format where JSON can be more efficient at scale.
-  - **TOON excels at:** Uniform arrays of objects (same fields, primitive values), especially large datasets with consistent structure.
-  - **JSON is better for:** Non-uniform data, deeply nested structures, and objects with varying field sets.
-  - **CSV is more compact for:** Flat, uniform tables without nesting. TOON adds structure (`[N]` array lengths, delimiter scoping, deterministic quoting) that improves LLM reliability with minimal token overhead.
-- **Token counts vary by tokenizer and model.** Benchmarks use a GPT-style tokenizer (cl100k/o200k); actual savings will differ with other models (e.g., [SentencePiece](https://github.com/google/sentencepiece)).
-- **TOON is designed for LLM input** where human readability and token efficiency matter. It's **not** a drop-in replacement for JSON in APIs or storage.
-
 ## Using TOON in LLM Prompts
 
 TOON works best when you show the format instead of describing it. The structure is self-documenting – models parse it naturally once they see the pattern.
