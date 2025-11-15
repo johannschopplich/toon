@@ -1,0 +1,27 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect width="512" height="512" fill="#FEF3C0"/>
+<rect width="93" height="79" transform="translate(81 333)" fill="white"/>
+<rect width="191" height="64" transform="translate(32 288)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(32 412)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 159 475)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 32 475)" fill="#143464"/>
+<rect width="93" height="79" transform="translate(81 333)" fill="white"/>
+<rect width="191" height="64" transform="translate(32 288)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(32 412)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 159 475)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 32 475)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(32 288)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(32 412)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 159 475)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 32 475)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(32 36)" fill="#143464"/>
+<rect width="131" height="64" transform="matrix(0 -1 1 0 96 224)" fill="#143464"/>
+<rect width="128" height="64" transform="matrix(0 -1 1 0 411 476)" fill="#143464"/>
+<rect width="128" height="64" transform="matrix(0 -1 1 0 288 476)" fill="#143464"/>
+<rect width="123" height="64" transform="translate(288 288)" fill="#143464"/>
+<rect width="93" height="79" transform="translate(337 81)" fill="white"/>
+<rect width="191" height="64" transform="translate(288 36)" fill="#143464"/>
+<rect width="191" height="64" transform="translate(288 160)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 415 223)" fill="#143464"/>
+<rect width="187" height="64" transform="matrix(0 -1 1 0 288 223)" fill="#143464"/>
+</svg>
