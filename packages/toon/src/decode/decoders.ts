@@ -24,6 +24,11 @@ export function decodeValueFromLines(cursor: LineCursor, options: ResolvedDecode
     }
   }
 
+  // Check for root list array (without header)
+  if (first.content.startsWith(LIST_ITEM_PREFIX) || first.content === '-') {
+    return decodeListArrayRoot(cursor, 0, options)
+  }
+
   // Check for single primitive value
   if (cursor.length === 1 && !isKeyValueLine(first)) {
     return parsePrimitiveToken(first.content.trim())
@@ -241,6 +246,31 @@ function decodeListArray(
   // In strict mode, check for extra items
   if (options.strict) {
     validateNoExtraListItems(cursor, itemDepth, header.length)
+  }
+
+  return items
+}
+
+function decodeListArrayRoot(cursor: LineCursor, baseDepth: Depth, options: ResolvedDecodeOptions): JsonArray {
+  const items: JsonValue[] = []
+  const itemDepth = baseDepth
+
+  while (!cursor.atEnd()) {
+    const line = cursor.peek()
+    if (!line) {
+      break
+    }
+
+    // Check for list item (with or without space after hyphen)
+    const isListItem = line.content.startsWith(LIST_ITEM_PREFIX) || line.content === '-'
+
+    if (line.depth === itemDepth && isListItem) {
+      const item = decodeListItem(cursor, itemDepth, options)
+      items.push(item)
+    }
+    else {
+      break
+    }
   }
 
   return items

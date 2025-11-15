@@ -8,7 +8,7 @@ import { normalizeValue } from './encode/normalize'
 import { decodeStream, encodeStream } from './stream'
 
 export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
-export { decodeStream, encodeStream } from './stream'
+export { decodeStream, encodeStream, encodeStreamsParallel } from './stream'
 export type {
   DecodeOptions,
   Delimiter,

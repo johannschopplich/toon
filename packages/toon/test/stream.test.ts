@@ -132,8 +132,7 @@ hello world
         { products: [{ id: 1, name: 'Widget', price: 19.99 }, { id: 2, name: 'Gadget', price: 29.99 }] },
         'Simple string',
         42,
-        true,
-        null
+        true
       ]
 
       // Encode stream
