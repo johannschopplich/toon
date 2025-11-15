@@ -8,20 +8,24 @@
 [![npm downloads (total)](https://img.shields.io/npm/dt/@toon-format/toon.svg)](https://www.npmjs.com/package/@toon-format/toon)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-**Token-Oriented Object Notation** is a compact, human-readable serialization format designed for passing structured data to Large Language Models with significantly reduced token usage. It's intended for *LLM input* as a lossless, drop-in representation of JSON data.
+**Token-Oriented Object Notation** is a compact, human-readable format for serializing JSON data in LLM prompts. It represents the same objects, arrays, and primitives as JSON, but in a syntax that minimizes tokens and makes structure easy for models to follow.
 
-TOON's sweet spot is **uniform arrays of objects** – multiple fields per row, same structure across items. It borrows YAML's indentation-based structure for nested objects and CSV's tabular format for uniform data rows, then optimizes both for token efficiency in LLM contexts. For deeply nested or non-uniform data, JSON may be more efficient.
+TOON combines YAML's indentation-based structure for nested objects with a CSV-style tabular layout for uniform arrays. TOON's sweet spot is **uniform arrays of objects** (multiple fields per row, same structure across items), achieving CSV-like compactness while adding explicit structure that helps LLMs parse and validate data reliably. For deeply nested or non-uniform data, JSON may be more efficient.
 
-TOON achieves CSV-like compactness while adding explicit structure that helps LLMs parse and validate data reliably.
+The similarity to CSV is intentional: CSV is simple and ubiquitous, and TOON aims to keep that familiarity while remaining a lossless, drop-in representation of JSON for Large Language Models.
+
+Think of it as a translation layer: use JSON programmatically, and encode it as TOON for LLM input.
 
 > [!TIP]
-> Think of TOON as a translation layer: use JSON programmatically, convert to TOON for LLM input.
+> TOON is production-ready, but also an idea in progress. Nothing's set in stone – help shape where it goes by contributing to the [spec](https://github.com/toon-format/spec) or sharing feedback.
 
 ## Table of Contents
 
 - [Why TOON?](#why-toon)
 - [Key Features](#key-features)
+- [When Not to Use TOON](#when-not-to-use-toon)
 - [Benchmarks](#benchmarks)
+- [Playgrounds](#playgrounds)
 - [📋 Full Specification](https://github.com/toon-format/spec/blob/main/SPEC.md)
 - [Installation & Quick Start](#installation--quick-start)
 - [CLI](#cli)
@@ -45,33 +49,25 @@ AI is becoming cheaper and more accessible, but larger context windows allow for
 }
 ```
 
-TOON conveys the same information with **fewer tokens**:
+YAML conveys the same infromation with **fewer tokens**:
+
+```yaml
+users:
+  - id: 1
+    name: Alice
+    role: admin
+  - id: 2
+    name: Bob
+    role: user
+```
+
+TOON conveys the same information with **even fewer tokens**:
 
 ```
 users[2]{id,name,role}:
   1,Alice,admin
   2,Bob,user
 ```
-
-<details>
-<summary><strong>Why create a new format?</strong></summary>
-
-For small payloads, JSON/CSV/YAML work fine. TOON's value emerges at scale: when you're making hundreds of LLM calls with uniform tabular data, eliminating repeated keys compounds savings significantly. If token costs matter to your use case, TOON reduces them. If not, stick with what works.
-
-</details>
-
-<details>
-<summary><strong>When NOT to use TOON</strong></summary>
-
-TOON excels with uniform arrays of objects, but there are cases where other formats are better:
-
-- **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
-- **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
-- **Flat CSV use-cases**: CSV is smaller than TOON for pure tabular data. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
-
-See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
-
-</details>
 
 ## Key Features
 
@@ -84,10 +80,18 @@ See [benchmarks](#benchmarks) for concrete comparisons across different data str
 
 [^1]: For flat tabular data, CSV is more compact. TOON adds minimal overhead to provide explicit structure and validation that improves LLM reliability.
 
-## Benchmarks
+## When Not to Use TOON
 
-> [!TIP]
-> Try the interactive [Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration) to compare token usage across CSV, JSON, YAML, and TOON with your own data.
+TOON excels with uniform arrays of objects, but there are cases where other formats are better:
+
+- **Deeply nested or non-uniform structures** (tabular eligibility ≈ 0%): JSON-compact often uses fewer tokens. Example: complex configuration objects with many nested levels.
+- **Semi-uniform arrays** (~40–60% tabular eligibility): Token savings diminish. Prefer JSON if your pipelines already rely on it.
+- **Pure tabular data**: CSV is smaller than TOON for flat tables. TOON adds minimal overhead (~5-10%) to provide structure (array length declarations, field headers, delimiter scoping) that improves LLM reliability.
+- **Latency-critical applications**: If end-to-end response time is your top priority, benchmark on your exact setup. Some deployments (especially local/quantized models like Ollama) may process compact JSON faster despite TOON's lower token count. Measure TTFT, tokens/sec, and total time for both formats and use whichever is faster.
+
+See [benchmarks](#benchmarks) for concrete comparisons across different data structures.
+
+## Benchmarks
 
 Benchmarks are organized into two tracks to ensure fair comparisons:
 
@@ -661,6 +665,22 @@ repositories[3]{id,name,repo,description,createdAt,updatedAt,pushedAt,stars,watc
 
 ## Installation & Quick Start
 
+### CLI (No Installation Required)
+
+Try TOON instantly with npx:
+
+```bash
+# Convert JSON to TOON
+npx @toon-format/cli input.json -o output.toon
+
+# Pipe from stdin
+echo '{"name": "Ada", "role": "dev"}' | npx @toon-format/cli
+```
+
+See [CLI section](#cli) for all options and examples.
+
+### TypeScript Library
+
 ```bash
 # npm
 npm install @toon-format/toon
@@ -689,6 +709,13 @@ console.log(encode(data))
 //   1,Alice,admin
 //   2,Bob,user
 ```
+
+## Playgrounds
+
+Experiment with TOON format interactively using these community-built tools for token comparison, format conversion, and validation:
+
+- **[Format Tokenization Playground](https://www.curiouslychase.com/playground/format-tokenization-exploration)**
+- **[TOON Tools](https://toontools.vercel.app/)**
 
 ## CLI
 
@@ -1238,16 +1265,20 @@ Task: Return only users with role "user" as TOON. Use the same header. Set [N] t
 
 ### Official Implementations
 
+> [!TIP]
+> These implementations are actively being developed by dedicated teams. Contributions are welcome! Join the effort by opening issues, submitting PRs, or discussing implementation details in the respective repositories.
+
+- **.NET:** [toon_format](https://github.com/toon-format/toon-dotnet) *(in development)*
+- **Dart:** [toon](https://github.com/toon-format/toon-dart) *(in development)*
+- **Go:** [gotoon](https://github.com/toon-format/toon-go) *(in development)*
 - **Python:** [toon_format](https://github.com/toon-format/toon-python) *(in development)*
 - **Rust:** [toon_format](https://github.com/toon-format/toon-rust) *(in development)*
 
 ### Community Implementations
 
-- **.NET:** [ToonSharp](https://github.com/0xZunia/ToonSharp)
 - **C++:** [ctoon](https://github.com/mohammadraziei/ctoon)
 - **Clojure:** [toon](https://github.com/vadelabs/toon)
 - **Crystal:** [toon-crystal](https://github.com/mamantoha/toon-crystal)
-- **Dart:** [toon](https://github.com/wisamidris77/toon)
 - **Elixir:** [toon_ex](https://github.com/kentaro/toon_ex)
 - **Gleam:** [toon_codec](https://github.com/axelbellec/toon_codec)
 - **Go:** [gotoon](https://github.com/alpkeskin/gotoon)
