@@ -1,12 +1,14 @@
-import type { DecodeOptions, EncodeOptions, JsonValue, ResolvedDecodeOptions, ResolvedEncodeOptions } from './types'
+import type { DecodeOptions, EncodeOptions, JsonValue, ResolvedDecodeOptions, ResolvedEncodeOptions, StreamDecodeOptions, StreamEncodeOptions } from './types'
 import { DEFAULT_DELIMITER } from './constants'
 import { decodeValueFromLines } from './decode/decoders'
 import { expandPathsSafe } from './decode/expand'
 import { LineCursor, toParsedLines } from './decode/scanner'
 import { encodeValue } from './encode/encoders'
 import { normalizeValue } from './encode/normalize'
+import { decodeStream, encodeStream } from './stream'
 
 export { DEFAULT_DELIMITER, DELIMITERS } from './constants'
+export { decodeStream, encodeStream, encodeStreamsParallel } from './stream'
 export type {
   DecodeOptions,
   Delimiter,
@@ -18,6 +20,8 @@ export type {
   JsonValue,
   ResolvedDecodeOptions,
   ResolvedEncodeOptions,
+  StreamDecodeOptions,
+  StreamEncodeOptions,
 } from './types'
 
 /**
